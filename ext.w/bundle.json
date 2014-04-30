@@ -1,0 +1,6 @@
+{
+	"wot": "0.1",
+	"encoding": "utf8",
+	"version": "0.5",
+	"embed": ["jQueryUI.l", "Modernizr.l", "jQuery.l", "underscore.l", "wotext_Dataset.l", "wotext_dialogs.w", "wotext_Cookies.s", "wotext_helpers.l", "wotsingle_Button.c", "wotsingle_CloseButton.c", "wotext_Screens.c"]
+}

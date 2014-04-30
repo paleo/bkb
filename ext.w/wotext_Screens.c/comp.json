@@ -1,0 +1,8 @@
+{
+	"wot": "0.1",
+	"encoding": "utf8",
+	"requireLib": ["jQuery", "wotext.helpers"],
+	"script": ["Screens.js"],
+	"tpl": ["t.html"],
+	"name": "wotext.Screens"
+}

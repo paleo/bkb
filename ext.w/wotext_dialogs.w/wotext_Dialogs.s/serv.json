@@ -1,0 +1,7 @@
+{
+	"wot": "0.1",
+	"encoding": "utf8",
+	"script": ["Dialogs.js"],
+	"name": "wotext.Dialogs",
+	"alias": "wot.Dialogs"
+}

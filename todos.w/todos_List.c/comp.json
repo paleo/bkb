@@ -1,0 +1,9 @@
+{
+	"wot": "0.1",
+	"encoding": "utf8",
+	"requireLib": ["jQuery"],
+	"script": "List.js",
+	"tpl": "t.html",
+	"css": "p.css",
+	"name": "todos.List"
+}
