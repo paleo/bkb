@@ -1,0 +1,15 @@
+{
+  "name": "wottool",
+  "description": "Wot toolkit",
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {
+    "uglify-js": "~2.4.13",
+    "uglifycss": "~0.0.8",
+    "html-minifier": "~0.5.6"
+  },
+  "_id": "wottool@0.1.0",
+  "_from": "wottool@"
+}
