@@ -19,7 +19,7 @@ module wot {
 		show?(): Component;
 		hide?(): Component;
 		setEnabled?(b: boolean): Component;
-		destroy(): void;
+		destruct?(removeFromDOM: boolean): void;
 	}
 
 	export interface LiveState {
@@ -67,11 +67,92 @@ module wot {
 		showConfirm(msgHtml: string, buttonList: any[]): void;
 	}
 
+	export interface ApplicationContext {
+		properties: {};
+		isDebug(): boolean;
+		getService(serviceName): any;
+		createComponent(componentName: string, props: {}, st: LiveState): any;
+		removeComponent(c: Component, fromDOM?: boolean): void;
+		removeComponent(cList: Component[], fromDOM?: boolean): void;
+		getServiceContext(serviceName: string): ServiceContext;
+		getComponentTypeContext(componentName: string): ComponentTypeContext;
+		/**
+		 * Available options:
+		 * <pre>{
+		 * 	'autoLoadCss': boolean,
+		 * 	'version': string,
+		 * 	'w': boolean,
+		 * 	'start': -DOM-element-,
+		 * 	'done': Function,
+		 * 	'fail': Function
+		 * }</pre>
+		 * @param bundlePath
+		 * @param opt
+		 */
+		loadBundle(bundlePath: string, opt?: {}): void;
+		hasLib(libName): boolean;
+		includeLib(libName): boolean;
+		requireLib(libName: any): void;
+		requireService(serviceName: string): void;
+		requireComponent(componentName: string): void;
+		getDebugTree(): {};
+	}
+
+	export interface ServiceContext {
+		getApplicationContext(): ApplicationContext;
+		getServiceName(): string;
+		getServiceBaseUrl(): string;
+		getOwnService(): any;
+		getService(serviceName): any;
+		createComponent(componentName: string, props: {}, st: LiveState): any;
+		removeComponent(c: Component, fromDOM?: boolean): void;
+		removeComponent(cList: Component[], fromDOM?: boolean): void;
+		hasLib(libName): boolean;
+		includeLib(libName): boolean;
+		requireLib(libName): void;
+		requireService(serviceName): void;
+		requireComponent(componentName): void;
+	}
+
+	export interface ComponentContext {
+		getApplicationContext(): ApplicationContext;
+		getLiveState(): LiveState;
+		getComponentName(): string;
+		getComponentBaseUrl(): string;
+		getTemplate(sel: string, elMap?: {}): HTMLElement;
+		createOwnComponent(props?: {}, st?: LiveState): any;
+		createComponent(componentName: string, props?: {}, st?: LiveState): any;
+		removeComponent(c: Component, fromDOM?: boolean): void;
+		removeComponent(cList: Component[], fromDOM?: boolean): void;
+		removeOwnComponent(fromDOM?: boolean): void;
+		getService(serviceName): any;
+		hasLib(libName): boolean;
+		includeLib(libName): boolean;
+		requireLib(libName): void;
+		requireService(serviceName): void;
+		requireComponent(componentName): void;
+	}
+
+	export interface ComponentTypeContext {
+		getComponentName(): string;
+		getComponentBaseUrl(): string;
+		getTemplate(sel: string, elMap?: {}): HTMLElement;
+		createOwnComponent(props: {}, st: LiveState): any;
+	}
+
 	// ##
-	// ## ApplicationContext
+	// ## Functions
 	// ##
 
-	export class ApplicationContext {
+	export function makeApplicationContext(properties: {}, debug = false): ApplicationContext {
+		return new ImplApplicationContext(properties, debug);
+	}
+
+	// ##
+	// ## ImplApplicationContext
+	// ##
+
+	class ImplApplicationContext implements ApplicationContext {
 
 		private libraries: Libraries;
 		private services: Services;
@@ -89,6 +170,10 @@ module wot {
 			this.loader = new Loader(this, this.libraries, this.services, this.components, this.bundles);
 		}
 
+		// --
+		// -- ApplicationContext
+		// --
+
 		public isDebug(): boolean {
 			return this.debug;
 		}
@@ -98,7 +183,16 @@ module wot {
 		}
 
 		public createComponent(componentName: string, props: {}, st: LiveState): any {
-			return this.components.create(componentName, props, st);
+			return this.components.create(componentName, props, st, {'from': 'A'});
+		}
+
+		public removeComponent(c: any, fromDOM = false): void {
+			if (LoaderHelper.isArray(c)) {
+				var compTree = this.components.getComponentTree();
+				for (var i = 0, len = c.length; i < len; ++i)
+					compTree.destruct(c[i], fromDOM);
+			} else
+				this.components.getComponentTree().destruct(c, fromDOM);
 		}
 
 		public getServiceContext(serviceName: string): ServiceContext {
@@ -150,16 +244,36 @@ module wot {
 		public requireComponent(componentName): void {
 			this.components.getComponentTypeContext(componentName);
 		}
+
+		public getDebugTree(): {} {
+			return this.components.getComponentTree().getTreeCopy();
+		}
+
+		// --
+		// -- Internal
+		// --
+
+		public createComponentFromServ(componentName: string, props: {}, st: LiveState, sc: ImplServiceContext): any {
+			return this.components.create(componentName, props, st, {'from': 'S', 'sc': sc});
+		}
+
+		public createComponentFromComp(componentName: string, props: {}, st: LiveState, compId: number): any {
+			return this.components.create(componentName, props, st, {'from': 'C', 'id': compId});
+		}
+
+		public removeComponentFromId(compId: number, fromDOM = false): void {
+			this.components.getComponentTree().destructFromId(compId, fromDOM);
+		}
 	}
 
 	// ##
-	// ## ServiceContext
+	// ## ImplServiceContext
 	// ##
 
-	export class ServiceContext {
+	class ImplServiceContext implements ServiceContext {
 		private service: any;
 
-		constructor(private ac: ApplicationContext, private serviceName: string, private serviceBaseUrl: string, cl: any) {
+		constructor(private ac: ImplApplicationContext, private serviceName: string, private serviceBaseUrl: string, cl: any) {
 			this.service = new cl(this);
 		}
 
@@ -184,7 +298,11 @@ module wot {
 		}
 
 		public createComponent(componentName: string, props: {}, st: LiveState): any {
-			return this.ac.createComponent(componentName, props, st);
+			return this.ac.createComponentFromServ(componentName, props, st, this);
+		}
+
+		public removeComponent(c: any, fromDOM = false): void {
+			this.ac.removeComponent(c, fromDOM);
 		}
 
 		public hasLib(libName): boolean {
@@ -209,14 +327,11 @@ module wot {
 	}
 
 	// ##
-	// ## ComponentContext
+	// ## ImplComponentContext
 	// ##
 
-	export class ComponentContext {
-		private compList: Component[];
-		private rmCbList: Function[];
-
-		constructor(private ac: ApplicationContext, private ctc: ComponentTypeContext, private st: LiveState) {
+	class ImplComponentContext implements ComponentContext {
+		constructor(private ac: ImplApplicationContext, private ctc: ImplComponentTypeContext, private st: LiveState, private compId: number) {
 		}
 
 		public getApplicationContext(): ApplicationContext {
@@ -244,7 +359,15 @@ module wot {
 		}
 
 		public createComponent(componentName: string, props: {} = null, st: LiveState = null): any {
-			return this.ac.createComponent(componentName, props, st ? st : this.st);
+			return this.ac.createComponentFromComp(componentName, props, st ? st : this.st, this.compId);
+		}
+
+		public removeComponent(c: any, fromDOM = false): void {
+			this.ac.removeComponent(c, fromDOM);
+		}
+
+		public removeOwnComponent(fromDOM = false): void {
+			this.ac.removeComponentFromId(this.compId, fromDOM);
 		}
 
 		public getService(serviceName): any {
@@ -270,60 +393,14 @@ module wot {
 		public requireComponent(componentName): void {
 			this.ac.requireComponent(componentName);
 		}
-
-		// - Delegate
-
-		public addComp(comp: Component): Component {
-			if (this.compList === undefined)
-				this.compList = [];
-			this.compList.push(comp);
-			return comp;
-		}
-
-		public addListenerRm(cb: Function): void {
-			if (this.rmCbList === undefined)
-				this.rmCbList = [];
-			this.rmCbList.push(cb);
-		}
-
-		public propagReset(): void {
-			this.propagCall('reset');
-		}
-
-		public propagSetEnabled(b: boolean): void {
-			this.propagCall('enable', b);
-		}
-
-		public propagCall(method: string, arg: any = undefined) {
-			if (this.compList === undefined)
-				return;
-			for (var i = 0, len = this.compList.length; i < len; ++i) {
-				if (this.compList[i][method]) {
-					if (arg === undefined)
-						this.compList[i][method]();
-					else
-						this.compList[i][method](arg);
-				}
-			}
-		}
-
-		public propagDestroy(): void {
-			if (this.rmCbList !== undefined) {
-				for (var i = 0, len = this.rmCbList.length; i < len; ++i)
-					this.rmCbList[i]();
-			}
-			this.rmCbList = null;
-			this.propagCall('destroy');
-			this.compList = null;
-		}
 	}
 
 	// ##
-	// ## ComponentTypeContext
+	// ## ImplComponentTypeContext
 	// ##
 
-	export class ComponentTypeContext {
-		constructor(private ac: ApplicationContext, private componentName: string, private componentBaseUrl: string,
+	class ImplComponentTypeContext implements ComponentTypeContext {
+		constructor(private ac: ImplApplicationContext, private componentName: string, private componentBaseUrl: string,
 			private tplArr: {}, private tplSel: {}, private tplLab: {}) {
 			// TODO Reference all labels in the l10n service
 			// tplLab: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is
@@ -380,7 +457,7 @@ module wot {
 			for (var lblId in this.tplLab) {
 				if (!this.tplLab.hasOwnProperty(lblId))
 					continue;
-				list = ComponentTypeContext.getElementsByClassName(lblId, el);
+				list = ImplComponentTypeContext.getElementsByClassName(lblId, el);
 				if (list.length !== 1)
 					continue;
 				list[0].textContent = this.tplLab[lblId]; // TODO Use the l10n label in the current language here
@@ -399,13 +476,121 @@ module wot {
 	}
 
 	// ##
+	// ## ComponentTree
+	// ##
+
+	class ComponentTree {
+
+		private static ID_PROP = '_wotCompId';
+		private tree = {};
+		private list = [];
+
+		public newPlaceholder(cName: string, compTreeArg): number {
+			switch (compTreeArg['from']) {
+				case 'A':
+					return this.addFromRoot(cName, '/');
+				case 'S':
+					return this.addFromRoot(cName, compTreeArg['sc'].getServiceName());
+				case 'C':
+					var parentId = compTreeArg['id'];
+					if (this.list[parentId] === undefined)
+						throw new Error('Unknown parent component "' + parentId + '"');
+					var item = this.list[parentId];
+					return this.addItem(cName, item['children']);
+				default:
+					throw new Error('Unknown from "' + compTreeArg['from'] + '"');
+			}
+		}
+
+		public setComp(id: number, c: Component): void {
+			var item = this.list[id];
+			if (item === undefined)
+				throw new Error('Unknown component "' + id + '"');
+			item['comp'] = c;
+			c[ComponentTree.ID_PROP] = id;
+		}
+
+		public destruct(c: Component, removeFromDOM: boolean) {
+			this.destructItem(c[ComponentTree.ID_PROP], removeFromDOM);
+		}
+
+		public destructFromId(id: number, removeFromDOM: boolean) {
+			this.destructItem(id, removeFromDOM);
+		}
+
+		public getTreeCopy(): {} {
+			var copy = {}, children;
+			for (var rootId in this.tree) {
+				if (this.tree.hasOwnProperty(rootId)) {
+					children = ComponentTree.copyItems(this.tree[rootId]);
+					if (children !== null)
+						copy[rootId] = children;
+				}
+			}
+			return copy;
+		}
+
+		private static copyItems(items: {}) {
+			var copy = {}, empty = true, children: {};
+			for (var id in items) {
+				if (items.hasOwnProperty(id)) {
+					empty = false;
+					copy[id] = {
+						'name': items[id]['name'],
+						'comp': items[id]['comp']
+					};
+					children = ComponentTree.copyItems(items[id]['children']);
+					if (children !== null)
+						copy[id]['children'] = children;
+				}
+			}
+			return empty ? null : copy;
+		}
+
+		private destructItem(id: number, removeFromDOM: boolean) {
+			var item = this.list[id];
+			if (item === undefined)
+				throw new Error('Unknown component "' + id + '" (already removed?)');
+			if (item['comp'] === null)
+				throw new Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
+			if (item['comp']['destruct'] !== undefined)
+				item['comp']['destruct'](removeFromDOM);
+			var children = item['children'];
+			for (var childId in children) {
+				if (children.hasOwnProperty(childId))
+					this.destructItem(parseInt(childId, 10), removeFromDOM);
+			}
+			delete item['parentMap'][id];
+			delete this.list[id];
+		}
+
+		private addFromRoot(cName: string, parentId: string): number {
+			var children = this.tree[parentId];
+			if (children === undefined)
+				this.tree[parentId] = children = {};
+			return this.addItem(cName, children);
+		}
+
+		private addItem(cName: string, children: {}): number {
+			var id = this.list.length;
+			this.list.push(children[id] = {
+				'comp': null,
+				'name': cName,
+				'children': {},
+				'parentMap': children
+			});
+			return id;
+		}
+	}
+
+	// ##
 	// ## Bundles
 	// ##
 
 	class Bundles {
 		private map = {};
 
-		constructor(private ac: ApplicationContext) {
+		constructor(private ac: ImplApplicationContext) {
 		}
 
 		public register(bundlePath: string, bundleUrl: string, requireLib: string[], script: string, mainClassName: string) {
@@ -440,7 +625,7 @@ module wot {
 	class Libraries {
 		private map = {};
 
-		constructor(private ac: ApplicationContext) {
+		constructor(private ac: ImplApplicationContext) {
 		}
 
 		public register(libName: string, requireLib: string[], script: string) {
@@ -486,7 +671,7 @@ module wot {
 	class Services {
 		private map = {};
 
-		constructor(private ac: ApplicationContext) {
+		constructor(private ac: ImplApplicationContext) {
 			this.register('wot.Log', null, null, null, null);
 			this.register('wot.Ajax', null, null, null, null);
 			this.register('wot.Router', null, null, null, null);
@@ -520,7 +705,7 @@ module wot {
 			return sc.getOwnService();
 		}
 
-		public getServiceContext(serviceName: string): ServiceContext {
+		public getServiceContext(serviceName: string): ImplServiceContext {
 			var prop = this.map[serviceName];
 			if (prop === undefined)
 				throw new Error('Unknown service "' + serviceName + '"');
@@ -530,7 +715,7 @@ module wot {
 				if (prop['script'] !== null)
 					globalScopeEval(prop['script']);
 				var cl = LoaderHelper.stringToClass(prop['name']);
-				prop['sc'] = new ServiceContext(this.ac, prop['name'], prop['baseUrl'], cl);
+				prop['sc'] = new ImplServiceContext(this.ac, prop['name'], prop['baseUrl'], cl);
 			}
 			return prop['sc'];
 		}
@@ -545,11 +730,17 @@ module wot {
 		public static DATA_PH = 'data-wot-mYr4-ph';
 		private log;
 		private tplParser: TemplateParser;
+		private compTree: ComponentTree;
 		private map = {};
 
-		constructor(private ac: ApplicationContext) {
+		constructor(private ac: ImplApplicationContext) {
 			this.log = ac.getService('wot.Log');
 			this.tplParser = new TemplateParser();
+			this.compTree = new ComponentTree();
+		}
+
+		public getComponentTree(): ComponentTree {
+			return this.compTree;
 		}
 
 		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string) {
@@ -576,13 +767,16 @@ module wot {
 			};
 		}
 
-		public create(componentName: string, props: {}, st: LiveState): Component {
-			var cc = new ComponentContext(this.ac, this.getComponentTypeContext(componentName), st);
+		public create(componentName: string, props: {}, st: LiveState, compTreeArg: {}): Component {
+			var id = this.compTree.newPlaceholder(componentName, compTreeArg);
+			var cc = new ImplComponentContext(this.ac, this.getComponentTypeContext(componentName), st, id);
 			var cl = LoaderHelper.stringToClass(componentName);
-			return new cl(cc, props ? props : {});
+			var c = new cl(cc, props ? props : {});
+			this.compTree.setComp(id, c);
+			return c;
 		}
 
-		public getComponentTypeContext(componentName: string): ComponentTypeContext {
+		public getComponentTypeContext(componentName: string): ImplComponentTypeContext {
 			var prop = this.map[componentName];
 			if (prop === undefined)
 				throw new Error('Unknown component "' + componentName + '"');
@@ -591,7 +785,7 @@ module wot {
 					this.ac.requireLib(prop['requireLib']);
 				if (prop['script'] !== null)
 					globalScopeEval(prop['script']);
-				prop['cc'] = new ComponentTypeContext(this.ac, componentName, prop['baseUrl'], prop['tplArr'], prop['tplSel'], prop['tplLab']);
+				prop['cc'] = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl'], prop['tplArr'], prop['tplSel'], prop['tplLab']);
 			}
 			return prop['cc'];
 		}
@@ -776,7 +970,7 @@ module wot {
 		private ajax: wot.Ajax;
 		private bundlePropMap = {};
 
-		constructor(private ac: ApplicationContext, private libraries: Libraries, private services: Services,
+		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components, private bundles: Bundles) {
 			this.appUrl = ac.properties['appUrl'];
 			this.ajax = this.services.get('wot.Ajax');
@@ -1571,6 +1765,12 @@ module wot {
 			if (typeof fn !== 'function')
 				throw new Error('Class not found: "' + s + '"');
 			return fn;
+		}
+
+		public static isArray(data) {
+			if (Array.isArray)
+				return Array.isArray(data);
+			return Object.prototype.toString.call(data) === '[object Array]'; // before EcmaScript 5.1
 		}
 	}
 

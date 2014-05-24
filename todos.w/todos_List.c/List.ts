@@ -29,19 +29,19 @@ module todos {
 				this.createItem();
 		}
 
-		public destroy() {
-			this.clear();
-			this.btn.destroy();
-		}
-
 		public getElement(): HTMLElement {
 			return this.$bloc[0];
 		}
 
+		public destruct(removeFromDOM: boolean) {
+			if (removeFromDOM)
+				this.$bloc.remove();
+		}
+
 		public removeItem(itemId: number) {
 			var prop = this.items[itemId];
-			prop['item'].destroy();
 			prop['$li'].remove();
+			this.cc.removeComponent(prop['item']);
 			delete this.items[itemId];
 		}
 
@@ -57,17 +57,6 @@ module todos {
 				'item': item,
 				'$li': $li
 			};
-		}
-
-		private clear() {
-			if (!this.items)
-				return;
-			this.$ul.empty();
-			for (var k in this.items) {
-				if (this.items.hasOwnProperty(k))
-					this.items[k]['item'].destroy();
-			}
-			this.items = null;
 		}
 	}
 }

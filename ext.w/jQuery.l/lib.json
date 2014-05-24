@@ -1,0 +1,5 @@
+{
+	"wot": "0.1",
+	"script": ["jquery-2.1.0.min.js"],
+	"name": "jQuery"
+}

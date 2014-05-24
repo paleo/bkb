@@ -25,17 +25,17 @@ module todos {
 			this.$bloc.find('.lbl').text(props['label']);
 		}
 
-		public destroy() {
-			this.btn.destroy();
-		}
-
 		public getElement(): HTMLElement {
 			return this.$bloc[0];
 		}
 
+		public destruct(removeFromDOM: boolean) {
+			if (removeFromDOM)
+				this.$bloc.remove();
+		}
+
 		private removeFromList() {
-			if (this.curList)
-				this.curList.removeItem(this.curItemId);
+			this.curList.removeItem(this.curItemId);
 		}
 	}
 }

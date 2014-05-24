@@ -39,8 +39,9 @@ module wotsingle {
 			return this;
 		}
 
-		public destroy() {
-			this.$btn.off();
+		public destruct(removeFromDOM: boolean) {
+			if (removeFromDOM)
+				this.$btn.remove();
 		}
 
 		// --

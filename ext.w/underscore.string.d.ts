@@ -572,6 +572,5 @@ declare module 'underscore.string' {
 //  export function startsWith(str: string, starts: string): boolean;
 //}
 
-interface UnderscoreStatic extends UnderscoreStringStaticExports {
-//    startsWith: Function;
-}
+//interface UnderscoreStatic extends UnderscoreStringStaticExports {
+//}

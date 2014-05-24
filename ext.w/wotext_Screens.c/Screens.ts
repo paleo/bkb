@@ -27,6 +27,14 @@ module wotext {
 		deactivate(): void;
 	}
 
+//	export interface SimpleScreen {
+//		getUrlTitle();
+//		createScreenElement(): HTMLElement;
+//		activate(): void;
+//		readyToDeactivate(): boolean;
+//		deactivate(): void;
+//	}
+
 	export interface ScreenProvider {
 		/**
 		 * @return Screen NULL when no screen
@@ -53,6 +61,7 @@ module wotext {
 		private curScreen: Screen;
 		private lastUp: wot.UrlProps = null;
 		private lastScreen: Screen = null;
+		private rmCbList: Function[] = [];
 
 		// --
 		// -- Component
@@ -62,10 +71,10 @@ module wotext {
 			this.$container = $(this.cc.getTemplate('.screens'));
 			this.router = this.cc.getService('wot.Router');
 			var that = this;
-			this.cc.addListenerRm(this.router.addBeforeListener(function (up: wot.UrlProps): boolean {
+			this.rmCbList.push(this.router.addBeforeListener(function (up: wot.UrlProps): boolean {
 				return that.getScreen(up) !== null;
 			}));
-			this.cc.addListenerRm(this.router.addChangeListener(function (up: wot.UrlProps) {
+			this.rmCbList.push(this.router.addChangeListener(function (up: wot.UrlProps) {
 				that.switchTo(up);
 			}));
 		}
@@ -74,15 +83,22 @@ module wotext {
 			return this.$container[0];
 		}
 
-		public destroy() {
-			this.cc.propagDestroy();
+		public destruct(removeFromDOM: boolean) {
+			if (removeFromDOM)
+				this.$container.remove();
+			for (var i = 0, len = this.rmCbList.length; i < len; ++i)
+				this.rmCbList[i]();
 		}
 
 		// --
 		// -- Public
 		// --
 
-		public addRoutes(usp: ScreenProvider, routes: string[]) {
+//		public addScreen(screen: Screen, route: string) {
+//			this.gsp.addScreen(screen, route);
+//		}
+
+		public addScreenProvider(usp: ScreenProvider, routes: string[]) {
 			for (var i = 0, len = routes.length; i < len; ++i) {
 				this.unregisteredSelList.push(routes[i]);
 				this.uspBySel[routes[i]] = usp;
@@ -90,7 +106,7 @@ module wotext {
 		}
 
 		public register(): void {
-			this.cc.addListenerRm(this.router.addSelectors(this.unregisteredSelList, this));
+			this.rmCbList.push(this.router.addSelectors(this.unregisteredSelList, this));
 			this.unregisteredSelList = [];
 		}
 
@@ -162,4 +178,41 @@ module wotext {
 			return this.lastScreen;
 		}
 	}
+
+//	// ##
+//	// ## GenericScreenProvider
+//	// ##
+//
+//	class GenericScreenProvider implements ScreenProvider, Screen {
+//		private map = {};
+//		private elId: number;
+//
+//		constructor(private screens: Screens) {
+//		}
+//
+//		public addScreen(screen: SimpleScreen, route: string) {
+//			this.map[route] = screen;
+//			this.screens.addScreenProvider(this, [route]);
+//		}
+//
+//		public getScreen(up: wot.UrlProps, seh: ScreenElHandler): Screen {
+//			var screen = this.map[up.sel];
+//			if (screen === undefined)
+//				throw new Error('Unknown route "' + up.sel + '"');
+//			if (this.elId === undefined)
+//				this.elId = seh.addScreenElement(screen.createScreenElement());
+//
+//			return {
+//				getUrlTitle();
+//		/**
+//		 * @returns NULL or UNDEFINED if still undefined, or the screen element ID
+//		 */
+//		getScreenElementId(): number;
+//		activate(): void;
+//		readyToDeactivate(): boolean;
+//		deactivate(): void;
+//
+//			};
+//		}
+//	}
 }

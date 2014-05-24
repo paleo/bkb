@@ -199,8 +199,11 @@ module wot {
 			var sData: Object = opt['sData'] === undefined ? null : opt['sData'];
 			if (sData !== null) {
 				var sAsJson: string = opt['sAsJson'];
-				if (sAsJson !== undefined)
-					sData = { sAsJson: Ajax.jsonStringify(sData) };
+				if (sAsJson !== undefined) {
+					var orig = sData;
+					sData = {};
+					sData[sAsJson] = Ajax.jsonStringify(orig);
+				}
 			}
 			var rDataType: string = opt['rDataType'] === undefined ? 'json' : opt['rDataType'];
 			var that = this;
@@ -391,67 +394,15 @@ module wot {
 				var sDataList = [];
 				for (var k in sData) {
 					if (sData.hasOwnProperty(k))
-						sDataList.push(decodeURIComponent(k) + '=' + decodeURIComponent(sData[k]));
+						sDataList.push(encodeURIComponent(k) + '=' + encodeURIComponent(sData[k]));
 				}
 				sDataStr = sDataList.length === 0 ? null : sDataList.join('&');
 			} else
 				sDataStr = null;
 			// - Send
+			req.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 			req.send(sDataStr);
 		}
-
-//		/**
-//		 * This function is under MIT license: http://neil.mit-license.org/
-//		 */
-//		private twixAjax(options) { // TODO use twix
-//			options = options || {url:""};
-//			options.type = options.type || 'GET';
-//			options.headers = options.headers || {};
-//			options.timeout = parseInt(options.timeout, 10) || 0;
-//			options.success = options.success || function() {};
-//			options.error = options.error || function() {};
-//			options.async = typeof options.async === 'undefined' ? true : options.async;
-//
-//			var client = new XMLHttpRequest();
-//			if (options.timeout > 0) {
-//				client.timeout = options.timeout;
-//				client.ontimeout = function () {
-//					options.error('timeout', 'timeout', client);
-//				}
-//			}
-//			client.open(options.type, options.url, options.async);
-//
-//			for (var i in options.headers) {
-//				if (options.headers.hasOwnProperty(i)) {
-//					client.setRequestHeader(i, options.headers[i]);
-//				}
-//			}
-//
-//			client.send(options.data);
-//			client.onreadystatechange = function() {
-//				if (this.readyState == 4 && this.status == 200) {
-//					var data = this.responseText;
-//					var contentType = this.getResponseHeader('Content-Type');
-//					if (contentType && contentType.match(/json/)) {
-//						data = JSON.parse(this.responseText);
-//					}
-//					options.success(data, this.statusText, this);
-//				} else if (this.readyState == 4) {
-//					options.error(this.status, this.statusText, this);
-//				}
-//			};
-//
-//			if (options.async == false) {
-//				if (client.readyState == 4 && client.status == 200) {
-//					options.success(client.responseText, client);
-//				} else if (client.readyState == 4) {
-//					options.error(client.status, client.statusText, client);
-//				}
-//			}
-//
-//			return client;
-//		}
-
 
 		private static jsonParse(s) {
 			if (typeof JSON !== 'undefined')

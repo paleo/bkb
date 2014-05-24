@@ -40,7 +40,7 @@ module wotext {
 			return this.$areas[0];
 		}
 
-		public destroy() {
+		public destruct() {
 			this.briefMsgQueue = [];
 			this.stConfirm.reset();
 		}

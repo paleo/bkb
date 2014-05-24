@@ -29,8 +29,8 @@ module wotext.helpers {
 				list[i](param);
 		}
 
-		public destroy(): void {
-			this.listeners = undefined;
+		public clear(): void {
+			this.listeners = {};
 		}
 	}
 
@@ -72,7 +72,7 @@ module wotext.helpers {
 
 		public reset(): void {
 			if (this.listeners) {
-				this.listeners.destroy();
+				this.listeners.clear();
 				this.listeners = null;
 			}
 		}

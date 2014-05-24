@@ -18,7 +18,7 @@ module wotext {
 		// --
 
 		constructor(sc: wot.ServiceContext) {
-			this.comp = <wotext.DialogsComp>sc.getApplicationContext().createComponent('wotext.DialogsComp', null, new wotext.helpers.GenericLiveState(true));
+			this.comp = <wotext.DialogsComp>sc.createComponent('wotext.DialogsComp', null, new wotext.helpers.GenericLiveState(true));
 			$('body').append(this.comp.getElement());
 			var router = <wot.Router>sc.getService('wot.Router');
 			var that = this;

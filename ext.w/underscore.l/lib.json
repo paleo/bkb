@@ -1,0 +1,5 @@
+{
+	"wot": "0.1",
+	"script": ["underscore-1.6.0.min.js", "underscore.string-2.3.0.min.js"],
+	"name": "underscore"
+}

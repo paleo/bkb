@@ -58,7 +58,7 @@
 		var firstRelUrl = document.documentElement.getAttribute('data-wot-first');
 		if (firstRelUrl === '')
 			firstRelUrl = null;
-		var ac = new wot.ApplicationContext({
+		var ac = wot.makeApplicationContext({
 			'appUrl': appUrl,
 			'baseUrl': baseUrl,
 			'firstRelUrl': firstRelUrl
