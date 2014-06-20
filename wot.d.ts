@@ -8,74 +8,74 @@ declare module wot {
         public addListener(cb: Function): void;
         /**
         * <pre><code>opt = {
-        * 	'get'?: {
-        * 		'baseUrl'?: string,
-        * 		'rDataType'?: 'json|script|css|text|detect',
-        * 		'attempts'?: integer // on XHR fail or malformed received JSON
-        * 	},
-        * 	'post'?: {
-        * 		'url'?: string,
-        * 		'rDataType'?: 'json|script|css|text|detect',
-        * 		'sAsJson'?: string, // contains the parameter name
-        * 		'attempts'?: integer // on XHR fail or HTTP 400 or malformed received JSON
-        * 	}
+        *     'get'?: {
+        *         'baseUrl'?: string,
+        *         'rDataType'?: 'json|script|css|text|detect',
+        *         'attempts'?: integer // on XHR fail or malformed received JSON
+        *     },
+        *     'post'?: {
+        *         'url'?: string,
+        *         'rDataType'?: 'json|script|css|text|detect',
+        *         'sAsJson'?: string, // contains the parameter name
+        *         'attempts'?: integer // on XHR fail or HTTP 400 or malformed received JSON
+        *     }
         * }</code></pre>
         */
         public createCustom(opt: any): CustomAjax;
         /**
         * <pre><code>opt = {
-        * 	'method': 'GET|POST|PUT|DELETE',
-        * 	'url': string,
-        * 	'sData'?: {},
-        * 	'done'?: Function,
-        * 	'fail'?: Function,
-        * 	'rDataType'?: 'json|script|css|text|detect', [default: 'json']
-        * 	'sAsJson'?: string, // contains the parameter name
-        * 	'attempts'?: integer [default: 1] // on XHR fail or malformed received JSON // TODO
+        *     'method': 'GET|POST|PUT|DELETE',
+        *     'url': string,
+        *     'sData'?: {},
+        *     'done'?: Function,
+        *     'fail'?: Function,
+        *     'rDataType'?: 'json|script|css|text|detect', [default: 'json']
+        *     'sAsJson'?: string, // contains the parameter name
+        *     'attempts'?: integer [default: 1] // on XHR fail or malformed received JSON // TODO
         * }</code></pre>
         */
         public ajax(opt: any): void;
         /**
         * <pre><code>opt = {
-        * 	'url': string,
-        * 	'sData'?: {},
-        * 	'done'?: Function,
-        * 	'fail'?: Function,
-        * 	'rDataType'?: 'json|script|css|text|detect', [default: 'json']
-        * 	'attempts'?: integer [default: 1] // on XHR fail or malformed received JSON
+        *     'url': string,
+        *     'sData'?: {},
+        *     'done'?: Function,
+        *     'fail'?: Function,
+        *     'rDataType'?: 'json|script|css|text|detect', [default: 'json']
+        *     'attempts'?: integer [default: 1] // on XHR fail or malformed received JSON
         * }</code></pre>
         */
         public get(opt: any): void;
         /**
         * <pre><code>bundleOpt = {
-        * 	'urls': [opt],
-        * 	'done'?: Function,
-        * 	'fail'?: Function
+        *     'urls': [opt],
+        *     'done'?: Function,
+        *     'fail'?: Function
         * }</code></pre>
         */
         public bundleAjax(bundleOpt: any): void;
         /**
         * <pre><code>opt = {
-        * 	'url': string,
-        * 	'sData'?: {},
-        * 	'done'?: Function,
-        * 	'fail'?: Function,
-        * 	'rDataType'?: 'json|script|css|text|detect', [default: 'json']
-        * 	'sAsJson'?: string, // contains the parameter name
-        * 	'attempts'?: integer [default: 1] // on XHR fail or HTTP 400 or malformed received JSON
+        *     'url': string,
+        *     'sData'?: {},
+        *     'done'?: Function,
+        *     'fail'?: Function,
+        *     'rDataType'?: 'json|script|css|text|detect', [default: 'json']
+        *     'sAsJson'?: string, // contains the parameter name
+        *     'attempts'?: integer [default: 1] // on XHR fail or HTTP 400 or malformed received JSON
         * }</code></pre>
         */
         public post(opt: any): void;
         /**
         * <pre><code>opt = {
-        * 	'url': string,
-        * 	'sData'?: {},
-        * 	'sFiles': {}[],
-        * 	'done'?: Function,
-        * 	'fail'?: Function,
-        * 	'rDataType'?: 'json|script|css|text|detect', [default: 'json']
-        * 	'sAsJson'?: string, // contains the parameter name
-        * 	'attempts'?: integer [default: 1] // on XHR fail or HTTP 400 or malformed received JSON
+        *     'url': string,
+        *     'sData'?: {},
+        *     'sFiles': {}[],
+        *     'done'?: Function,
+        *     'fail'?: Function,
+        *     'rDataType'?: 'json|script|css|text|detect', [default: 'json']
+        *     'sAsJson'?: string, // contains the parameter name
+        *     'attempts'?: integer [default: 1] // on XHR fail or HTTP 400 or malformed received JSON
         * }</code></pre>
         */
         public upload(opt: any): void;
@@ -94,17 +94,17 @@ declare module wot {
         private defaultPost;
         /**
         * <pre><code>defaultOpt = {
-        * 	'get'?: {
-        * 		'baseUrl'?: string,
-        * 		'rDataType'?: 'json|script|text|detect',
-        * 		'attempts'?: integer // on XHR fail or malformed received JSON
-        * 	},
-        * 	'post'?: {
-        * 		'url'?: string,
-        * 		'rDataType'?: 'json|script|text|detect',
-        * 		'sAsJson'?: string, // contains the parameter name
-        * 		'attempts'?: integer // on XHR fail or HTTP 400 or malformed received JSON
-        * 	}
+        *     'get'?: {
+        *         'baseUrl'?: string,
+        *         'rDataType'?: 'json|script|text|detect',
+        *         'attempts'?: integer // on XHR fail or malformed received JSON
+        *     },
+        *     'post'?: {
+        *         'url'?: string,
+        *         'rDataType'?: 'json|script|text|detect',
+        *         'sAsJson'?: string, // contains the parameter name
+        *         'attempts'?: integer // on XHR fail or HTTP 400 or malformed received JSON
+        *     }
         * }</code></pre>
         */
         constructor(ajaxSrv: Ajax, defaultOpt: any);
@@ -112,9 +112,9 @@ declare module wot {
         public get(opt: any): void;
         /**
         * <pre><code>bundleOpt = {
-        * 	'urls': [opt],
-        * 	'done'?: Function,
-        * 	'fail'?: Function
+        *     'urls': [opt],
+        *     'done'?: Function,
+        *     'fail'?: Function
         * }</code></pre>
         */
         public bundleAjax(bundleOpt: any): void;
@@ -130,14 +130,14 @@ declare module wot {
         start(element: any): void;
     }
     interface Component {
-        compose? (...props: any[]): Component;
-        setData? (...data: any[]): Component;
-        getElement? (): HTMLElement;
-        reset? (): Component;
-        show? (): Component;
-        hide? (): Component;
-        setEnabled? (b: boolean): Component;
-        destroy(): void;
+        compose?(...props: any[]): Component;
+        setData?(...data: any[]): Component;
+        getElement?(): HTMLElement;
+        reset?(): Component;
+        show?(): Component;
+        hide?(): Component;
+        setEnabled?(b: boolean): Component;
+        destruct?(removeFromDOM: boolean): void;
     }
     interface LiveState {
         isLive(): boolean;
@@ -181,100 +181,74 @@ declare module wot {
         */
         showConfirm(msgHtml: string, buttonList: any[]): void;
     }
-    class ApplicationContext {
-        public properties: {};
-        private debug;
-        private libraries;
-        private services;
-        private components;
-        private bundles;
-        private loader;
-        constructor(properties: {}, debug?: boolean);
-        public isDebug(): boolean;
-        public getService(serviceName: any): any;
-        public createComponent(componentName: string, props: {}, st: LiveState): any;
-        public getServiceContext(serviceName: string): ServiceContext;
-        public getComponentTypeContext(componentName: string): ComponentTypeContext;
+    interface ApplicationContext {
+        properties: {}
+        isDebug(): boolean;
+        getService(serviceName): any;
+        createComponent(componentName: string, props: {}, st: LiveState): any;
+        removeComponent(c: Component, fromDOM?: boolean): void;
+        removeComponent(cList: Component[], fromDOM?: boolean): void;
+        getServiceContext(serviceName: string): ServiceContext;
+        getComponentTypeContext(componentName: string): ComponentTypeContext;
         /**
-        * Available options:
-        * <pre>{
-        * 	'autoLoadCss': boolean,
-        * 	'version': string,
-        * 	'w': boolean,
-        * 	'start': -DOM-element-,
-        * 	'done': Function,
-        * 	'fail': Function
-        * }</pre>
-        * @param bundlePath
-        * @param opt
-        */
-        public loadBundle(bundlePath: string, opt?: {}): void;
-        public hasLib(libName: any): boolean;
-        public includeLib(libName: any): boolean;
-        public requireLib(libName: any): void;
-        public requireService(serviceName: any): void;
-        public requireComponent(componentName: any): void;
+         * Available options:
+         * <pre>{
+         *     'autoLoadCss': boolean,
+         *     'version': string,
+         *     'w': boolean,
+         *     'start': -DOM-element-,
+         *     'done': Function,
+         *     'fail': Function
+         * }</pre>
+         * @param bundlePath
+         * @param opt
+         */
+        loadBundle(bundlePath: string, opt?: {}): void;
+        hasLib(libName): boolean;
+        includeLib(libName): boolean;
+        requireLib(libName: any): void;
+        requireService(serviceName: string): void;
+        requireComponent(componentName: string): void;
+        getDebugTree(): {};
     }
-    class ServiceContext {
-        private ac;
-        private serviceName;
-        private serviceBaseUrl;
-        private service;
-        constructor(ac: ApplicationContext, serviceName: string, serviceBaseUrl: string, cl: any);
-        public getApplicationContext(): ApplicationContext;
-        public getServiceName(): string;
-        public getServiceBaseUrl(): string;
-        public getOwnService(): any;
-        public getService(serviceName: any): any;
-        public createComponent(componentName: string, props: {}, st: LiveState): any;
-        public hasLib(libName: any): boolean;
-        public includeLib(libName: any): boolean;
-        public requireLib(libName: any): void;
-        public requireService(serviceName: any): void;
-        public requireComponent(componentName: any): void;
+    interface ServiceContext {
+        getApplicationContext(): ApplicationContext;
+        getServiceName(): string;
+        getServiceBaseUrl(): string;
+        getOwnService(): any;
+        getService(serviceName): any;
+        createComponent(componentName: string, props: {}, st: LiveState): any;
+        removeComponent(c: Component, fromDOM?: boolean): void;
+        removeComponent(cList: Component[], fromDOM?: boolean): void;
+        hasLib(libName): boolean;
+        includeLib(libName): boolean;
+        requireLib(libName): void;
+        requireService(serviceName): void;
+        requireComponent(componentName): void;
     }
-    class ComponentContext {
-        private ac;
-        private ctc;
-        private st;
-        private compList;
-        private rmCbList;
-        constructor(ac: ApplicationContext, ctc: ComponentTypeContext, st: LiveState);
-        public getApplicationContext(): ApplicationContext;
-        public getLiveState(): LiveState;
-        public getComponentName(): string;
-        public getComponentBaseUrl(): string;
-        public getTemplate(sel: string, elMap?: {}): HTMLElement;
-        public createOwnComponent(props?: {}, st?: LiveState): any;
-        public createComponent(componentName: string, props?: {}, st?: LiveState): any;
-        public getService(serviceName: any): any;
-        public hasLib(libName: any): boolean;
-        public includeLib(libName: any): boolean;
-        public requireLib(libName: any): void;
-        public requireService(serviceName: any): void;
-        public requireComponent(componentName: any): void;
-        public addComp(comp: Component): Component;
-        public addListenerRm(cb: Function): void;
-        public propagReset(): void;
-        public propagSetEnabled(b: boolean): void;
-        public propagCall(method: string, arg?: any): void;
-        public propagDestroy(): void;
+    interface ComponentContext {
+        getApplicationContext(): ApplicationContext;
+        getLiveState(): LiveState;
+        getComponentName(): string;
+        getComponentBaseUrl(): string;
+        getTemplate(sel: string, elMap?: {}): HTMLElement;
+        createOwnComponent(props?: {}, st?: LiveState): any;
+        createComponent(componentName: string, props?: {}, st?: LiveState): any;
+        removeComponent(c: Component, fromDOM?: boolean): void;
+        removeComponent(cList: Component[], fromDOM?: boolean): void;
+        removeOwnComponent(fromDOM?: boolean): void;
+        getService(serviceName): any;
+        hasLib(libName): boolean;
+        includeLib(libName): boolean;
+        requireLib(libName): void;
+        requireService(serviceName): void;
+        requireComponent(componentName): void;
     }
-    class ComponentTypeContext {
-        private ac;
-        private componentName;
-        private componentBaseUrl;
-        private tplArr;
-        private tplSel;
-        private tplLab;
-        constructor(ac: ApplicationContext, componentName: string, componentBaseUrl: string, tplArr: {}, tplSel: {}, tplLab: {});
-        public getComponentName(): string;
-        public getComponentBaseUrl(): string;
-        public getTemplate(sel: string, elMap?: {}): HTMLElement;
-        public createOwnComponent(props: {}, st: LiveState): any;
-        private fillPlaceholders(el, elMap);
-        private fillLabels(el);
-        private static getElementsByClassName(className, fromElem);
+    interface ComponentTypeContext {
+        getComponentName(): string;
+        getComponentBaseUrl(): string;
+        getTemplate(sel: string, elMap?: {}): HTMLElement;
+        createOwnComponent(props: {}, st: LiveState): any;
     }
 }
 declare module wot {

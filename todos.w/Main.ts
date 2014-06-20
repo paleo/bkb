@@ -24,7 +24,6 @@ module todos {
 				that.ac.removeComponent(list, true);
 			});
 			$(element).append(btn.getElement());
-			console.log(Main.stringifyTree(this.ac.getDebugTree()));
 		}
 
 		private static stringifyTree(tree: {}) {

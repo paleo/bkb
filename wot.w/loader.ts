@@ -1264,8 +1264,8 @@ module wot {
 					if (bundleConf['preload']) {
 						++that.waitedPreloads;
 						that.loader.loadBundles(bundleConf['preload'], preloadDone, that.failCallback, false);
-					}
-					that.loadAllEmbedBundles();
+					} else
+						that.loadAllEmbedBundles();
 				},
 				'fail': this.failCallback
 			});
@@ -1475,12 +1475,15 @@ module wot {
 		private loadAllWDataPart2(scriptsToLoad, listsByTypes, libScriptsLoader: WLibScriptsLoader) {
 			var that = this, i: number, len: number, j: number, jLen: number, fileNames;
 			// - Try to end function
-			var oScriptsLoaded = false, lScriptsLoaded = false, ajaxEnded = false, tplRDataMap = null;
+			var oScriptsLoaded = false, lScriptsLoaded = false, ajaxEnded = false, tplRDataMap = null, endDone = false;
 			var tryToEnd = function (decCount: boolean) {
+				if (endDone) {
+				}
 				if (lScriptsLoaded && oScriptsLoaded && ajaxEnded) {
 					that.registerAllWLibraries(listsByTypes['L']);
 					that.registerAllWServices(listsByTypes['S']);
 					that.registerAllWComponents(listsByTypes['C'], tplRDataMap);
+					endDone = true;
 				}
 				that.thingDoneCallback(decCount);
 			};

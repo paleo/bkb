@@ -1,4 +1,4 @@
 {
-	"wot": "0.1",
+	"wot": "0.5",
 	"embed": ["wotext_Dialogs.s", "wotext_DialogsComp.c"]
 }

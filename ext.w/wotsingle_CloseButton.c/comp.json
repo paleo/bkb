@@ -1,5 +1,5 @@
 {
-	"wot": "0.1",
+	"wot": "0.5",
 	"encoding": "utf8",
 	"requireLib": ["jQuery"],
 	"script": "CloseButton.js",

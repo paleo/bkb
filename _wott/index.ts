@@ -17,17 +17,29 @@ module wott {
 			Object.freeze(this.opt);
 		}
 
-		public processBundles(bundleNames: string[], overwrite: boolean) {
+		public processBundles(bundleNames: string[], rmDestination: boolean) {
 			var prj = new Project(this.opt);
 			var writer, reader;
 			for (var i = 0, len = bundleNames.length; i < len; ++i) {
 				reader = new BundleWReader(prj, prj.makeDirW(bundleNames[i]));
 				writer = new BundleWriter(prj, bundleNames[i], reader.getBundleVersion());
 				reader.process(writer);
-				writer.write(overwrite);
+				writer.write(rmDestination);
 			}
 		}
 
+/*
+{
+	'inProjectPath': dir,
+	'outProjectPath': dir,
+	'defaultEncoding': 'utf8',
+	'outEncoding': 'utf8',
+	'includeFiles': 'png gif',
+	'minifyJs': true,
+	'minifyCss': true,
+	'minifyHtml': true
+}
+*/
 		private static cleanOptions(opt: {}): {} {
 			if (!opt['inProjectPath'])
 				throw new Error('Parameter "' + 'inProjectPath' + '" is required');
@@ -49,7 +61,7 @@ module wott {
 	// ##
 
 	class Project {
-		private static WOT_VERSION = '0.1';
+		private static WOT_VERSION = '0.5';
 		private jsMinifier: JsMinifier;
 		private cssMinifier: CssMinifier;
 		private htmlMinifier: HtmlMinifier;
@@ -282,10 +294,10 @@ module wott {
 			};
 		}
 
-		public write(overwrite: boolean): boolean {
+		public write(rmDestination: boolean): boolean {
 			// - Clean the output directory
 			if (fs.existsSync(this.bundlePath)) {
-				if (!overwrite) {
+				if (!rmDestination) {
 					console.log('[Warning] The bundle directory already exists: ' + this.bundleName + ' (skip)');
 					return false;
 				}
@@ -719,15 +731,4 @@ module wott {
 // ## Main
 // ##
 
-var dir = '/path/to/project/';
-
-var tool = new wott.WotTool({
-	'inProjectPath': dir,
-	'outProjectPath': dir,
-	'defaultEncoding': 'utf8',
-	'includeFiles': 'png gif',
-	'minifyJs': true,
-	'minifyCss': true,
-	'minifyHtml': true
-});
-tool.processBundles(['ext', 'todos'], true);
+exports['WotTool'] = wott.WotTool;
