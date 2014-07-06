@@ -1129,6 +1129,8 @@ module wot {
 						continue;
 					data = servMap[name];
 					this.libraries.register(name, data['requireLib'], data['script']);
+					if (data['css'])
+						Loader.addCssLinks(data['css'], bundleUrl);
 				}
 			}
 			// - Register services
@@ -1149,9 +1151,16 @@ module wot {
 						continue;
 					data = compMap[name];
 					this.components.register(name, bundleUrl, data['requireLib'], data['script'], data['tpl']);
+					if (data['css'])
+						Loader.addCssLinks(data['css'], bundleUrl);
 				}
 			}
 			this.bundles.register(bundlePath, bundleUrl, bundleData['requireLib'], bundleData['script'], bundleData['main']);
+		}
+
+		private static addCssLinks(list: string[], bundleUrl: string) {
+			for (var i = 0, len = list.length; i < len; ++i)
+				Loader.addCssLinkElement(bundleUrl, list[i]);
 		}
 
 		private static getLastDirName(path: string): string {

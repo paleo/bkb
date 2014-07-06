@@ -1,7 +1,8 @@
-/// <reference path='node.d.ts' />
+/// <reference path='lib/node.d.ts' />
+'use strict';
 
 var argv: any = require('optimist').argv;
-var wott: any = require('./index');
+import WotTool = require('./index');
 
 if (argv['h'] || argv['help'] || argv['_'].length === 0) {
 	console.log('Syntax: node _wott/wott.js OPTIONS bundle1 bundle2...\n' +
@@ -24,7 +25,7 @@ var toBool = function(v: any, def: boolean): boolean {
 	return v === undefined ?  def : v;
 };
 
-var tool = new wott.WotTool({
+var tool = new WotTool({
 	'inProjectPath': inPath,
 	'outProjectPath': argv['o'] || argv['out-project-path'] || inPath,
 	'defaultEncoding': argv['e'] || argv['default-encoding'] || 'utf8',
@@ -33,4 +34,8 @@ var tool = new wott.WotTool({
 	'minifyCss': toBool(argv['c'] || argv['minify-css'], true),
 	'minifyHtml': toBool(argv['m'] || argv['minify-html'], true)
 });
-tool.processBundles(argv['_'], toBool(argv['r'] || argv['remove-destination'], false));
+tool.processBundles(argv['_'], toBool(argv['r'] || argv['remove-destination'], false)).catch(function (err) {
+	console.log(err['stack']);
+}).then(function () {
+	console.log('END');
+});

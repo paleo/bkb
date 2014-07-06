@@ -1,6 +1,6 @@
 {
   "name": "wott",
-  "version": "0.5.1",
+  "version": "0.5.3",
   "description": "Wot tool",
   "author": "Tarh",
   "engines": {
@@ -14,7 +14,8 @@
     "optimist": "~0.6.1",
     "uglify-js": "~2.4.13",
     "uglifycss": "~0.0.8",
-    "html-minifier": "~0.5.6"
+    "html-minifier": "~0.5.6",
+		"es6-promise": "~1.0.0"
   },
   "private": true,
   "license": "CC0"
