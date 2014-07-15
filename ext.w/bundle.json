@@ -1,5 +1,5 @@
 {
-	"woc": "0.5",
+	"woc": "0.6",
 	"encoding": "utf8",
 	"version": "0.5",
 	"embed": ["jQueryUI.l", "Modernizr.l", "jQuery.l", "underscore.l", "wocext_Dataset.l", "wocext_dialogs.w", "wocext_Cookies.s", "wocext_helpers.l", "wocsingle_Button.c", "wocsingle_CloseButton.c", "wocext_Screens.c"]
