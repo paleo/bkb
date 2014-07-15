@@ -1,19 +1,19 @@
-/// <reference path='../../wot.d.ts' />
+/// <reference path='../../woc.d.ts' />
 /// <reference path='../jquery.d.ts' />
-/// <reference path='../../ext.w/wotsingle_Button.c/Button.ts' />
+/// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />
 /// <reference path="../todos_Item.c/Item.ts" />
 
 module todos {
 	'use strict';
 
-	export class List implements wot.Component {
+	export class List implements woc.Component {
 		private $bloc: JQuery;
 		private $ul: JQuery;
 		private items: {}[] = null;
-		private btn: wotsingle.Button;
+		private btn: wocsingle.Button;
 
-		constructor(private cc: wot.ComponentContext, props: {}) {
-			this.btn = cc.createComponent('wotsingle.Button', {'label': '+'});
+		constructor(private cc: woc.ComponentContext, props: {}) {
+			this.btn = cc.createComponent('wocsingle.Button', {'label': '+'});
 			this.$bloc = $(cc.getTemplate('.todos-list', {
 				'addBtn': this.btn.getElement()
 			}));

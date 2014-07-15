@@ -1,13 +1,13 @@
 {
-  "name": "wott",
+  "name": "woctools",
   "version": "0.5.3",
-  "description": "Wot tool",
+  "description": "Woc tools",
   "author": "Tarh",
   "engines": {
     "node": ">=0.10.0"
   },
   "bin": {
-    "wott": "./wott.js"
+    "woc-make": "./woc-make.js"
   },
   "main": "index.js",
   "dependencies": {

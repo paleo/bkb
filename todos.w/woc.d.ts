@@ -1,5 +1,4 @@
-/// <reference path="Dataset.d.ts" />
-declare module wot {
+declare module woc {
     class Ajax {
         private log;
         private listeners;
@@ -125,7 +124,7 @@ declare module wot {
         private makePostOpt(opt, withMethod);
     }
 }
-declare module wot {
+declare module woc {
     interface BundleMain {
         start(element: any): void;
     }
@@ -149,11 +148,11 @@ declare module wot {
         setDialogClosed(): void;
     }
     /**
-    * The services that implement this interface can be declared as an alias of wot.Dialogs
+    * The services that implement this interface can be declared as an alias of woc.Dialogs
     */
     interface Dialogs {
         /**
-        * @param dialog wot.Dialog
+        * @param dialog woc.Dialog
         * @param forcedOpen boolean
         * @param hideBelow boolean
         * @returns {number} The dialog ID
@@ -251,7 +250,7 @@ declare module wot {
         createOwnComponent(props: {}, st: LiveState): any;
     }
 }
-declare module wot {
+declare module woc {
     class Log {
         private hasConsole;
         private debug;
@@ -270,7 +269,7 @@ declare module wot {
         private fireEvent(type, msg, errStack?);
     }
 }
-declare module wot {
+declare module woc {
     interface UrlProps {
         relUrl: string;
         args: {

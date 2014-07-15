@@ -1,10 +1,10 @@
-/// <reference path='../../wot.d.ts' />
+/// <reference path='../../woc.d.ts' />
 /// <reference path='../jquery.d.ts' />
 
-module wotsingle {
+module wocsingle {
 	'use strict';
 
-	export class Button implements wot.Component {
+	export class Button implements woc.Component {
 
 		private withAjax: boolean;
 		private manualDisabled: boolean = false;
@@ -17,7 +17,7 @@ module wotsingle {
 		// -- Component
 		// --
 
-		constructor(private cc: wot.ComponentContext, props: {}) {
+		constructor(private cc: woc.ComponentContext, props: {}) {
 			this.withAjax = props['ajax'] ? true : false;
 			this.autoDisableMode = this.withAjax || (props['autoDisable'] ? true : false);
 			if (this.withAjax) {
@@ -87,7 +87,7 @@ module wotsingle {
 						that.$ajaxFlag.show();
 					cb(e);
 				} catch (err) {
-					that.cc.getService('wot.Log').unexpectedErr(err);
+					that.cc.getService('woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

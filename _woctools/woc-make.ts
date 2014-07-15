@@ -2,10 +2,10 @@
 'use strict';
 
 var argv: any = require('optimist').argv;
-import WotTool = require('./index');
+import WocMake = require('./index');
 
 if (argv['h'] || argv['help'] || argv['_'].length === 0) {
-	console.log('Syntax: node _wott/wott.js OPTIONS bundle1 bundle2...\n' +
+	console.log('Syntax: node _woctools/woc-make.js OPTIONS bundle1 bundle2...\n' +
 		'\t-h --help\n' +
 		'\t-i --in-project-path path-to-input-dir (default is current)\n' +
 		'\t-o --out-project-path path-to-output-dir (default is value from -i)\n' +
@@ -25,7 +25,7 @@ var toBool = function(v: any, def: boolean): boolean {
 	return v === undefined ?  def : v;
 };
 
-var tool = new WotTool({
+var tool = new WocMake({
 	'inProjectPath': inPath,
 	'outProjectPath': argv['o'] || argv['out-project-path'] || inPath,
 	'defaultEncoding': argv['e'] || argv['default-encoding'] || 'utf8',
@@ -36,6 +36,4 @@ var tool = new WotTool({
 });
 tool.processBundles(argv['_'], toBool(argv['r'] || argv['remove-destination'], false)).catch(function (err) {
 	console.log(err['stack']);
-}).then(function () {
-	console.log('END');
 });

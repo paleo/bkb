@@ -1,4 +1,4 @@
-module wotext {
+module wocext {
 	'use strict';
 
 	export class Cookies {

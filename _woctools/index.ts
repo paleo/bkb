@@ -6,18 +6,11 @@ import path = require("path");
 import rsvp = require('es6-promise');
 var Promise = rsvp.Promise;
 
-import fsext = require('./lib/fsext');
-var fsp = fsext.fsp;
-import minifiers = require('./lib/minifiers');
 import Project = require('./lib/Project');
 import BundleWReader = require('./lib/BundleWReader');
 import BundleWriter = require('./lib/BundleWriter');
 
-// ##
-// ## WotTool
-// ##
-
-class WotTool {
+class WocMake {
 	private opt: {};
 
 	/**
@@ -35,23 +28,23 @@ class WotTool {
 	 * }</code></pre>
 	*/
 	constructor(opt: {}) {
-		this.opt = WotTool.formatOptions(opt);
+		this.opt = WocMake.formatOptions(opt);
 		Object.freeze(this.opt);
 	}
 
 	public processBundles(bundleNames: string[], rmDestination: boolean): Promise<void> {
-		return Project.makeInstance(this.opt).then<void>(function (prj: Project) {
-			return bundleNames.map(function (bundleName) {
-				return BundleWReader.makeInstance(prj, Project.makeDirW(bundleName)).then(function (reader: BundleWReader) {
+		return Project.makeInstance(this.opt).then<void>((prj: Project) => {
+			return bundleNames.map((bundleName) => {
+				return BundleWReader.makeInstance(prj, Project.makeDirW(bundleName)).then((reader: BundleWReader) => {
 					var writer = new BundleWriter(prj, bundleName, reader.getBundleVersion());
-					return reader.process(writer).then(function () {
+					return reader.process(writer).then(() => {
 						return writer.write(rmDestination);
 					});
 				});
-			}).reduce(function (sequence: Promise<any>, bundlePromise: Promise<any>) {
-				return sequence.then(function () {
+			}).reduce((sequence: Promise<any>, bundlePromise: Promise<any>) => {
+				return sequence.then(() => {
 					return bundlePromise;
-				})
+				});
 			}, Promise.resolve());
 		});
 	}
@@ -72,9 +65,4 @@ class WotTool {
 	}
 }
 
-// ##
-// ## Main
-// ##
-
-//exports['WotTool'] = wott.WotTool;
-export = WotTool;
+export = WocMake;

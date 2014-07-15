@@ -1,8 +1,8 @@
-/// <reference path='../../wot.d.ts' />
+/// <reference path='../../woc.d.ts' />
 /// <reference path='../jquery.d.ts' />
-/// <reference path='../wotext_helpers.l/helpers.ts' />
+/// <reference path='../wocext_helpers.l/helpers.ts' />
 
-module wotext {
+module wocext {
 	'use strict';
 
 	// ##
@@ -39,27 +39,27 @@ module wotext {
 		/**
 		 * @return Screen NULL when no screen
 		 */
-		getScreen(up: wot.UrlProps, seh: ScreenElHandler): Screen;
+		getScreen(up: woc.UrlProps, seh: ScreenElHandler): Screen;
 	}
 
 	// ##
 	// ## Screens
 	// ##
 
-	export class Screens implements wot.Component, wot.UrlController, ScreenElHandler {
+	export class Screens implements woc.Component, woc.UrlController, ScreenElHandler {
 
 		// --
 		// -- Fields & Initialisation
 		// --
 
-		private router: wot.Router;
+		private router: woc.Router;
 		private $container: JQuery;
 		private unregisteredSelList = [];
 		private uspBySel = {};
 		private elements: JQuery[] = [];
 		private $curScreenEl: JQuery = null;
 		private curScreen: Screen;
-		private lastUp: wot.UrlProps = null;
+		private lastUp: woc.UrlProps = null;
 		private lastScreen: Screen = null;
 		private rmCbList: Function[] = [];
 
@@ -67,14 +67,14 @@ module wotext {
 		// -- Component
 		// --
 
-		constructor(private cc: wot.ComponentContext) {
+		constructor(private cc: woc.ComponentContext) {
 			this.$container = $(this.cc.getTemplate('.screens'));
-			this.router = this.cc.getService('wot.Router');
+			this.router = this.cc.getService('woc.Router');
 			var that = this;
-			this.rmCbList.push(this.router.addBeforeListener(function (up: wot.UrlProps): boolean {
+			this.rmCbList.push(this.router.addBeforeListener(function (up: woc.UrlProps): boolean {
 				return that.getScreen(up) !== null;
 			}));
-			this.rmCbList.push(this.router.addChangeListener(function (up: wot.UrlProps) {
+			this.rmCbList.push(this.router.addChangeListener(function (up: woc.UrlProps) {
 				that.switchTo(up);
 			}));
 		}
@@ -121,10 +121,10 @@ module wotext {
 		}
 
 		// --
-		// -- wot.UrlController
+		// -- woc.UrlController
 		// --
 
-		public fillUrlProps(up: wot.UrlProps): boolean {
+		public fillUrlProps(up: woc.UrlProps): boolean {
 			var screen = this.getScreen(up);
 			if (screen === null)
 				return false;
@@ -136,7 +136,7 @@ module wotext {
 		// -- Private
 		// --
 
-		private switchTo(up: wot.UrlProps): boolean {
+		private switchTo(up: woc.UrlProps): boolean {
 			var screen = this.getScreen(up);
 			if (screen === null)
 				return false;
@@ -167,7 +167,7 @@ module wotext {
 			return $el;
 		}
 
-		private getScreen(up: wot.UrlProps): Screen {
+		private getScreen(up: woc.UrlProps): Screen {
 			if (up === this.lastUp)
 				return this.lastScreen;
 			var provider: ScreenProvider = this.uspBySel[up['sel']];
@@ -195,7 +195,7 @@ module wotext {
 //			this.screens.addScreenProvider(this, [route]);
 //		}
 //
-//		public getScreen(up: wot.UrlProps, seh: ScreenElHandler): Screen {
+//		public getScreen(up: woc.UrlProps, seh: ScreenElHandler): Screen {
 //			var screen = this.map[up.sel];
 //			if (screen === undefined)
 //				throw new Error('Unknown route "' + up.sel + '"');

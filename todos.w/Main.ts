@@ -1,26 +1,26 @@
 /// <reference path="jquery.d.ts" />
-/// <reference path="../wot.d.ts" />
-/// <reference path='../ext.w/wotext_helpers.l/helpers.ts' />
+/// <reference path="../woc.d.ts" />
+/// <reference path='../ext.w/wocext_helpers.l/helpers.ts' />
 /// <reference path='todos_List.c/List.ts' />
 
 module todos {
 	'use strict';
 
-	export class Main implements wot.BundleMain {
-		constructor(private ac: wot.ApplicationContext) {
+	export class Main implements woc.BundleMain {
+		constructor(private ac: woc.ApplicationContext) {
 		}
 
 		public start(element) {
-			var st = new wotext.helpers.GenericLiveState(true);
+			var st = new wocext.helpers.GenericLiveState(true);
 			var list = <todos.List>this.ac.createComponent('todos.List', {'title': 'My First List', 'count': 3}, st);
 			$(element).append(list.getElement());
 
 			var that = this;
-			var btn = this.ac.createComponent('wotsingle.Button', {'label': 'TREE'}, st).click(function () {
+			var btn = this.ac.createComponent('wocsingle.Button', {'label': 'TREE'}, st).click(function () {
 				console.log(Main.stringifyTree(that.ac.getDebugTree()));
 			});
 			$(element).append(btn.getElement());
-			btn = this.ac.createComponent('wotsingle.Button', {'label': 'END'}, st).click(function () {
+			btn = this.ac.createComponent('wocsingle.Button', {'label': 'END'}, st).click(function () {
 				that.ac.removeComponent(list, true);
 			});
 			$(element).append(btn.getElement());

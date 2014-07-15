@@ -1,6 +1,6 @@
 /// <reference path="loader.ts" />
 
-module wot {
+module woc {
 
 	// ##
 	// ## Interface
@@ -27,7 +27,7 @@ module wot {
 		// -- Fields & Initialisation
 		// --
 
-		private log: wot.Log;
+		private log: woc.Log;
 		private listeners = {};
 		private selList = [];
 		private baseUrl: string;
@@ -37,8 +37,8 @@ module wot {
 
 		private curUrlProps: UrlProps;
 
-		constructor(private sc: wot.ServiceContext) {
-			this.log = <wot.Log>sc.getService('wot.Log');
+		constructor(private sc: woc.ServiceContext) {
+			this.log = <woc.Log>sc.getService('woc.Log');
 		}
 
 		/**

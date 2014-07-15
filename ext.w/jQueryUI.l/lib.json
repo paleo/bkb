@@ -1,5 +1,5 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"requireLib": ["jQuery"],
 	"script": ["jquery-ui-1.10.4.custom.min.js", "datepicker-fr.js"],
 	"css": ["jquery-ui-1.10.4.custom.min.css"],

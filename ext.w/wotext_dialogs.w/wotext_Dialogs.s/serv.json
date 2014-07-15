@@ -1,7 +1,7 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"encoding": "utf8",
 	"script": ["Dialogs.js"],
-	"name": "wotext.Dialogs",
-	"alias": "wot.Dialogs"
+	"name": "wocext.Dialogs",
+	"alias": "woc.Dialogs"
 }

@@ -1,6 +1,6 @@
 /// <reference path='loader.ts' />
 
-module wot {
+module woc {
 	'use strict';
 
 	export class Log {
@@ -13,7 +13,7 @@ module wot {
 		private debug: boolean;
 		private listeners = [];
 
-		constructor(sc: wot.ServiceContext) {
+		constructor(sc: woc.ServiceContext) {
 			this.hasConsole = typeof console !== 'undefined';
 			this.debug = sc.getApplicationContext().isDebug();
 		}

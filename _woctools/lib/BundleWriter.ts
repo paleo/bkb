@@ -45,16 +45,14 @@ class BundleWriter {
 	}
 
 	public setBundleScript(script: {}[]): Promise<void> {
-		var that = this;
-		return BundleWriter.concatFiles('Bundle ' + this.bundleName, script, this.jsMinifier, 'js').then(function (content: string): void {
-			that.putBundleVal('script', content);
+		return BundleWriter.concatFiles('Bundle ' + this.bundleName, script, this.jsMinifier, 'js').then((content: string): void => {
+			this.putBundleVal('script', content);
 		});
 	}
 
 	public setBundleCss(css: {}[]): Promise<void> {
-		var that = this;
-		return BundleWriter.concatFiles('Bundle ' + this.bundleName, css, this.cssMinifier, 'css').then(function (content: string): void {
-			that.css.push(content);
+		return BundleWriter.concatFiles('Bundle ' + this.bundleName, css, this.cssMinifier, 'css').then((content: string): void => {
+			this.css.push(content);
 		});
 	}
 
@@ -64,32 +62,31 @@ class BundleWriter {
 		var lib = {};
 		if (requireLib !== null)
 			lib['requireLib'] = requireLib;
-		var that = this, p = Promise.resolve<void>();
+		var p = Promise.resolve<void>();
 		if (script) {
-			p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then(function (content: string): void {
+			p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 				lib['script'] = content;
 			});
 		}
 		if (css !== null) {
 			css = this.keepSubdirCss(css, lib);
 			if (css.length > 0) {
-				p = p.then(function () {
-					return BundleWriter.concatFiles('Library ' + name, css, that.cssMinifier, 'css').then(function (content: string): void {
-						that.css.push(content);
+				p = p.then(() => {
+					return BundleWriter.concatFiles('Library ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
+						this.css.push(content);
 					});
 				});
 			}
 		}
-		return p.then(function () {
-			that.libraries[name] = lib;
+		return p.then(() => {
+			this.libraries[name] = lib;
 		});
 	}
 
 	public addService(name: string, requireLib: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
 			throw new Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
-		var that = this;
-		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then(function (content: string): void {
+		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			var serv = {
 				'script': content
 			};
@@ -97,34 +94,34 @@ class BundleWriter {
 				serv['requireLib'] = requireLib;
 			if (aliasStrOrArr !== null)
 				serv['alias'] = aliasStrOrArr;
-			that.services[name] = serv;
+			this.services[name] = serv;
 		});
 	}
 
 	public addComponent(name: string, requireLib: string[], script: {}[], tpl: {}[], css: {}[]): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw new Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
-		var comp = {}, pList = [], that = this;
-		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then(function (content: string): void {
+		var comp = {}, pList = [];
+		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			comp['script'] = content;
 			if (requireLib !== null)
 				comp['requireLib'] = requireLib;
 		}));
 		if (tpl !== null) {
-			pList.push(BundleWriter.concatFiles('Component ' + name, tpl, this.htmlMinifier, 'html').then(function (content: string): void {
+			pList.push(BundleWriter.concatFiles('Component ' + name, tpl, this.htmlMinifier, 'html').then((content: string): void => {
 				comp['tpl'] = content;
 			}));
 		}
 		if (css !== null) {
 			css = this.keepSubdirCss(css, comp);
 			if (css.length > 0) {
-				pList.push(BundleWriter.concatFiles('Component ' + name, css, this.cssMinifier, 'css').then(function (content: string): void {
-					that.css.push(content);
+				pList.push(BundleWriter.concatFiles('Component ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
+					this.css.push(content);
 				}));
 			}
 		}
-		return Promise.all(pList).then(function () {
-			that.components[name] = comp;
+		return Promise.all(pList).then(() => {
+			this.components[name] = comp;
 		});
 	}
 
@@ -139,16 +136,15 @@ class BundleWriter {
 	}
 
 	public write(rmDestination: boolean): Promise<boolean> {
-		var that = this;
-		return this.cleanOutputDir(rmDestination).then(function (ready: boolean): any {
+		return this.cleanOutputDir(rmDestination).then((ready: boolean): any => {
 			if (!ready)
 				return false;
-			var p: Promise<any> = that.writeFile(that.bundleName + '.json', JSON.stringify(that.makeData()));
-			if (that.hasCss())
-				p = Promise.all([p, that.writeFile(that.bundleName + '.css', that.css.join('\n'))]);
-			return p.then(function () {
-				return that.copyOtherFiles();
-			}).then(function () {
+			var p: Promise<any> = this.writeFile(this.bundleName + '.json', JSON.stringify(this.makeData()));
+			if (this.hasCss())
+				p = Promise.all([p, this.writeFile(this.bundleName + '.css', this.css.join('\n'))]);
+			return p.then(() => {
+				return this.copyOtherFiles();
+			}).then(() => {
 				return true;
 			});
 		});
@@ -170,18 +166,17 @@ class BundleWriter {
 	}
 
 	private cleanOutputDir(rmDestination: boolean): Promise<boolean> {
-		var that = this;
-		return fsp.exists(that.bundlePath).then(function (b): any {
+		return fsp.exists(this.bundlePath).then((b): any => {
 			var p: Promise<any>;
 			if (b) {
 				if (!rmDestination) {
-					console.log('[Warning] The bundle directory already exists: ' + that.bundleName + ' (skip)');
+					console.log('[Warning] The bundle directory already exists: ' + this.bundleName + ' (skip)');
 					return false;
 				}
-				p = that.project.clearOutputDir(that.bundleDirName);
+				p = this.project.clearOutputDir(this.bundleDirName);
 			} else
-				p = fsp.mkdir(that.bundlePath);
-			return p.then(function () {
+				p = fsp.mkdir(this.bundlePath);
+			return p.then(() => {
 				return true;
 			});
 		});
@@ -193,7 +188,7 @@ class BundleWriter {
 
 	private makeData() {
 		var data = {
-			'wot': this.project.getWotVersion(),
+			'woc': this.project.getWocVersion(),
 			'encoding': this.project.getOutputEncoding()
 		};
 		for (var k in this.bundleProp) {
@@ -216,16 +211,15 @@ class BundleWriter {
 	}
 
 	private copyOtherFiles(): Promise<void> {
-		var that = this;
-		var makeP = function (inputRelPath, inputFullPath, st: fs.Stats, outputRelPath, outputFullPath): Promise<void> {
-			return fsp.exists(outputFullPath).then(function (b): any {
+		var makeP = (inputRelPath, inputFullPath, st: fs.Stats, outputRelPath, outputFullPath): Promise<void> => {
+			return fsp.exists(outputFullPath).then((b): any => {
 				if (b)
 					throw new Error('Name conflict: cannot overwrite file "' + outputRelPath + '" with other file "' + inputRelPath + '"');
 				if (st.isDirectory())
-					return that.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, that.project);
+					return this.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, this.project);
 				else
 					return fsl.copyFile(inputFullPath, outputFullPath);
-			})
+			});
 		};
 		var allP: Promise<void>[] = [];
 		for (var fileName in this.otherFileSet) {
@@ -243,22 +237,21 @@ class BundleWriter {
 	}
 
 	private copyOtherDir(inputRelPath, inputDirPath: string, outputDirPath: string, project: Project): Promise<boolean> {
-		var that = this;
-		return this.otherDirContainsSomething(inputRelPath, inputDirPath, project).then(function (b): any {
+		return this.otherDirContainsSomething(inputRelPath, inputDirPath, project).then((b): any => {
 			if (!b)
 				return false;
-			var makeStatSb = function (inRelChildPath, inChildPath, outChildPath, childName) {
-				return function (st: fs.Stats): any {
+			var makeStatSb = (inRelChildPath, inChildPath, outChildPath, childName) => {
+				return (st: fs.Stats): any => {
 					if (st.isDirectory())
-						return that.copyOtherDir(inRelChildPath, inChildPath, outChildPath, project);
-					else if (that.isSubDirCss(inRelChildPath))
+						return this.copyOtherDir(inRelChildPath, inChildPath, outChildPath, project);
+					else if (this.isSubDirCss(inRelChildPath))
 						return fsl.copyFile(inChildPath, outChildPath);
 					else if (project.canIncludeOtherFile(childName))
 						return fsl.copyFile(inChildPath, outChildPath);
 				};
 			};
-			fsp.mkdir(outputDirPath).then(function () {
-				return fsp.readdir(inputDirPath).then(function (list: string[]) {
+			fsp.mkdir(outputDirPath).then(() => {
+				return fsp.readdir(inputDirPath).then((list: string[]) => {
 					var inRelChildPath, inChildPath, outChildPath, allP: Promise<any>[] = [];
 					for(var i = 0; i < list.length; i++) {
 						if (list[i] === '.' || list[i] === '..')
@@ -270,27 +263,26 @@ class BundleWriter {
 					}
 					return Promise.all(allP);
 				});
-			}).then(function () {
+			}).then(() => {
 				return true;
 			});
 		});
 	}
 
 	private otherDirContainsSomething(inputRelPath, inputDirPath: string, project: Project): Promise<boolean> {
-		var that = this;
-		return fsp.readdir(inputDirPath).then(function (list: string[]) {
-			return list.reduce(function (sequence: Promise<boolean>, childName: string) {
+		return fsp.readdir(inputDirPath).then((list: string[]) => {
+			return list.reduce((sequence: Promise<boolean>, childName: string) => {
 				if (childName === '.' || childName === '..')
 					return sequence;
-				return sequence.then(function (hasSomeThing: boolean): any {
+				return sequence.then((hasSomeThing: boolean): any => {
 					if (hasSomeThing)
 						return true;
 					var inRelChildPath = path.join(inputRelPath, childName);
 					var inChildPath = path.join(inputDirPath, childName);
-					return fsp.stat(inChildPath).then<boolean>(function (st: fs.Stats): any {
+					return fsp.stat(inChildPath).then<boolean>((st: fs.Stats): any => {
 						if (st.isDirectory())
-							return that.otherDirContainsSomething(inRelChildPath, inChildPath, project);
-						else if (that.isSubDirCss(inRelChildPath))
+							return this.otherDirContainsSomething(inRelChildPath, inChildPath, project);
+						else if (this.isSubDirCss(inRelChildPath))
 							return true;
 						else
 							return project.canIncludeOtherFile(childName);
@@ -306,29 +298,29 @@ class BundleWriter {
 
 	private static concatFiles(title: string, files: {}[], minifier: minifiers.StringMinifier, syntax: string): Promise<string> {
 		var arr = [];
-		return files.map(function (fileProp: {}, index: number) {
+		return files.map((fileProp: {}, index: number) => {
 			var p: Promise<string>;
 			if (fileProp['minified'])
 				p = fileProp['contentPromise'];
 			else
-				p = fileProp['contentPromise'].then(function (content: string) {
+				p = fileProp['contentPromise'].then((content: string) => {
 					return minifier.minify(content, fileProp['path']);
 				});
 			if (syntax === 'css') {
-				p = p.then(function (content: string) {
+				p = p.then((content: string) => {
 					if (index < 0)
 						return content;
 					return BundleWriter.makeFilePrefix(index === 0 ? title : title + ' - ' + fileProp['name'], syntax) + '\n' + content;
 				});
 			}
 			return p;
-		}).reduce(function (sequence: Promise<any>, filePromise: Promise<string>) {
-			return sequence.then(function() {
+		}).reduce((sequence: Promise<any>, filePromise: Promise<string>) => {
+			return sequence.then(() => {
 				return filePromise;
-			}).then(function(content: string) {
+			}).then((content: string) => {
 				arr.push(content);
 			});
-		}, Promise.resolve()).then(function () {
+		}, Promise.resolve()).then(() => {
 			return arr.join('\n');
 		});
 	}

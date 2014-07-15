@@ -1,5 +1,5 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"script": ["Cookies.js"],
-	"name": "wotext.Cookies"
+	"name": "wocext.Cookies"
 }

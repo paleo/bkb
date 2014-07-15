@@ -1,5 +1,5 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"script": ["modernizr.custom.31240.min.js"],
 	"name": "Modernizr"
 }

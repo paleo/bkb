@@ -29,27 +29,26 @@ module minifiers {
 		}
 
 		public minify(s: string, filePath: string): Promise<string> {
-			var that = this;
-			return new Promise(function(resolve) {
-				if (!that.enabled) {
+			return new Promise((resolve) => {
+				if (!this.enabled) {
 					resolve(s);
 					return;
 				}
-				if (that.uglifyJs === undefined) {
+				if (this.uglifyJs === undefined) {
 					try {
-						that.uglifyJs = require('uglify-js');
+						this.uglifyJs = require('uglify-js');
 					} catch (e) {
-						that.uglifyJs = null;
+						this.uglifyJs = null;
 						console.log('[Warning] Uglify-js is not available; JS won\'t be minified.');
 					}
 				}
-				if (that.uglifyJs === null) {
+				if (this.uglifyJs === null) {
 					resolve(s);
 					return;
 				}
-				var ast1: any = that.uglifyJs.parse(s, {'filename': filePath});
+				var ast1: any = this.uglifyJs.parse(s, {'filename': filePath});
 				ast1.figure_out_scope();
-				var compressor = that.uglifyJs.Compressor();
+				var compressor = this.uglifyJs.Compressor();
 				var ast2: any = ast1.transform(compressor);
 				ast2.figure_out_scope();
 				ast2.compute_char_frequency();
@@ -71,21 +70,20 @@ module minifiers {
 		}
 
 		public minify(s: string): Promise<string> {
-			var that = this;
-			return new Promise(function(resolve) {
-				if (!that.enabled) {
+			return new Promise((resolve) => {
+				if (!this.enabled) {
 					resolve(s);
 					return;
 				}
-				if (that.uglifyCss === undefined) {
+				if (this.uglifyCss === undefined) {
 					try {
-						that.uglifyCss = require('uglifycss');
+						this.uglifyCss = require('uglifycss');
 					} catch (e) {
-						that.uglifyCss = null;
+						this.uglifyCss = null;
 						console.log('[Warning] UglifyCSS is not available; CSS won\'t be minified.');
 					}
 				}
-				resolve(that.uglifyCss === null ? s : that.uglifyCss.processString(s));
+				resolve(this.uglifyCss === null ? s : this.uglifyCss.processString(s));
 			});
 		}
 	}
@@ -102,21 +100,20 @@ module minifiers {
 		}
 
 		public minify(s: string): Promise<string> {
-			var that = this;
-			return new Promise(function(resolve) {
-				if (!that.enabled) {
+			return new Promise((resolve) => {
+				if (!this.enabled) {
 					resolve(s);
 					return;
 				}
-				if (that.minifier === undefined) {
+				if (this.minifier === undefined) {
 					try {
-						that.minifier = require('html-minifier');
+						this.minifier = require('html-minifier');
 					} catch (e) {
-						that.minifier = null;
+						this.minifier = null;
 						console.log('[Warning] HtmlMinifier is not available; HTML won\'t be minified.');
 					}
 				}
-				resolve(that.minifier === null ? s : that.minifier.minify(s));
+				resolve(this.minifier === null ? s : this.minifier.minify(s));
 			});
 		}
 	}

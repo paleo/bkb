@@ -1,9 +1,9 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"encoding": "utf8",
 	"requireLib": ["jQuery"],
 	"script": "CloseButton.js",
 	"tpl": "t.html",
 	"css": "p.css",
-	"name": "wotsingle.CloseButton"
+	"name": "wocsingle.CloseButton"
 }

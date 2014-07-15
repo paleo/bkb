@@ -1,4 +1,4 @@
-module wotext {
+module wocext {
 	'use strict';
 
 	// ##
@@ -18,7 +18,7 @@ module wotext {
 		reqIndex(): number;
 		/**
 		 * @param level Default value is 1
-		 * @returns wotext.RDataset|wotext.Dataset A Dataset or NULL when level is upper than the root parent
+		 * @returns wocext.RDataset|wocext.Dataset A Dataset or NULL when level is upper than the root parent
 		 */
 		getParent(level?: number): any;
 		/**
@@ -137,7 +137,7 @@ module wotext {
 	 *
 	 * @param jsonObjOrArr Array|Object
 	 * @param opt Object {'indexedMapProp': '_index'}
-	 * @returns {wotext.Dataset}
+	 * @returns {wocext.Dataset}
 	 */
 	export function createDataset(jsonObjOrArr, opt = {}): Dataset {
 		var shelf = new DatasetShelf(opt);
@@ -431,7 +431,7 @@ module wotext {
 			return val;
 		}
 
-		public getParent(level: number = 1): wotext.Dataset {
+		public getParent(level: number = 1): wocext.Dataset {
 			this.autoAttach();
 			if (level < 0)
 				throw new Error('Bad level for method getParent: "' + level + '"');
@@ -444,7 +444,7 @@ module wotext {
 				if (targetPath === null)
 					return null;
 			}
-			var parent = <wotext.Dataset>this.shelf.search(targetPath);
+			var parent = <wocext.Dataset>this.shelf.search(targetPath);
 			if (parent)
 				return parent;
 			return this.shelf.getRoot().get(targetPath);
@@ -1216,7 +1216,7 @@ module wotext {
 			return this.dataset.reqIndex();
 		}
 
-		public getParent(level: number = 1): wotext.RDataset {
+		public getParent(level: number = 1): wocext.RDataset {
 			return this.dataset.getParent(level).toReadOnly();
 		}
 

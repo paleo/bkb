@@ -1,9 +1,9 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"encoding": "utf8",
 	"requireLib": ["jQuery"],
 	"script": "Button.js",
 	"tpl": "t.html",
 	"css": "p.css",
-	"name": "wotsingle.Button"
+	"name": "wocsingle.Button"
 }

@@ -1,10 +1,10 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"encoding": "utf8",
 	"version": "0.5",
 	"preload": ["ext"],
 	"embed": ["todos_List.c", "todos_Item.c"],
-	"requireLib": ["jQuery", "wotext.helpers"],
+	"requireLib": ["jQuery", "wocext.helpers"],
 	"script": ["Main.js"],
 	"main": "todos.Main"
 }

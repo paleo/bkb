@@ -40,31 +40,31 @@
 
 	function startCore() {
 		// - Make the application context
-		var baseUrl = document.documentElement.getAttribute('data-wot-base');
+		var baseUrl = document.documentElement.getAttribute('data-woc-base');
 		if (!baseUrl) {
 			var bases = document.getElementsByTagName('base');
 			baseUrl = bases.length > 0 ? bases[0].href : null;
 			if (!baseUrl)
-				throw new Error('An element "base" or a parameter "data-wot-base" is required');
+				throw new Error('An element "base" or a parameter "data-woc-base" is required');
 			if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
 				baseUrl = baseUrl.slice(0, baseUrl.length -1);
 			var prefix = window.location.protocol + '//' + window.location.host;
 			if (strStartsWith(baseUrl, prefix))
 				baseUrl = baseUrl.slice(prefix.length);
 		}
-		var appUrl = document.documentElement.getAttribute('data-wot-app');
+		var appUrl = document.documentElement.getAttribute('data-woc-app');
 		if (!appUrl)
 			appUrl = baseUrl;
-		var firstRelUrl = document.documentElement.getAttribute('data-wot-first');
+		var firstRelUrl = document.documentElement.getAttribute('data-woc-first');
 		if (firstRelUrl === '')
 			firstRelUrl = null;
-		var ac = wot.makeApplicationContext({
+		var ac = woc.makeApplicationContext({
 			'appUrl': appUrl,
 			'baseUrl': baseUrl,
 			'firstRelUrl': firstRelUrl
 		});
 		// - Load bundles
-		var preload = document.documentElement.getAttribute('data-wot-preload');
+		var preload = document.documentElement.getAttribute('data-woc-preload');
 		if (preload)
 			preloadBundles(ac, preload);
 		else
@@ -72,7 +72,7 @@
 	}
 
 	// ext(w) shop-hep-2.3.5.w
-	function preloadBundles(ac: wot.ApplicationContext, preloadStr: string) {
+	function preloadBundles(ac: woc.ApplicationContext, preloadStr: string) {
 		var arr = preloadStr.split(' '), waited = arr.length, started = false;
 		var onBundleLoaded = function () {
 			if (--waited > 0 || started)
@@ -97,11 +97,11 @@
 		}
 	}
 
-	function autoStartBundles(ac: wot.ApplicationContext) {
-		var el, matches = document.querySelectorAll('[data-wot-exec]');
+	function autoStartBundles(ac: woc.ApplicationContext) {
+		var el, matches = document.querySelectorAll('[data-woc-exec]');
 		for (var i = 0, len = matches.length; i < len; ++i) {
 			el = matches[i];
-			ac.loadBundle(el.getAttribute('data-wot-exec'), {
+			ac.loadBundle(el.getAttribute('data-woc-exec'), {
 				'start': el
 			});
 		}
@@ -116,7 +116,7 @@
 		}
 	}
 
-	if (wot && wot['CORE_W_READY'])
+	if (woc && woc['CORE_W_READY'])
 		onReady();
 	else {
 		if (document.addEventListener)

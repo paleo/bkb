@@ -1,5 +1,5 @@
 {
-	"wot": "0.5",
+	"woc": "0.5",
 	"script": ["Dataset.js"],
-	"name": "wotext.Dataset"
+	"name": "wocext.Dataset"
 }

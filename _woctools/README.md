@@ -1,7 +1,7 @@
-Wott (Wot tool)
+Woc Tools
 ==========
 
-Syntax: node _wott/wott.js OPTIONS bundle1 bundle2...
+Make syntax: node _woctools/woc-make.js OPTIONS bundle1 bundle2...
 	-h --help
 	-i --in-project-path path-to-input-dir (default is current)
 	-o --out-project-path path-to-output-dir (default is value from -i)

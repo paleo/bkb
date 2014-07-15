@@ -1,6 +1,6 @@
 /// <reference path="ajax.ts" />
 
-module wot {
+module woc {
 	'use strict';
 
 	// ##
@@ -34,11 +34,11 @@ module wot {
 	}
 
 	/**
-	 * The services that implement this interface can be declared as an alias of wot.Dialogs
+	 * The services that implement this interface can be declared as an alias of woc.Dialogs
 	 */
 	export interface Dialogs {
 		/**
-		 * @param dialog wot.Dialog
+		 * @param dialog woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
@@ -481,7 +481,7 @@ module wot {
 
 	class ComponentTree {
 
-		private static ID_PROP = '_wotCompId';
+		private static ID_PROP = '_wocCompId';
 		private tree = {};
 		private list = [];
 
@@ -672,9 +672,9 @@ module wot {
 		private map = {};
 
 		constructor(private ac: ImplApplicationContext) {
-			this.register('wot.Log', null, null, null, null);
-			this.register('wot.Ajax', null, null, null, null);
-			this.register('wot.Router', null, null, null, null);
+			this.register('woc.Log', null, null, null, null);
+			this.register('woc.Ajax', null, null, null, null);
+			this.register('woc.Router', null, null, null, null);
 		}
 
 		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, requireLib: string[], script: string) {
@@ -727,14 +727,14 @@ module wot {
 
 	class Components {
 
-		public static DATA_PH = 'data-wot-mYr4-ph';
+		public static DATA_PH = 'data-woc-mYr4-ph';
 		private log;
 		private tplParser: TemplateParser;
 		private compTree: ComponentTree;
 		private map = {};
 
 		constructor(private ac: ImplApplicationContext) {
-			this.log = ac.getService('wot.Log');
+			this.log = ac.getService('woc.Log');
 			this.tplParser = new TemplateParser();
 			this.compTree = new ComponentTree();
 		}
@@ -931,7 +931,7 @@ module wot {
 
 		private makeLblId(): string {
 			if (this.lblPrefix === null)
-				this.lblPrefix = 'wotl10n~' + this.componentName.replace(/\./g, '~') + '~';
+				this.lblPrefix = 'wocl10n~' + this.componentName.replace(/\./g, '~') + '~';
 			return this.lblPrefix + (this.lblCount++);
 		}
 
@@ -967,13 +967,13 @@ module wot {
 		private static S_ERROR = 3;
 
 		private appUrl: string;
-		private ajax: wot.Ajax;
+		private ajax: woc.Ajax;
 		private bundlePropMap = {};
 
 		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components, private bundles: Bundles) {
 			this.appUrl = ac.properties['appUrl'];
-			this.ajax = this.services.get('wot.Ajax');
+			this.ajax = this.services.get('woc.Ajax');
 		}
 
 		public loadBundle(bundlePath: string, doneCallback: Function, failCallback: Function, startOnElem, version: string,
@@ -1174,7 +1174,7 @@ module wot {
 	// ##
 
 	class WLoader {
-		private ajax: wot.Ajax;
+		private ajax: woc.Ajax;
 		private thingDoneCallback: Function;
 		private failCallback: Function;
 		private thingLoadCount = 0;
@@ -1185,7 +1185,7 @@ module wot {
 		constructor(private libraries: Libraries, private services: Services, private components: Components,
 				private bundles: Bundles, private loader: Loader, private bundlePath: string, private bundleUrl: string,
 				version: string, doneCallback: Function, failCallback: Function) {
-			this.ajax = this.services.get('wot.Ajax');
+			this.ajax = this.services.get('woc.Ajax');
 			var that = this;
 			var doneReported = false;
 			this.thingDoneCallback = function (decCount = true) {
@@ -1233,7 +1233,7 @@ module wot {
 					try {
 						cb();
 					} catch (err) {
-						services.get('wot.Log').unexpectedErr(err);
+						services.get('woc.Log').unexpectedErr(err);
 					}
 					cb = null;
 				}

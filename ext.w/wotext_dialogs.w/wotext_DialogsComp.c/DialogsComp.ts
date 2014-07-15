@@ -1,18 +1,18 @@
-/// <reference path='../../../wot.d.ts' />
+/// <reference path='../../../woc.d.ts' />
 /// <reference path='../jquery.d.ts' />
-/// <reference path='../../wotext_helpers.l/helpers.ts' />
-/// <reference path='../../wotsingle_Button.c/Button.ts' />
+/// <reference path='../../wocext_helpers.l/helpers.ts' />
+/// <reference path='../../wocsingle_Button.c/Button.ts' />
 
-module wotext {
+module wocext {
 	'use strict';
 
-	export class DialogsComp implements wot.Component {
+	export class DialogsComp implements woc.Component {
 
 		// --
 		// -- Fields
 		// --
 
-		private stConfirm = new wotext.helpers.GenericLiveState(false);
+		private stConfirm = new wocext.helpers.GenericLiveState(false);
 		private $areas;
 		private $mainDialogArea: JQuery;
 		private dialogs = [];
@@ -26,7 +26,7 @@ module wotext {
 		// -- Component
 		// --
 
-		constructor(private cc: wot.ComponentContext) {
+		constructor(private cc: woc.ComponentContext) {
 			this.$areas = $(this.cc.getTemplate('.dialog-areas'));
 			this.$mainDialogArea = this.$areas.find('.main-dialog-area');
 			this.$shortDialogArea = this.$areas.find('.short-dialog-area');
@@ -50,12 +50,12 @@ module wotext {
 		// --
 
 		/**
-		 * @param dialog wot.Dialog
+		 * @param dialog woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
 		 */
-		public addDialog(dialog: wot.Dialog, forcedOpen = false, hideBelow = false): number {
+		public addDialog(dialog: woc.Dialog, forcedOpen = false, hideBelow = false): number {
 			var id = this.dialogs.length;
 			this.dialogs[id] = {
 				'$elem': null,
@@ -325,7 +325,7 @@ module wotext {
 			for (var i = 0, len = btnList.length; i < len; ++i) {
 				props = btnList[i];
 				withAjax = props['ajax'] ? true : false;
-				var btn = <wotsingle.Button>this.cc.createComponent('wotsingle.Button', {'ajax': withAjax, 'label': props['label']}, this.stConfirm);
+				var btn = <wocsingle.Button>this.cc.createComponent('wocsingle.Button', {'ajax': withAjax, 'label': props['label']}, this.stConfirm);
 				btn.click(withAjax ? clickAjaxMaker(props['callback']) : clickNormalMaker(props['callback']));
 				$actionBar.append(btn.getElement());
 			}

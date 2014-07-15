@@ -1,10 +1,10 @@
-/// <reference path='../../wot.d.ts' />
+/// <reference path='../../woc.d.ts' />
 /// <reference path='../jquery.d.ts' />
 
-module wotsingle {
+module wocsingle {
 	'use strict';
 
-	export class CloseButton implements wot.Component {
+	export class CloseButton implements woc.Component {
 
 		private disabled: boolean = false;
 		private $btn: JQuery;
@@ -13,7 +13,7 @@ module wotsingle {
 		// -- Component
 		// --
 
-		constructor(private cc: wot.ComponentContext, props: {}) {
+		constructor(private cc: woc.ComponentContext, props: {}) {
 			this.$btn = $(this.cc.getTemplate('.close-btn'));
 			if (props['cssClass'])
 				this.$btn.addClass(props['cssClass']);
@@ -65,7 +65,7 @@ module wotsingle {
 				try {
 					cb(e);
 				} catch (err) {
-					that.cc.getService('wot.Log').unexpectedErr(err);
+					that.cc.getService('woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

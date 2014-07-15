@@ -1,26 +1,26 @@
-/// <reference path='../../../wot.d.ts' />
-/// <reference path='../../wotext_helpers.l/helpers.ts' />
-/// <reference path='../wotext_DialogsComp.c/DialogsComp.ts' />
+/// <reference path='../../../woc.d.ts' />
+/// <reference path='../../wocext_helpers.l/helpers.ts' />
+/// <reference path='../wocext_DialogsComp.c/DialogsComp.ts' />
 
-module wotext {
+module wocext {
 	'use strict';
 
-	export class Dialogs implements wot.Dialogs {
+	export class Dialogs implements woc.Dialogs {
 
 		// --
 		// -- Fields
 		// --
 
-		private comp: wotext.DialogsComp;
+		private comp: wocext.DialogsComp;
 
 		// --
 		// -- Initialisation
 		// --
 
-		constructor(sc: wot.ServiceContext) {
-			this.comp = <wotext.DialogsComp>sc.createComponent('wotext.DialogsComp', null, new wotext.helpers.GenericLiveState(true));
+		constructor(sc: woc.ServiceContext) {
+			this.comp = <wocext.DialogsComp>sc.createComponent('wocext.DialogsComp', null, new wocext.helpers.GenericLiveState(true));
 			$('body').append(this.comp.getElement());
-			var router = <wot.Router>sc.getService('wot.Router');
+			var router = <woc.Router>sc.getService('woc.Router');
 			var that = this;
 			router.addChangeListener(function () {
 				that.clearDialogs();
@@ -32,12 +32,12 @@ module wotext {
 		// --
 
 		/**
-		 * @param dialog wot.Dialog
+		 * @param dialog woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
 		 */
-		public addDialog(dialog: wot.Dialog, forcedOpen = false, hideBelow = false): number {
+		public addDialog(dialog: woc.Dialog, forcedOpen = false, hideBelow = false): number {
 			return this.comp.addDialog(dialog, forcedOpen, hideBelow);
 		}
 

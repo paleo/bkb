@@ -1,6 +1,6 @@
-/// <reference path='../../wot.d.ts' />
+/// <reference path='../../woc.d.ts' />
 
-module wotext.helpers {
+module wocext.helpers {
 	'use strict';
 
 	// ##
@@ -38,14 +38,14 @@ module wotext.helpers {
 	// ## GenericLiveState
 	// ##
 
-	export class GenericLiveState implements wot.LiveState {
+	export class GenericLiveState implements woc.LiveState {
 		private listeners: Listeners = null;
 
 		constructor(private live: boolean) {
 		}
 
 		// --
-		// -- wot.LiveState
+		// -- woc.LiveState
 		// --
 
 		public isLive(): boolean {

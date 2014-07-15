@@ -1,7 +1,7 @@
 /// <reference path='loader.ts' />
 /// <reference path='log.ts' />
 
-module wot {
+module woc {
 	'use strict';
 
 	// ##
@@ -14,7 +14,7 @@ module wot {
 		// -- Fields
 		// --
 
-		private log: wot.Log;
+		private log: woc.Log;
 		private listeners = [];
 		private runningCount = 0;
 //		private uploadCount = 0;
@@ -24,8 +24,8 @@ module wot {
 		// -- Initialisation
 		// --
 
-		constructor(sc: wot.ServiceContext) {
-			this.log = <wot.Log>sc.getService('wot.Log');
+		constructor(sc: woc.ServiceContext) {
+			this.log = <woc.Log>sc.getService('woc.Log');
 		}
 
 		public addListener(cb: Function): void {

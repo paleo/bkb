@@ -12,24 +12,24 @@ var fsl = fsext.fsl;
 import minifiers = require('./minifiers');
 
 class Project {
-	private static WOT_VERSION = '0.5';
+	private static WOC_VERSION = '0.5';
 	private jsMinifier: minifiers.JsMinifier;
 	private cssMinifier: minifiers.CssMinifier;
 	private htmlMinifier: minifiers.HtmlMinifier;
 	private includeFileRegExp: RegExp;
 
 	public static makeInstance(opt: {}): Promise<Project> {
-		var p = fsp.exists(opt['inProjectPath']).then(function (b) {
+		var p = fsp.exists(opt['inProjectPath']).then((b) => {
 			if (!b)
 				throw new Error('Cannot open input project directory: ' + opt['inProjectPath']);
 		});
 		if (opt['outProjectPath'] !== opt['inProjectPath']) {
-			p = Promise.all<any>([p, fsp.exists(opt['outProjectPath'])]).then(function (arr): any {
+			p = Promise.all<any>([p, fsp.exists(opt['outProjectPath'])]).then((arr): any => {
 				if (!arr[1])
 					return fsp.mkdir(opt['outProjectPath'])
 			});
 		}
-		return p.then(function () {
+		return p.then(() => {
 			return new Project(opt);
 		});
 	}
@@ -40,8 +40,8 @@ class Project {
 		this.htmlMinifier = new minifiers.HtmlMinifier(this.opt['minifyHtml']);
 	}
 
-	public getWotVersion(): string {
-		return Project.WOT_VERSION;
+	public getWocVersion(): string {
+		return Project.WOC_VERSION;
 	}
 
 	public canIncludeOtherFile(fileName: string): boolean {
@@ -88,22 +88,22 @@ class Project {
 
 	public readInputFile(relPath: string, encoding: string): Promise<string> {
 		var p: Promise<string> = fsp.readFile(path.join(this.opt['inProjectPath'], relPath), {'encoding': encoding});
-		p = p.catch<string>(function () {
-				throw new Error('Cannot read the file: ' + relPath);
-			});
+		p = p.catch<string>(() => {
+			throw new Error('Cannot read the file: ' + relPath);
+		});
 		return p;
 	}
 
 	public readInputJsonFile(relFilePath: string, encoding: string): Promise<{}> {
-		return this.readInputFile(relFilePath, encoding).then(function (data) {
+		return this.readInputFile(relFilePath, encoding).then((data) => {
 			var obj;
 			try {
 				obj = JSON.parse(data);
 			} catch (e) {
 				throw new Error('Bad JSON in file: ' + relFilePath);
 			}
-			if (obj['wot'] !== Project.WOT_VERSION)
-				throw new Error('Bad WOT version "' + obj['wot'] + '", required: ' + Project.WOT_VERSION);
+			if (obj['woc'] !== Project.WOC_VERSION)
+				throw new Error('Bad Woc version "' + obj['woc'] + '", required: ' + Project.WOC_VERSION);
 			return obj;
 		});
 	}
@@ -122,14 +122,14 @@ class Project {
 
 	public writeOutputFile(relPath: string, data: string): Promise<void> {
 		return fsp.writeFile(path.join(this.opt['outProjectPath'], relPath), data, {'encoding': this.opt['outEncoding']})
-			.catch<void>(function () {
+			.catch<void>(() => {
 				throw new Error('Cannot write the file: ' + relPath);
 			});
 	}
 
 	public clearOutputDir(relDirPath): Promise<void> {
 		var fullPath = path.join(this.opt['outProjectPath'], relDirPath);
-		return fsl.rmRecursive(fullPath, false).catch<void>(function () {
+		return fsl.rmRecursive(fullPath, false).catch<void>(() => {
 			throw new Error('Cannot clear the directory: ' + relDirPath);
 		});
 	}

@@ -1,5 +1,5 @@
-var wot;
-(wot || {}).CORE_W_READY = false;
+var woc;
+(woc || {}).CORE_W_READY = false;
 
 (function () {
 	'use strict';
@@ -33,11 +33,11 @@ var wot;
 		if (started || waitedLoads !== 0)
 			return;
 		started = true;
-		wot.CORE_W_READY = true;
+		woc.CORE_W_READY = true;
 		start(appUrl);
 	};
 	var start = function (appUrl: string) {
-		addScript(appUrl + '/wot.w/main.js');
+		addScript(appUrl + '/woc.w/main.js');
 	};
 	// - Add scripts in head
 	var addScript = function (url, cb: Function = null) {
@@ -66,21 +66,21 @@ var wot;
 	};
 	var loadCore = function () {
 		try {
-			var appUrl = document.documentElement.getAttribute('data-wot-app');
+			var appUrl = document.documentElement.getAttribute('data-woc-app');
 			if (!appUrl) {
-				var baseUrl = document.documentElement.getAttribute('data-wot-base');
+				var baseUrl = document.documentElement.getAttribute('data-woc-base');
 				if (!baseUrl) {
 					var bases = document.getElementsByTagName('base');
 					baseUrl = bases.length > 0 ? bases[0].href : null;
 					if (!baseUrl)
-						throw new Error('An element "base" or a parameter "data-wot-base" is required');
+						throw new Error('An element "base" or a parameter "data-woc-base" is required');
 					if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
 						baseUrl = baseUrl.slice(0, baseUrl.length -1);
 				}
 				appUrl = baseUrl;
 			}
 			for (var i = 0; i < scripts.length; ++i) {
-				addScript(appUrl + '/wot.w/' + scripts[i], function () {
+				addScript(appUrl + '/woc.w/' + scripts[i], function () {
 					--waitedLoads;
 					tryToStart(appUrl);
 				});
