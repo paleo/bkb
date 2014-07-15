@@ -18,10 +18,9 @@ module todos {
 				'addBtn': this.btn.getElement()
 			}));
 			this.$ul = this.$bloc.find('ul');
-			var that = this;
-			this.btn.click(function (e) {
+			this.btn.click((e) => {
 				e.preventDefault();
-				that.createItem();
+				this.createItem();
 			});
 			this.$bloc.find('h1').text(props['title']);
 			this.items = [];

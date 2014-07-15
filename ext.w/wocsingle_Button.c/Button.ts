@@ -76,18 +76,17 @@ module wocsingle {
 				this.$btn.click();
 				return this;
 			}
-			var that = this;
-			this.$btn.click(function (e) {
+			this.$btn.click((e) => {
 				try {
-					if (that.autoDisableMode) {
-						that.autoDisabled = true;
-						that.$btn.prop('disabled', true);
+					if (this.autoDisableMode) {
+						this.autoDisabled = true;
+						this.$btn.prop('disabled', true);
 					}
-					if (that.withAjax)
-						that.$ajaxFlag.show();
+					if (this.withAjax)
+						this.$ajaxFlag.show();
 					cb(e);
 				} catch (err) {
-					that.cc.getService('woc.Log').unexpectedErr(err);
+					this.cc.getService('woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

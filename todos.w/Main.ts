@@ -15,13 +15,12 @@ module todos {
 			var list = <todos.List>this.ac.createComponent('todos.List', {'title': 'My First List', 'count': 3}, st);
 			$(element).append(list.getElement());
 
-			var that = this;
-			var btn = this.ac.createComponent('wocsingle.Button', {'label': 'TREE'}, st).click(function () {
-				console.log(Main.stringifyTree(that.ac.getDebugTree()));
+			var btn = this.ac.createComponent('wocsingle.Button', {'label': 'TREE'}, st).click(() => {
+				console.log(Main.stringifyTree(this.ac.getDebugTree()));
 			});
 			$(element).append(btn.getElement());
-			btn = this.ac.createComponent('wocsingle.Button', {'label': 'END'}, st).click(function () {
-				that.ac.removeComponent(list, true);
+			btn = this.ac.createComponent('wocsingle.Button', {'label': 'END'}, st).click(() => {
+				this.ac.removeComponent(list, true);
 			});
 			$(element).append(btn.getElement());
 		}

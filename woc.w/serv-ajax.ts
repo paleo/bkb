@@ -128,16 +128,15 @@ module woc {
 		}
 //		public upload(opt) {
 //			// sect, cmd, files, data, doneCallback = null, failCallback = null, progressCallback = null
-//			var that = this;
 //			var uploadId = ++this.uploadCount;
-//			var internalDoneCallback = function (rData, textStatus, jqXHR) {
-//				that.safelyUpdateStatus(false);
-//				that.safelyDone(
-//					rData, textStatus, jqXHR, that.backendUrl, 'json', true,
-//					function (inData) {
-//						that.handleDoneUploading(uploadId, inData);
-//					}, function () {
-//						that.handleFailUploading(uploadId);
+//			var internalDoneCallback = (rData, textStatus, jqXHR) => {
+//				this.safelyUpdateStatus(false);
+//				this.safelyDone(
+//					rData, textStatus, jqXHR, this.backendUrl, 'json', true,
+//					(inData) => {
+//						this.handleDoneUploading(uploadId, inData);
+//					}, () => {
+//						this.handleFailUploading(uploadId);
 //					}
 //				);
 //			};
@@ -162,16 +161,16 @@ module woc {
 //			this.safelyUpdateStatus(true);
 //			var jqXhr = $.ajax(this.backendUrl, {
 //				'type': 'post',
-//				'xhr': function () {
+//				'xhr': () => {
 //					var newJqXhr = $.ajaxSettings.xhr();
 //					if (newJqXhr.upload)
-//						newJqXhr.upload.addEventListener('progress', function (e) { that.handleUploadProgress(uploadId, e); }, false);
+//						newJqXhr.upload.addEventListener('progress', (e) => { this.handleUploadProgress(uploadId, e); }, false);
 //					return newJqXhr;
 //				},
 //				'success': internalDoneCallback,
-//				'error': function () { // jqXHR: JQueryXHR, textStatus: string, errorThrow: string
-//					that.safelyUpdateStatus(false);
-//					that.handleFailUploading(uploadId);
+//				'error': () => { // jqXHR: JQueryXHR, textStatus: string, errorThrow: string
+//					this.safelyUpdateStatus(false);
+//					this.handleFailUploading(uploadId);
 //				},
 //				'data': fd,
 //				'dataType': 'text',
@@ -205,14 +204,13 @@ module woc {
 				}
 			}
 			var rDataType: string = opt['rDataType'] === undefined ? 'json' : opt['rDataType'];
-			var that = this;
-			var doneCallback = function (rData, statusCode) {
-				that.safelyUpdateStatus(false);
-				that.safelyDone(rData, statusCode, rDataType, opt);
+			var doneCallback = (rData, statusCode) => {
+				this.safelyUpdateStatus(false);
+				this.safelyDone(rData, statusCode, rDataType, opt);
 			};
-			var failCallback = function (statusCode, statusText) {
-				that.safelyUpdateStatus(false);
-				that.safelyFail(statusCode, statusText, opt);
+			var failCallback = (statusCode, statusText) => {
+				this.safelyUpdateStatus(false);
+				this.safelyFail(statusCode, statusText, opt);
 			};
 			this.safelyUpdateStatus(true);
 			//CoreAjax.doXHRJQuery(method, url, sData, rDataType, doneCallback, failCallback);
@@ -335,10 +333,10 @@ module woc {
 //		private static doXHRJQuery(method, url, sData, rDataType, doneCallback, failCallback) {
 //			var settings = {
 //				'type': method,
-//				'success': function (data, textStatus, jqXHR) {
+//				'success': (data, textStatus, jqXHR) => {
 //					doneCallback(data, jqXHR.status);
 //				},
-//				'error': function (jqXHR, textStatus, errorThrown) {
+//				'error': (jqXHR, textStatus, errorThrown) => {
 //					failCallback(jqXHR.status, textStatus + '; ' + errorThrown);
 //				},
 //				'data': sData,
@@ -346,13 +344,13 @@ module woc {
 //			};
 ////				'contentType': false, //'multipart/form-data',
 ////				'processData': false,
-////				'xhr': function () {
+////				'xhr': () => {
 ////					var newJqXhr = $.ajaxSettings.xhr();
 ////					if (newJqXhr.upload)
-////						newJqXhr.upload.addEventListener('progress', function (e) { that.handleUploadProgress(uploadId, e); }, false);
+////						newJqXhr.upload.addEventListener('progress', (e) => { this.handleUploadProgress(uploadId, e); }, false);
 ////					return newJqXhr;
 ////				},
-////				beforeSend: function(jqXHR, settings){
+////				beforeSend: (jqXHR, settings) => {
 ////    	    settings.xhr()
 ////    		}
 //			$.ajax(url, settings);
@@ -361,7 +359,7 @@ module woc {
 		private static doXHR(method, url, sData, rDataType, doneCallback, failCallback) {
 			var req = new XMLHttpRequest();
 			req.open(method, url, true);
-			req['onload'] = function () {
+			req['onload'] = () => {
 				if (req.status >= 200 && req.status < 400) { // 'json|script|text|detect'
 					var resp = req.responseText;
 //					if (rDataType === 'detect') {
@@ -384,7 +382,7 @@ module woc {
 					failCallback(req.status, req.statusText);
 				}
 			};
-			req['onerror'] = function () {
+			req['onerror'] = () => {
 				failCallback(req.status, req.statusText);
 			};
 			// - sDataStr
@@ -601,15 +599,14 @@ module woc {
 		// --
 
 		public start() {
-			var that = this;
-			var doneCallbackMaker = function (url, prop) {
-				return function (rData) {
-					that.endItem(url, prop, true, rData);
+			var doneCallbackMaker = (url, prop) => {
+				return (rData) => {
+					this.endItem(url, prop, true, rData);
 				};
 			};
-			var failCallbackMaker = function (url, prop) {
-				return function () {
-					that.endItem(url, prop, false, null);
+			var failCallbackMaker = (url, prop) => {
+				return () => {
+					this.endItem(url, prop, false, null);
 				};
 			};
 			this.rDataMap = {};

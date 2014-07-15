@@ -121,9 +121,8 @@ module wocext {
 			if (hideBelow)
 				this.hideOpenedDialogs();
 			var openedId = this.openedDialogs.length;
-			var that = this;
-			var closeCallback = function () {
-				return that.closeDialogsUntil(openedId, true);
+			var closeCallback = () => {
+				return this.closeDialogsUntil(openedId, true);
 			};
 			this.openedDialogs[openedId] = {
 				'$elem': $(dialogElem),
@@ -243,7 +242,6 @@ module wocext {
 				return;
 			// - Show the dialog
 			this.isBriefBoxProcessing = true;
-			var that = this;
 			var $dialog: JQuery;
 			var delayInMs: number;
 			switch (props['type']) {
@@ -261,12 +259,12 @@ module wocext {
 					break;
 				default:
 					$dialog = $(this.cc.getTemplate('.err-dialog'));
-					$dialog.find('.close-btn').click(function (e) {
+					$dialog.find('.close-btn').click((e) => {
 						e.preventDefault();
-						that.$shortDialogArea.hide();
+						this.$shortDialogArea.hide();
 						$dialog.remove();
-						that.isBriefBoxProcessing = false;
-						that.pleaseProcessShortDialogs();
+						this.isBriefBoxProcessing = false;
+						this.pleaseProcessShortDialogs();
 					});
 			}
 			$dialog.find('.message').html(props['message']);
@@ -276,36 +274,35 @@ module wocext {
 			if (props['type'] === 'confirm')
 				this.stConfirm.setLive(true);
 			if (delayInMs !== undefined) {
-				window.setTimeout(function () {
-					that.$shortDialogArea.fadeOut(200, function () {
+				window.setTimeout(() => {
+					this.$shortDialogArea.fadeOut(200, () => {
 						$dialog.remove();
-						that.isBriefBoxProcessing = false;
+						this.isBriefBoxProcessing = false;
 						if (props['type'] === 'confirm') {
-							that.stConfirm.setLive(false);
-							that.stConfirm.reset();
+							this.stConfirm.setLive(false);
+							this.stConfirm.reset();
 						}
-						that.pleaseProcessShortDialogs();
+						this.pleaseProcessShortDialogs();
 					});
 				}, delayInMs);
 			}
 		}
 
 		private appendConfirmButtons($dialog, $actionBar: JQuery, btnList: any[]) {
-			var that = this;
-			var closeDialog = function (cb: Function) {
-				that.$shortDialogArea.fadeOut(200, function () {
+			var closeDialog = (cb: Function) => {
+				this.$shortDialogArea.fadeOut(200, () => {
 					$dialog.remove();
-					that.isBriefBoxProcessing = false;
+					this.isBriefBoxProcessing = false;
 					if (cb)
 						cb();
-					that.pleaseProcessShortDialogs();
+					this.pleaseProcessShortDialogs();
 				});
 			};
-			var clickAjaxMaker = function (cb: Function) {
-				return function (e) {
+			var clickAjaxMaker = (cb: Function) => {
+				return (e) => {
 					e.preventDefault();
 					if (cb) {
-						cb(function () {
+						cb(() => {
 							btn.reset();
 							closeDialog(null);
 						});
@@ -315,8 +312,8 @@ module wocext {
 					}
 				};
 			};
-			var clickNormalMaker = function (cb: Function) {
-				return function (e) {
+			var clickNormalMaker = (cb: Function) => {
+				return (e) => {
 					e.preventDefault();
 					closeDialog(cb);
 				};

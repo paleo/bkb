@@ -15,9 +15,8 @@ module wocext.helpers {
 				this.listeners[type] = [];
 			var id = this.listeners[type].length;
 			this.listeners[type][id] = cb;
-			var that = this;
-			return function () {
-				delete that.listeners[type][id];
+			return () => {
+				delete this.listeners[type][id];
 			};
 		}
 

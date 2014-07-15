@@ -285,7 +285,7 @@ module wocext {
 					'byListenerTypes': this.waitingListeners[k]
 				});
 			}
-			list.sort(function (a: {}, b: {}): number {
+			list.sort((a: {}, b: {}): number => {
 				return a['datasetPath'] < b['datasetPath'] ? 1 : (a['datasetPath'] === b['datasetPath'] ? 0 : -1);
 			});
 			// - Fire listeners
@@ -678,9 +678,8 @@ module wocext {
 				this.listeners[type] = [];
 			var id = this.listeners[type].length;
 			this.listeners[type][id] = cb;
-			var that = this;
-			return function () {
-				delete that.listeners[type][id];
+			return () => {
+				delete this.listeners[type][id];
 			};
 		}
 
@@ -858,7 +857,7 @@ module wocext {
 			}
 			// - Map - Sort the list
 			var sortOn = hasIndex ? 2 : (allIdNum ? 3 : 1);
-			list.sort(function (propA: any, propB: any): number {
+			list.sort((propA: any, propB: any): number => {
 				var a = propA[sortOn], b = propB[sortOn];
 				if (a === undefined)
 					return b === undefined ? 0 : 1;
@@ -1234,7 +1233,7 @@ module wocext {
 				cb = relPath;
 				relPath = null;
 			}
-			this.dataset.each(relPath, function (val: any, id: any) {
+			this.dataset.each(relPath, (val: any, id: any) => {
 				if (GenericDataset.isGenericDataset(val))
 					val = val.toReadOnly();
 				cb(val, id);

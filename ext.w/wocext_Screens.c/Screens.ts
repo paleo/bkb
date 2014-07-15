@@ -70,12 +70,11 @@ module wocext {
 		constructor(private cc: woc.ComponentContext) {
 			this.$container = $(this.cc.getTemplate('.screens'));
 			this.router = this.cc.getService('woc.Router');
-			var that = this;
-			this.rmCbList.push(this.router.addBeforeListener(function (up: woc.UrlProps): boolean {
-				return that.getScreen(up) !== null;
+			this.rmCbList.push(this.router.addBeforeListener((up: woc.UrlProps): boolean => {
+				return this.getScreen(up) !== null;
 			}));
-			this.rmCbList.push(this.router.addChangeListener(function (up: woc.UrlProps) {
-				that.switchTo(up);
+			this.rmCbList.push(this.router.addChangeListener((up: woc.UrlProps) => {
+				this.switchTo(up);
 			}));
 		}
 

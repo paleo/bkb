@@ -42,10 +42,9 @@ module woc {
 					'keys': keys
 				};
 			}
-			var that = this;
-			return function () {
+			return () => {
 				for (var i = 0, len = indices.length; i < len; ++i)
-					delete that.selList[indices[i]];
+					delete this.selList[indices[i]];
 			};
 		}
 
@@ -62,13 +61,12 @@ module woc {
 			if (!this.firstRelUrl)
 				this.firstRelUrl = CoreRouter.getDefaultFirstRelUrl(this.baseUrl, this.withHashBang);
 			if (this.withHistory) {
-				var that = this;
-				window.onpopstate = function(e) {
+				window.onpopstate = (e) => {
 					try {
-						var relUrl = e.state === null ? that.firstRelUrl : e.state['relUrl'];
-						that.doGoTo(relUrl, false);
+						var relUrl = e.state === null ? this.firstRelUrl : e.state['relUrl'];
+						this.doGoTo(relUrl, false);
 					} catch (e) {
-						that.log.unexpectedErr(e);
+						this.log.unexpectedErr(e);
 					}
 				};
 			}
@@ -153,7 +151,7 @@ module woc {
 				listeners = this.listeners[type] = [];
 			var newId = listeners.length;
 			listeners[newId] = cb;
-			return function () {
+			return () => {
 				listeners.splice(newId, 1);
 			};
 		}
@@ -191,7 +189,7 @@ module woc {
 				.concat(strict ? '' : '/?')
 				.replace(/\/\(/g, '(?:/')
 				.replace(/\+/g, '__plus__')
-				.replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, function(_, slash, format, key, capture, optional){
+				.replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?/g, (_, slash, format, key, capture, optional) => {
 					keys.push({ 'name': key, 'optional': optional ? true : false });
 					slash = slash || '';
 					return '' + (optional ? '' : slash) + '(?:' + (optional ? slash : '') + (format || '') + (capture || (format && '([^/.]+?)' || '([^/]+?)')) + ')' + (optional || '');

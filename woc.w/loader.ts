@@ -61,20 +61,19 @@ module woc {
 				bundleUrl += Loader.WORK_IN_PROGRESS;
 			else if (version)
 				bundleUrl += '-' + version;
-			var that = this;
-			var loadDone = function () {
+			var loadDone = () => {
 				prop['status'] = Loader.S_READY;
 				var cbList = prop['onReady'], i, len;
 				for (i = 0, len = cbList.length; i < len; ++i)
 					cbList[i]();
 				var startList = prop['start'];
 				for (i = 0, len = startList.length; i < len; ++i)
-					that.bundles.start(bundlePath, startList[i]);
+					this.bundles.start(bundlePath, startList[i]);
 				delete prop['onReady'];
 				delete prop['onError'];
 				delete prop['start'];
 			};
-			var loadFail = function () {
+			var loadFail = () => {
 				prop['status'] = Loader.S_ERROR;
 				var cbList = prop['onError'];
 				for (var i = 0, len = cbList.length; i < len; ++i)
@@ -101,14 +100,14 @@ module woc {
 					doneCallback();
 				return;
 			}
-			var done = function () {
+			var done = () => {
 				if (hasError)
 					return;
 				--waitedLoads;
 				if (waitedLoads === 0 && doneCallback)
 					doneCallback();
 			};
-			var fail = function () {
+			var fail = () => {
 				if (hasError)
 					return;
 				hasError = true;
@@ -134,11 +133,10 @@ module woc {
 
 		private loadNormalBundle(bundlePath, bundleUrl, doneCallback, failCallback, autoLoadCss: boolean) {
 			var bundleName = Loader.getLastDirName(bundlePath);
-			var that = this;
 			this.ajax.get({
 				'url': bundleUrl + '/' + bundleName + '.json',
-				'done': function (bundleData) {
-					that.onLoadedNormalBundle(bundlePath, bundleUrl, bundleName, doneCallback, failCallback, bundleData, autoLoadCss);
+				'done': (bundleData) => {
+					this.onLoadedNormalBundle(bundlePath, bundleUrl, bundleName, doneCallback, failCallback, bundleData, autoLoadCss);
 				}
 			});
 			if (autoLoadCss)
@@ -149,9 +147,8 @@ module woc {
 				bundleData: {}, autoLoadedCss: boolean) {
 			var preload = bundleData['preload'];
 			if (preload) {
-				var that = this;
-				this.loadBundles(preload, function () {
-					that.registerNormalBundle(bundlePath, bundleUrl, bundleData);
+				this.loadBundles(preload, () => {
+					this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
 					if (doneCallback)
 						doneCallback();
 				}, failCallback, false);

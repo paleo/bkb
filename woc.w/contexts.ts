@@ -580,7 +580,7 @@ module woc {
 				glo.execScript(script); // IE
 				return;
 			}
-			var fn = function() {
+			var fn = function () {
 				glo['eval']['call'](glo, script);
 			};
 			fn();

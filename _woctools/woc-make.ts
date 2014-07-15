@@ -21,7 +21,7 @@ if (argv['h'] || argv['help'] || argv['_'].length === 0) {
 
 var inPath = argv['i'] || argv['in-project-path'] || process.cwd();
 
-var toBool = function(v: any, def: boolean): boolean {
+var toBool = function (v: any, def: boolean): boolean {
 	return v === undefined ?  def : v;
 };
 

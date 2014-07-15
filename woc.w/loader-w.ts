@@ -20,27 +20,26 @@ module woc {
 				private bundles: Bundles, private loader: Loader, private bundlePath: string, private bundleUrl: string,
 				version: string, doneCallback: Function, failCallback: Function) {
 			this.ajax = this.services.get('woc.Ajax');
-			var that = this;
 			var doneReported = false;
-			this.thingDoneCallback = function (decCount = true) {
+			this.thingDoneCallback = (decCount = true) => {
 				if (decCount)
-					--that.thingLoadCount;
-				if (that.thingLoadCount > 0)
+					--this.thingLoadCount;
+				if (this.thingLoadCount > 0)
 					return;
 				if (doneReported)
-					throw new Error('Bug when loading bundle ("w" mode) "' + that.bundlePath + '": done already reported');
+					throw new Error('Bug when loading bundle ("w" mode) "' + this.bundlePath + '": done already reported');
 				doneReported = true;
-				if (that.embedBundleList.length === 0)
+				if (this.embedBundleList.length === 0)
 					throw new Error('Empty bundle');
-				var bundleConf = that.embedBundleList[0]['conf'];
+				var bundleConf = this.embedBundleList[0]['conf'];
 				if (bundleConf['version'] && version && bundleConf['version'] !== version)
 					throw new Error('Conflict in bundle version, attempted "' + version + '" doesn\'nt match with current "' + bundleConf['version'] + '"');
-				that.bundles.register(that.bundlePath, that.bundleUrl, null, null, bundleConf['main']);
+				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, bundleConf['main']);
 				if (doneCallback)
 					doneCallback();
 			};
 			var failReported = false;
-			this.failCallback = function () {
+			this.failCallback = () => {
 				if (failReported)
 					return;
 				failReported = true;
@@ -62,7 +61,7 @@ module woc {
 		// --
 
 		static addScriptElement(url, cb, services: Services) {
-			var ready = function () {
+			var ready = () => {
 				if (cb) {
 					try {
 						cb();
@@ -88,27 +87,26 @@ module woc {
 		// --
 
 		private doLoadWBundle(bundlePath, bundleUrl) {
-			var that = this;
-			var preloadDone = function () {
-				--that.waitedPreloads;
-				that.loadAllEmbedBundles();
+			var preloadDone = () => {
+				--this.waitedPreloads;
+				this.loadAllEmbedBundles();
 			};
 			++this.waitedBundleConf;
 			this.ajax.get({
 				'url': bundleUrl + '/bundle.json',
-				'done': function (bundleConf) {
-					that.embedBundleList.push({
+				'done': (bundleConf) => {
+					this.embedBundleList.push({
 						'path': bundlePath,
 						'url': bundleUrl,
 						'conf': bundleConf
 					});
-					--that.waitedBundleConf;
-					that.loadEmbedBundlesConf(bundlePath, bundleUrl, bundleConf);
+					--this.waitedBundleConf;
+					this.loadEmbedBundlesConf(bundlePath, bundleUrl, bundleConf);
 					if (bundleConf['preload']) {
-						++that.waitedPreloads;
-						that.loader.loadBundles(bundleConf['preload'], preloadDone, that.failCallback, false);
+						++this.waitedPreloads;
+						this.loader.loadBundles(bundleConf['preload'], preloadDone, this.failCallback, false);
 					} else
-						that.loadAllEmbedBundles();
+						this.loadAllEmbedBundles();
 				},
 				'fail': this.failCallback
 			});
@@ -201,15 +199,14 @@ module woc {
 				});
 			}
 			// - Load all
-			var that = this;
 			++this.thingLoadCount;
 			this.ajax.bundleAjax({
 				'urls': optList,
-				'done': function (rDataMap) {
-					that.populateThingPropConf(thingPropList, rDataMap);
-					var libScriptsLoader = that.includeLibs(thingPropList, mergedBundleProp);
-					that.loadAllWDataPart1(thingPropList, mergedBundleProp, libScriptsLoader);
-					that.thingDoneCallback();
+				'done': (rDataMap) => {
+					this.populateThingPropConf(thingPropList, rDataMap);
+					var libScriptsLoader = this.includeLibs(thingPropList, mergedBundleProp);
+					this.loadAllWDataPart1(thingPropList, mergedBundleProp, libScriptsLoader);
+					this.thingDoneCallback();
 				},
 				'fail': this.failCallback
 			});
@@ -316,23 +313,23 @@ module woc {
 		}
 
 		private loadAllWDataPart2(scriptsToLoad, listsByTypes, libScriptsLoader: WLibScriptsLoader) {
-			var that = this, i: number, len: number, j: number, jLen: number, fileNames;
+			var i: number, len: number, j: number, jLen: number, fileNames;
 			// - Try to end function
 			var oScriptsLoaded = false, lScriptsLoaded = false, ajaxEnded = false, tplRDataMap = null, endDone = false;
-			var tryToEnd = function (decCount: boolean) {
+			var tryToEnd = (decCount: boolean) => {
 				if (endDone) {
 				}
 				if (lScriptsLoaded && oScriptsLoaded && ajaxEnded) {
-					that.registerAllWLibraries(listsByTypes['L']);
-					that.registerAllWServices(listsByTypes['S']);
-					that.registerAllWComponents(listsByTypes['C'], tplRDataMap);
+					this.registerAllWLibraries(listsByTypes['L']);
+					this.registerAllWServices(listsByTypes['S']);
+					this.registerAllWComponents(listsByTypes['C'], tplRDataMap);
 					endDone = true;
 				}
-				that.thingDoneCallback(decCount);
+				this.thingDoneCallback(decCount);
 			};
 			// - Load lib scripts
 			++this.thingLoadCount;
-			libScriptsLoader.loadAll(function () {
+			libScriptsLoader.loadAll(() => {
 				lScriptsLoaded = true;
 				tryToEnd(true);
 			});
@@ -349,7 +346,7 @@ module woc {
 						scriptUrlList.push(baseUrl + '/' + fileNames[j]);
 				}
 				++this.thingLoadCount;
-				this.addScriptElements(scriptUrlList, function () {
+				this.addScriptElements(scriptUrlList, () => {
 					oScriptsLoaded = true;
 					tryToEnd(true);
 				});
@@ -376,7 +373,7 @@ module woc {
 				++this.thingLoadCount;
 				this.ajax.bundleAjax({
 					'urls': optList,
-					'done': function (rDataMap) {
+					'done': (rDataMap) => {
 						ajaxEnded = true;
 						tplRDataMap = rDataMap;
 						tryToEnd(true);
@@ -474,7 +471,7 @@ module woc {
 				return;
 			}
 			for (var i = 0, len = urlList.length; i < len; ++i) {
-				WLoader.addScriptElement(urlList[i], function () {
+				WLoader.addScriptElement(urlList[i], () => {
 					--waitedLoads;
 					if (waitedLoads === 0)
 						cb();
@@ -544,11 +541,10 @@ module woc {
 		private addScriptElement(url) {
 			++this.loadingCount;
 			this.done[url] = false;
-			var that = this;
-			WLoader.addScriptElement(url, function () {
-				--that.loadingCount;
-				that.done[url] = true;
-				that.loadReadyScripts();
+			WLoader.addScriptElement(url, () => {
+				--this.loadingCount;
+				this.done[url] = true;
+				this.loadReadyScripts();
 			}, this.services);
 		}
 

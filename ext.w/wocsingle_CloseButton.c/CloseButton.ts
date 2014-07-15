@@ -60,12 +60,11 @@ module wocsingle {
 				this.$btn.click();
 				return this;
 			}
-			var that = this;
-			this.$btn.click(function (e) {
+			this.$btn.click((e) => {
 				try {
 					cb(e);
 				} catch (err) {
-					that.cc.getService('woc.Log').unexpectedErr(err);
+					this.cc.getService('woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

@@ -21,9 +21,8 @@ module wocext {
 			this.comp = <wocext.DialogsComp>sc.createComponent('wocext.DialogsComp', null, new wocext.helpers.GenericLiveState(true));
 			$('body').append(this.comp.getElement());
 			var router = <woc.Router>sc.getService('woc.Router');
-			var that = this;
-			router.addChangeListener(function () {
-				that.clearDialogs();
+			router.addChangeListener(() => {
+				this.clearDialogs();
 			});
 		}
 

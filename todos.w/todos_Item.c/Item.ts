@@ -15,10 +15,9 @@ module todos {
 		constructor(private cc: woc.ComponentContext, props: {}) {
 			this.btn = cc.createComponent('wocsingle.Button', {'label': '×'});
 			this.$bloc = $(cc.getTemplate('.todos-item', {'button': this.btn.getElement()}));
-			var that = this;
-			this.btn.click(function (e) {
+			this.btn.click((e) => {
 				e.preventDefault();
-				that.removeFromList();
+				this.removeFromList();
 			});
 			this.curItemId = props['itemId'];
 			this.curList = props['list'];
