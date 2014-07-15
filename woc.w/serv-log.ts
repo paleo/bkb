@@ -1,9 +1,8 @@
-/// <reference path='loader.ts' />
+/// <reference path='definitions.ts' />
+'use strict';
 
 module woc {
-	'use strict';
-
-	export class Log {
+	export class CoreLog implements Log {
 
 		// --
 		// -- Fields, Initialisation

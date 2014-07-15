@@ -1,27 +1,8 @@
-/// <reference path="loader.ts" />
+/// <reference path="definitions.ts" />
+'use strict';
 
 module woc {
-
-	// ##
-	// ## Interface
-	// ##
-
-	export interface UrlProps {
-		relUrl: string;
-		args: {string: string};
-		sel: string;
-		title?: string;
-	}
-
-	export interface UrlController {
-		fillUrlProps(props: UrlProps): boolean;
-	}
-
-	// ##
-	// ## Router
-	// ##
-
-	export class Router {
+	export class CoreRouter implements Router {
 
 		// --
 		// -- Fields & Initialisation
@@ -51,7 +32,7 @@ module woc {
 			var keys, regex, indices = [], index;
 			for (var i = 0, len = selList.length; i < len; ++i) {
 				keys = [];
-				regex = Router.pathToRegexp(selList[i], keys, true, true);
+				regex = CoreRouter.pathToRegexp(selList[i], keys, true, true);
 				index = this.selList.length;
 				indices.push(index);
 				this.selList[index] = {
@@ -79,7 +60,7 @@ module woc {
 				this.baseUrl += '#!';
 			this.firstRelUrl = ac.properties['firstRelUrl'];
 			if (!this.firstRelUrl)
-				this.firstRelUrl = Router.getDefaultFirstRelUrl(this.baseUrl, this.withHashBang);
+				this.firstRelUrl = CoreRouter.getDefaultFirstRelUrl(this.baseUrl, this.withHashBang);
 			if (this.withHistory) {
 				var that = this;
 				window.onpopstate = function(e) {
@@ -130,7 +111,7 @@ module woc {
 			if (!relUrl)
 				relUrl = '/';
 			else if (relUrl.charAt(0) !== '/')
-				relUrl = Router.appendUrl(this.curUrlProps ? this.curUrlProps['relUrl'] : '/', relUrl);
+				relUrl = CoreRouter.appendUrl(this.curUrlProps ? this.curUrlProps['relUrl'] : '/', relUrl);
 			if (this.curUrlProps && this.curUrlProps['relUrl'] === relUrl)
 				return true;
 			var selProp, args, up: UrlProps = null;
@@ -138,7 +119,7 @@ module woc {
 				if (!this.selList.hasOwnProperty(k))
 					continue;
 				selProp = this.selList[k];
-				args = Router.matchRelUrl(relUrl, selProp['regex'], selProp['keys']);
+				args = CoreRouter.matchRelUrl(relUrl, selProp['regex'], selProp['keys']);
 				if (args) {
 					up = {
 						'relUrl': relUrl,

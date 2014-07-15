@@ -1,14 +1,13 @@
-/// <reference path='loader.ts' />
-/// <reference path='log.ts' />
+/// <reference path='definitions.ts' />
+'use strict';
 
 module woc {
-	'use strict';
 
 	// ##
 	// ## Ajax
 	// ##
 
-	export class Ajax {
+	export class CoreAjax implements Ajax {
 
 		// --
 		// -- Fields
@@ -48,7 +47,7 @@ module woc {
 		 * }</code></pre>
 		 */
 		public createCustom(opt): CustomAjax {
-			return new CustomAjax(this, opt);
+			return new CoreCustomAjax(this, opt);
 		}
 
 		// --
@@ -202,7 +201,7 @@ module woc {
 				if (sAsJson !== undefined) {
 					var orig = sData;
 					sData = {};
-					sData[sAsJson] = Ajax.jsonStringify(orig);
+					sData[sAsJson] = CoreAjax.jsonStringify(orig);
 				}
 			}
 			var rDataType: string = opt['rDataType'] === undefined ? 'json' : opt['rDataType'];
@@ -216,8 +215,8 @@ module woc {
 				that.safelyFail(statusCode, statusText, opt);
 			};
 			this.safelyUpdateStatus(true);
-			//Ajax.doXHRJQuery(method, url, sData, rDataType, doneCallback, failCallback);
-			Ajax.doXHR(method, url, sData, rDataType, doneCallback, failCallback);
+			//CoreAjax.doXHRJQuery(method, url, sData, rDataType, doneCallback, failCallback);
+			CoreAjax.doXHR(method, url, sData, rDataType, doneCallback, failCallback);
 		}
 
 		private safelyDone(rData, statusCode, rDataType, opt) {
@@ -235,7 +234,7 @@ module woc {
 				}
 				var jsonObj;
 				try {
-					jsonObj = Ajax.jsonParse(rData);
+					jsonObj = CoreAjax.jsonParse(rData);
 				} catch (e) {
 					this.log.error('Invalid JSON returned by: "' + opt['url'] + '": ' + rData);
 					if (opt['fail'])
@@ -365,19 +364,19 @@ module woc {
 			req['onload'] = function () {
 				if (req.status >= 200 && req.status < 400) { // 'json|script|text|detect'
 					var resp = req.responseText;
-					if (rDataType === 'detect') {
-						var ct = this.getResponseHeader('Content-Type');
-						switch (ct) {
-							case 'application/json':
-								rDataType = 'json';
-								break;
-							case 'application/javascript':
-								rDataType = 'script';
-								break;
-							default:
-								rDataType = 'text';
-						}
-					}
+//					if (rDataType === 'detect') {
+//						var ct = this.getResponseHeader('Content-Type');
+//						switch (ct) {
+//							case 'application/json':
+//								rDataType = 'json';
+//								break;
+//							case 'application/javascript':
+//								rDataType = 'script';
+//								break;
+//							default:
+//								rDataType = 'text';
+//						}
+//					}
 					if (rDataType === 'script')
 						eval(resp);
 					doneCallback(resp, req.status);
@@ -420,7 +419,7 @@ module woc {
 					o = "'" + o + "'";
 				return String(o);
 			}
-			var n, v, json = [], arr = Ajax.isArray(o);
+			var n, v, json = [], arr = CoreAjax.isArray(o);
 			for (n in o) {
 				if (!o.hasOwnProperty(n))
 					continue;
@@ -429,7 +428,7 @@ module woc {
 				if (t == 'string')
 					v = "'" + v + "'";
 				else if (t == 'object' && v !== null)
-					v = Ajax.jsonStringify(v);
+					v = CoreAjax.jsonStringify(v);
 				json.push((arr ? '' : "'" + n + "':") + String(v));
 			}
 			return (arr ? '[' : '{') + String(json) + (arr ? ']' : '}');
@@ -446,7 +445,7 @@ module woc {
 	// ## CustomAjax
 	// ##
 
-	export class CustomAjax {
+	export class CoreCustomAjax implements CustomAjax {
 
 		// --
 		// -- Fields & Initialisation

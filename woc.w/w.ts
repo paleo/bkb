@@ -1,9 +1,8 @@
+'use strict';
 var woc;
 (woc || {}).CORE_W_READY = false;
 
 (function () {
-	'use strict';
-
 	// - Parameters
 	var scripts = ['loader.js', 'log.js', 'ajax.js', 'router.js'];
 	function reportStartErr(err: any) {

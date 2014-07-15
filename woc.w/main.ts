@@ -1,8 +1,7 @@
 /// <reference path="loader.ts" />
+'use strict';
 
 (function () {
-	'use strict';
-
 	function reportStartErr(err: any) {
 		var errStr, stack;
 		if (typeof err === 'object') {
