@@ -44,7 +44,7 @@
 			var bases = document.getElementsByTagName('base');
 			baseUrl = bases.length > 0 ? bases[0].href : null;
 			if (!baseUrl)
-				throw new Error('An element "base" or a parameter "data-woc-base" is required');
+				throw Error('An element "base" or a parameter "data-woc-base" is required');
 			if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
 				baseUrl = baseUrl.slice(0, baseUrl.length -1);
 			var prefix = window.location.protocol + '//' + window.location.host;

@@ -19,9 +19,9 @@ module woc {
 				name = marker.getAttribute(TemplateParser.DATA_PH);
 				if (name) {
 					if (elMap[name] === undefined)
-						throw new Error('In component "' + context.getComponentName() + '", missing element for placeholder "' + name + '"');
+						throw Error('In component "' + context.getComponentName() + '", missing element for placeholder "' + name + '"');
 					if (elMap[name] !== null && elMap[name]['tagName'] === undefined)
-						throw new Error('Elements to put in placeholders must be DOM elements');
+						throw Error('Elements to put in placeholders must be DOM elements');
 					list.push([marker, elMap[name]]);
 				}
 			}
@@ -64,7 +64,7 @@ module woc {
 			}
 //			for (var k in this.placeholders) {
 //				if (this.placeholders.hasOwnProperty(k))
-//					throw new Error('In templates of component "' + this.componentName + '": placeholder "' + k + '" should be replaced here');
+//					throw Error('In templates of component "' + this.componentName + '": placeholder "' + k + '" should be replaced here');
 //			}
 			return templates;
 		}
@@ -131,7 +131,7 @@ module woc {
 		private addPlaceholder(pieces: string[], name: string) {
 			var name = TemplateParser.trim(name);
 			if (this.placeholders[name])
-				throw new Error('Conflict in templates of component "' + this.componentName + '": several placeholders "' + name + '"');
+				throw Error('Conflict in templates of component "' + this.componentName + '": several placeholders "' + name + '"');
 			pieces.push('<span ' + TemplateParser.DATA_PH + '="' + name + '"></span>');
 			this.placeholders[name] = true;
 		}
@@ -150,12 +150,12 @@ module woc {
 				cssClass = TemplateParser.trim(cmd.slice(classIndex + 1)) + ' ';
 			}
 			if (tagName === '')
-				throw new Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
+				throw Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
 			var lblId = this.makeLblId();
 			this.labels[lblId] = TemplateParser.formatLabelStr(lblStr);
 			if (tagName === 'class') {
 				if (cssClass)
-					throw new Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
+					throw Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
 				pieces.push(lblId);
 			} else
 				pieces.push('<' + tagName + ' class="' + cssClass + lblId + '"></' + tagName + '>');

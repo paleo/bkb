@@ -21,7 +21,7 @@ class Project {
 	public static makeInstance(opt: {}): Promise<Project> {
 		var p = fsp.exists(opt['inProjectPath']).then((b) => {
 			if (!b)
-				throw new Error('Cannot open input project directory: ' + opt['inProjectPath']);
+				throw Error('Cannot open input project directory: ' + opt['inProjectPath']);
 		});
 		if (opt['outProjectPath'] !== opt['inProjectPath']) {
 			p = Promise.all<any>([p, fsp.exists(opt['outProjectPath'])]).then((arr): any => {
@@ -89,7 +89,7 @@ class Project {
 	public readInputFile(relPath: string, encoding: string): Promise<string> {
 		var p: Promise<string> = fsp.readFile(path.join(this.opt['inProjectPath'], relPath), {'encoding': encoding});
 		p = p.catch<string>(() => {
-			throw new Error('Cannot read the file: ' + relPath);
+			throw Error('Cannot read the file: ' + relPath);
 		});
 		return p;
 	}
@@ -100,10 +100,10 @@ class Project {
 			try {
 				obj = JSON.parse(data);
 			} catch (e) {
-				throw new Error('Bad JSON in file: ' + relFilePath);
+				throw Error('Bad JSON in file: ' + relFilePath);
 			}
 			if (obj['woc'] !== Project.WOC_VERSION)
-				throw new Error('Bad Woc version "' + obj['woc'] + '", required: ' + Project.WOC_VERSION);
+				throw Error('Bad Woc version "' + obj['woc'] + '", required: ' + Project.WOC_VERSION);
 			return obj;
 		});
 	}
@@ -123,14 +123,14 @@ class Project {
 	public writeOutputFile(relPath: string, data: string): Promise<void> {
 		return fsp.writeFile(path.join(this.opt['outProjectPath'], relPath), data, {'encoding': this.opt['outEncoding']})
 			.catch<void>(() => {
-				throw new Error('Cannot write the file: ' + relPath);
+				throw Error('Cannot write the file: ' + relPath);
 			});
 	}
 
 	public clearOutputDir(relDirPath): Promise<void> {
 		var fullPath = path.join(this.opt['outProjectPath'], relDirPath);
 		return fsl.rmRecursive(fullPath, false).catch<void>(() => {
-			throw new Error('Cannot clear the directory: ' + relDirPath);
+			throw Error('Cannot clear the directory: ' + relDirPath);
 		});
 	}
 

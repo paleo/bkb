@@ -58,7 +58,7 @@ class BundleWriter {
 
 	public addLibrary(name: string, requireLib: string[], script: {}[], css: {}[]): Promise<void> {
 		if (this.libraries[name] !== undefined)
-			throw new Error('Conflict in bundle "' + this.bundleName + '": several libraries "' + name + '"');
+			throw Error('Conflict in bundle "' + this.bundleName + '": several libraries "' + name + '"');
 		var lib = {};
 		if (requireLib !== null)
 			lib['requireLib'] = requireLib;
@@ -85,7 +85,7 @@ class BundleWriter {
 
 	public addService(name: string, requireLib: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
-			throw new Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
+			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
 		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			var serv = {
 				'script': content
@@ -100,7 +100,7 @@ class BundleWriter {
 
 	public addComponent(name: string, requireLib: string[], script: {}[], tpl: {}[], css: {}[]): Promise<void> {
 		if (this.components[name] !== undefined)
-			throw new Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
+			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			comp['script'] = content;
@@ -127,7 +127,7 @@ class BundleWriter {
 
 	public addOtherFileOrDir(fileName: string, relPath: string, fullPath: string, st: fs.Stats): void {
 		if (this.otherFileSet[fileName])
-			throw new Error('Conflict, several files "' + fileName + '", please rename one');
+			throw Error('Conflict, several files "' + fileName + '", please rename one');
 		this.otherFileSet[fileName] = {
 			'relPath': relPath,
 			'fullPath': fullPath,
@@ -214,7 +214,7 @@ class BundleWriter {
 		var makeP = (inputRelPath, inputFullPath, st: fs.Stats, outputRelPath, outputFullPath): Promise<void> => {
 			return fsp.exists(outputFullPath).then((b): any => {
 				if (b)
-					throw new Error('Name conflict: cannot overwrite file "' + outputRelPath + '" with other file "' + inputRelPath + '"');
+					throw Error('Name conflict: cannot overwrite file "' + outputRelPath + '" with other file "' + inputRelPath + '"');
 				if (st.isDirectory())
 					return this.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, this.project);
 				else

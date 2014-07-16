@@ -26,7 +26,7 @@ class BundleWReader {
 		var bundleRelPath = parentRelPath === null ? dirName : path.join(parentRelPath, dirName);
 		return fsp.exists(project.makeInputFsPath(bundleRelPath)).then((b) => {
 			if (!b)
-				throw new Error('Cannot open bundle "' + bundleRelPath);
+				throw Error('Cannot open bundle "' + bundleRelPath);
 			return project.readInputJsonFile(path.join(bundleRelPath, 'bundle.json'), project.getDefaultEncoding());
 		}).then((conf: {}) => {
 			return new BundleWReader(project, bundleRelPath, conf);
@@ -103,7 +103,7 @@ class BundleWReader {
 				});
 				break;
 			default:
-				throw new Error('Unknown embed type of "' + dirName + '"');
+				throw Error('Unknown embed type of "' + dirName + '"');
 		}
 	}
 
@@ -114,7 +114,7 @@ class BundleWReader {
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
-				throw new Error('Missing "name" in ' + jsonPath);
+				throw Error('Missing "name" in ' + jsonPath);
 			// - Read files
 			var script = this.makeFileArr(dirRelPath, conf['script']);
 			var css = this.makeFileArr(dirRelPath, conf['css']);
@@ -133,10 +133,10 @@ class BundleWReader {
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
-				throw new Error('Missing "name" in ' + jsonPath);
+				throw Error('Missing "name" in ' + jsonPath);
 			// - Read files
 			if (Project.isEmpty(conf['script']))
-				throw new Error('Missing "scripts" in ' + jsonPath);
+				throw Error('Missing "scripts" in ' + jsonPath);
 			var script = this.makeFileArr(dirRelPath, conf['script']);
 			// - alias
 			var aliasStrOrArr: any = conf['alias'];
@@ -157,10 +157,10 @@ class BundleWReader {
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
-				throw new Error('Missing "name" in ' + jsonPath);
+				throw Error('Missing "name" in ' + jsonPath);
 			// - Read files
 			if (Project.isEmpty(conf['script']))
-				throw new Error('Missing "scripts" in ' + jsonPath);
+				throw Error('Missing "scripts" in ' + jsonPath);
 			var script = this.makeFileArr(dirRelPath, conf['script']);
 			var templates = this.makeFileArr(dirRelPath, conf['tpl']);
 			var css = this.makeFileArr(dirRelPath, conf['css']);
@@ -212,7 +212,7 @@ class BundleWReader {
 
 	private checkEncoding(name: string, encoding: string) {
 		if (encoding && encoding !== this.encoding)
-			throw new Error('Encoding conflict in bundle "' + this.bundleRelPath + '" (' + this.encoding + '): ' + name + ' has "' + encoding + '"');
+			throw Error('Encoding conflict in bundle "' + this.bundleRelPath + '" (' + this.encoding + '): ' + name + ' has "' + encoding + '"');
 	}
 
 	private static arrayOrNull(arr: string[]): string[] {
@@ -222,7 +222,7 @@ class BundleWReader {
 	private static toEmbedType(dir: string): EmbedType {
 		var last = dir.length - 1;
 		if (last <= 2 || dir[last - 1] !== '.')
-			throw new Error('Invalid embed "' + dir + '"');
+			throw Error('Invalid embed "' + dir + '"');
 		switch(dir[last]) {
 			case 's':
 				return EmbedType.Service;
@@ -233,7 +233,7 @@ class BundleWReader {
 			case 'w':
 				return EmbedType.Bundle;
 			default:
-				throw new Error('Invalid embed "' + dir + '"');
+				throw Error('Invalid embed "' + dir + '"');
 		}
 	}
 }

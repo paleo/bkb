@@ -17,18 +17,18 @@ module woc {
 				case 'C':
 					var parentId = compTreeArg['id'];
 					if (this.list[parentId] === undefined)
-						throw new Error('Unknown parent component "' + parentId + '"');
+						throw Error('Unknown parent component "' + parentId + '"');
 					var item = this.list[parentId];
 					return this.addItem(cName, item['children']);
 				default:
-					throw new Error('Unknown from "' + compTreeArg['from'] + '"');
+					throw Error('Unknown from "' + compTreeArg['from'] + '"');
 			}
 		}
 
 		public setComp(id: number, c: Component): void {
 			var item = this.list[id];
 			if (item === undefined)
-				throw new Error('Unknown component "' + id + '"');
+				throw Error('Unknown component "' + id + '"');
 			item['comp'] = c;
 			c[ComponentTree.ID_PROP] = id;
 		}
@@ -73,9 +73,9 @@ module woc {
 		private destructItem(id: number, removeFromDOM: boolean) {
 			var item = this.list[id];
 			if (item === undefined)
-				throw new Error('Unknown component "' + id + '" (already removed?)');
+				throw Error('Unknown component "' + id + '" (already removed?)');
 			if (item['comp'] === null)
-				throw new Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
+				throw Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
 			if (item['comp']['destruct'] !== undefined)
 				item['comp']['destruct'](removeFromDOM);
 			var children = item['children'];

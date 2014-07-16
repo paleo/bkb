@@ -4,16 +4,44 @@
 'use strict';
 
 module woc {
+	export function globalEval(script: string): void {
+		// - Check 'use strict'
+		var needle = ' use strict', len = needle.length;
+		var strict = script.length > len;
+		if (strict) {
+			for (var i = 1; i < len; ++i) {
+				if (script[i] !== needle[i]) {
+					strict = false;
+					break;
+				}
+			}
+		}
+		// - Eval
+		if (strict) {
+			var tag = document.createElement('script');
+			tag.text = script;
+			document.head.appendChild(tag);
+			document.head.removeChild(tag);
+		} else {
+			// Thanks to https://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
+			var glo = window || this;
+			if (glo.execScript) {
+				glo.execScript(script); // IE
+				return;
+			}
+			var fn = function () {
+				glo['eval']['call'](glo, script);
+			};
+			fn();
+		}
+	}
+
 	export class Loader {
 
-		private static WORK_IN_PROGRESS = '.w';
-		private static S_LOADING = 1;
-		private static S_READY = 2;
-		private static S_ERROR = 3;
-
+		private static W_SUFFIX = '.w';
 		private appUrl: string;
 		private ajax: woc.Ajax;
-		private bundlePropMap = {};
+		private bundlePromMap: {[index:string]: Promise<void>} = {};
 
 		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components, private bundles: Bundles) {
@@ -21,72 +49,29 @@ module woc {
 			this.ajax = this.services.get('woc.Ajax');
 		}
 
-		public loadBundle(bundlePath: string, doneCallback: Function, failCallback: Function, startOnElem, version: string,
-				autoLoadCss: boolean, wMode: boolean) {
+		public loadBundle(bundlePath: string, startOnElem, version: string, autoLoadCss: boolean, wMode: boolean): Promise<void> {
 			// - Known bundle
-			var prop = this.bundlePropMap[bundlePath];
-			if (prop !== undefined) {
-				switch (prop['status']) {
-					case Loader.S_READY:
-						if (doneCallback)
-							doneCallback();
-						if (startOnElem)
-							this.bundles.start(bundlePath, startOnElem);
-						return;
-					case Loader.S_LOADING:
-						if (doneCallback)
-							prop['onReady'].push(doneCallback);
-						if (failCallback)
-							prop['onError'].push(failCallback);
-						if (startOnElem)
-							prop['start'].push(startOnElem);
-						return;
-					default:
-						if (failCallback)
-							failCallback();
-						return;
+			var p = this.bundlePromMap[bundlePath];
+			if (p !== undefined) {
+				if (startOnElem) {
+					p.then(() => {
+						this.bundles.start(bundlePath, startOnElem);
+					});
 				}
+				return p;
 			}
 			// - First call
-			prop = {
-				'status': Loader.S_LOADING,
-				'onReady': doneCallback ? [doneCallback] : [],
-				'onError': failCallback ? [failCallback] : [],
-				'start': startOnElem ? [startOnElem] : []
-			};
-			this.bundlePropMap[bundlePath] = prop;
-			// - Load
 			var bundleUrl = this.appUrl + '/' + bundlePath;
 			if (wMode)
-				bundleUrl += Loader.WORK_IN_PROGRESS;
+				bundleUrl += Loader.W_SUFFIX;
 			else if (version)
 				bundleUrl += '-' + version;
-			var loadDone = () => {
-				prop['status'] = Loader.S_READY;
-				var cbList = prop['onReady'], i, len;
-				for (i = 0, len = cbList.length; i < len; ++i)
-					cbList[i]();
-				var startList = prop['start'];
-				for (i = 0, len = startList.length; i < len; ++i)
-					this.bundles.start(bundlePath, startList[i]);
-				delete prop['onReady'];
-				delete prop['onError'];
-				delete prop['start'];
-			};
-			var loadFail = () => {
-				prop['status'] = Loader.S_ERROR;
-				var cbList = prop['onError'];
-				for (var i = 0, len = cbList.length; i < len; ++i)
-					cbList[i]();
-				delete prop['onReady'];
-				delete prop['onError'];
-			};
 			if (wMode) {
-				var wLoader = new WLoader(this.libraries, this.services, this.components, this.bundles, this, bundlePath, bundleUrl,
-					version, loadDone, loadFail);
-				wLoader.loadWBundle();
+				var wLoader = new WLoader(this.libraries, this.services, this.components, this.bundles, this, bundlePath, bundleUrl, version);
+				p = wLoader.loadWBundle();
 			} else
-				this.loadNormalBundle(bundlePath, bundleUrl, loadDone, loadFail, autoLoadCss);
+				p = this.loadNormalBundle(bundlePath, bundleUrl, autoLoadCss);
+			this.bundlePromMap[bundlePath] = p;
 		}
 
 		// --
@@ -131,7 +116,7 @@ module woc {
 		// -- Private
 		// --
 
-		private loadNormalBundle(bundlePath, bundleUrl, doneCallback, failCallback, autoLoadCss: boolean) {
+		private loadNormalBundle(bundlePath, bundleUrl, autoLoadCss: boolean): Promise<void> {
 			var bundleName = Loader.getLastDirName(bundlePath);
 			this.ajax.get({
 				'url': bundleUrl + '/' + bundleName + '.json',

@@ -72,7 +72,7 @@ module wocext {
 		public openDialog(dialogId: number) {
 			var props = this.dialogs[dialogId];
 			if (!props)
-				throw new Error('Unknown dialog "' + dialogId + '"');
+				throw Error('Unknown dialog "' + dialogId + '"');
 //console.log('open dialog ' + dialogId);
 //console.log(prop);
 			if (props['openedId'] !== null)
@@ -94,7 +94,7 @@ module wocext {
 		public closeDialog(dialogId: number): boolean {
 			var props = this.dialogs[dialogId];
 			if (!props)
-				throw new Error('Unknown dialog "' + dialogId + '"');
+				throw Error('Unknown dialog "' + dialogId + '"');
 			if (props['openedId'] === null)
 				return true;
 			return this.closeDialogsUntil(props['openedId'], true);
@@ -103,7 +103,7 @@ module wocext {
 		public removeDialog(dialogId: number) {
 			var props = this.dialogs[dialogId];
 			if (!props)
-				throw new Error('Unknown dialog "' + dialogId + '"');
+				throw Error('Unknown dialog "' + dialogId + '"');
 			if (props['$elem'])
 				props['$elem'].remove();
 			delete this.dialogs[dialogId];
@@ -193,15 +193,15 @@ module wocext {
 		private closeDialogsUntil(untilOpenedId: number, isItself: boolean): boolean {
 			var curOpenedId = this.openedDialogs.length - 1;
 			if (untilOpenedId > curOpenedId)
-				throw new Error('Unknown opened ID "' + untilOpenedId + '"');
+				throw Error('Unknown opened ID "' + untilOpenedId + '"');
 			// - Close until
 			var props;
 			while (curOpenedId >= untilOpenedId) {
 				props = this.openedDialogs.pop();
 				if (props === undefined)
-					throw new Error('Missing opened dialog when closing until "' + untilOpenedId + '"');
+					throw Error('Missing opened dialog when closing until "' + untilOpenedId + '"');
 				if (props['openedId'] !== curOpenedId)
-					throw new Error('Inconsistent opened ID: prop "' + props['openedId'] + '" should be equals to cur "' + curOpenedId + '"');
+					throw Error('Inconsistent opened ID: prop "' + props['openedId'] + '" should be equals to cur "' + curOpenedId + '"');
 				if (props['forcedOpen'] && (curOpenedId !== untilOpenedId || !isItself))
 					return false;
 				props['openedId'] = null;

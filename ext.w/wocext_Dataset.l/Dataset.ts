@@ -371,7 +371,7 @@ module wocext {
 			if (isArray === null)
 				this.isArray = DatasetHelper.isArray(data);
 			else if (isArray !== DatasetHelper.isArray(data))
-				throw new Error('Dataset "' + path + '" should be an ' + (isArray ? 'array' : 'object'));
+				throw Error('Dataset "' + path + '" should be an ' + (isArray ? 'array' : 'object'));
 		}
 
 		// --
@@ -391,7 +391,7 @@ module wocext {
 		public reqId(): string {
 			var val = this.getId();
 			if (val === undefined)
-				throw new Error('Missing ID for "' + this.path + '"');
+				throw Error('Missing ID for "' + this.path + '"');
 			return val;
 		}
 
@@ -403,14 +403,14 @@ module wocext {
 				return 0;
 			var n: number = parseInt(this.mapId, 10);
 			if (n === 0)
-				throw new Error('Invalid integer ID for "' + this.path + '" (' + this.mapId + ')');
+				throw Error('Invalid integer ID for "' + this.path + '" (' + this.mapId + ')');
 			return n;
 		}
 
 		public reqIdAsInt(): number {
 			var val = this.getIdAsInt();
 			if (val === undefined)
-				throw new Error('Missing ID for "' + this.path + '"');
+				throw Error('Missing ID for "' + this.path + '"');
 			return val;
 		}
 
@@ -427,14 +427,14 @@ module wocext {
 		public reqIndex(): number {
 			var val = this.getIndex();
 			if (val === null)
-				throw new Error('Missing index for "' + this.path + '"');
+				throw Error('Missing index for "' + this.path + '"');
 			return val;
 		}
 
 		public getParent(level: number = 1): wocext.Dataset {
 			this.autoAttach();
 			if (level < 0)
-				throw new Error('Bad level for method getParent: "' + level + '"');
+				throw Error('Bad level for method getParent: "' + level + '"');
 			if (level === 0)
 				return this;
 			var targetPath = this.path, pop;
@@ -495,7 +495,7 @@ module wocext {
 		public req(relPath: any): any {
 			var val = this.get(relPath);
 			if (val === undefined)
-				throw new Error('Missing value for "' + relPath + '"');
+				throw Error('Missing value for "' + relPath + '"');
 			return val;
 		}
 
@@ -583,7 +583,7 @@ module wocext {
 
 		public detach() {
 			if (this.parentData === null)
-				throw new Error('Cannot detach the root dataset');
+				throw Error('Cannot detach the root dataset');
 			if (this.parentIsArray)
 				this.rmFromArray(this.parentData, this.arrIndex, this.parentPath);
 			else
@@ -596,7 +596,7 @@ module wocext {
 			this.autoAttach();
 			var completedRelPath = this.walkAndCreate(relPath, recursCreate);
 			if (completedRelPath === null)
-				throw new Error('Cannot put to "' + relPath + '"');
+				throw Error('Cannot put to "' + relPath + '"');
 			return this.doPut(this.formatRelPath(completedRelPath), data);
 		}
 
@@ -615,7 +615,7 @@ module wocext {
 
 		public putComputedProperty(id: string, cb: Function): void {
 			if (this.isArray)
-				throw new Error('A computed property cannot be added to an array');
+				throw Error('A computed property cannot be added to an array');
 			if (this.computedProperties === undefined)
 				this.computedProperties = {};
 			this.computedProperties[id] = cb;
@@ -629,7 +629,7 @@ module wocext {
 			if (this.shelf === null)
 				return;
 			if (this.parentData === null)
-				throw new Error('Cannot detach the root dataset');
+				throw Error('Cannot detach the root dataset');
 			this.path = null;
 			this.parentPath = null;
 			this.parentIsArray = null;
@@ -690,10 +690,10 @@ module wocext {
 
 		private intOp(fPath: {}, add: number): number {
 			if (fPath === null)
-				throw new Error('Missing relPath');
+				throw Error('Missing relPath');
 			var val = this.doGet(fPath, false);
 			if (typeof val !== 'number')
-				throw new Error('Cannot increment the non-number for "' + fPath['orig'] + '" (' + typeof val + ')');
+				throw Error('Cannot increment the non-number for "' + fPath['orig'] + '" (' + typeof val + ')');
 			val += add;
 			this.doPut(fPath, val);
 			return val;
@@ -702,7 +702,7 @@ module wocext {
 		private doPut(fPath: {}, data): string {
 			// - Parse the path
 			if (fPath === null)
-				throw new Error('Missing relPath');
+				throw Error('Missing relPath');
 			var pop = GenericDataset.popPath(fPath['rel']);
 			var parentData;
 			if (pop['parent'] === null) {
@@ -710,7 +710,7 @@ module wocext {
 			} else {
 				var w = this.walkTo(this.formatRelPath(pop['parent']));
 				if (w === null)
-					throw new Error('Cannot put to "' + fPath['orig'] + '"');
+					throw Error('Cannot put to "' + fPath['orig'] + '"');
 				parentData = w['data'];
 			}
 			// - Put
@@ -718,7 +718,7 @@ module wocext {
 			if (pop['isArray']) {
 				// - Put in an array
 				if (!DatasetHelper.isArray(parentData))
-					throw new Error('Cannot put to "' + fPath['orig'] + '": this is not an array');
+					throw Error('Cannot put to "' + fPath['orig'] + '": this is not an array');
 				var arrIndex = pop['index'];
 				if (arrIndex === parentData.length) {
 					parentData[arrIndex] = data;
@@ -726,9 +726,9 @@ module wocext {
 					changeType = 'I';
 				} else {
 					if (arrIndex > parentData.length)
-						throw new Error('Cannot put to "' + fPath['orig'] + '": too big array index');
+						throw Error('Cannot put to "' + fPath['orig'] + '": too big array index');
 					if (arrIndex < 0)
-						throw new Error('Cannot put to "' + fPath['orig'] + '": invalid array index');
+						throw Error('Cannot put to "' + fPath['orig'] + '": invalid array index');
 					parentData.splice(arrIndex, 1, data);
 					this.shelf.detach(fPath['full'], false);
 					newRelPath = fPath['rel'];
@@ -741,7 +741,7 @@ module wocext {
 					changeType = 'A';
 				// - Put in an object
 				if (DatasetHelper.isArray(parentData))
-					throw new Error('Cannot put to "' + fPath['orig'] + '": this is not a map');
+					throw Error('Cannot put to "' + fPath['orig'] + '": this is not a map');
 				this.shelf.detach(fPath['full'], false);
 				var iKey = this.shelf.opt['indexedMapProp'];
 				if (iKey && data[iKey] !== undefined && data[iKey] !== null)
@@ -923,22 +923,22 @@ module wocext {
 			var tokens = /^(.*)(?:(?:\.([^\.{}\[\]]+))|(?:{([^{}]*)})|(?:\[([0-9]*)\]))$/.exec(path);
 			if (tokens === null) {
 				if (!/^([^{}\[\]\.]+)$/.test(path))
-					throw new Error('Invalid path: "' + path + '"');
+					throw Error('Invalid path: "' + path + '"');
 				return {'parent': null, 'isArray': false, 'id': path, 'index': null};
 			}
 			var parent = tokens[1] === '' ? null : tokens[1];
 			if (parent === null && tokens[2] !== undefined)
-				throw new Error('Invalid path: "' + path + '"');
+				throw Error('Invalid path: "' + path + '"');
 			var isArr = tokens[4] !== undefined, index, id;
 			if (isArr) {
 				if (tokens[4] === '')
-					throw new Error('Invalid path: "' + path + '"');
+					throw Error('Invalid path: "' + path + '"');
 				index = parseInt(tokens[4], 10);
 				id = null;
 			} else {
 				id = tokens[2] || tokens[3];
 				if (id === '')
-					throw new Error('Invalid path: "' + path + '"');
+					throw Error('Invalid path: "' + path + '"');
 				index = null;
 			}
 			return {
@@ -1010,7 +1010,7 @@ module wocext {
 			var arrIndex = typeof token === 'string' ? parseInt(token.slice(1, -1), 10) : token;
 			if (!DatasetHelper.isArray(state['curData'])) {
 				if (errOnBadData)
-					throw new Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an array');
+					throw Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an array');
 				return false;
 			}
 			var curData = state['curData'][arrIndex];
@@ -1029,7 +1029,7 @@ module wocext {
 		static walkInObj(state, token: string, errOnBadData: boolean, withDot: boolean = false): boolean {
 			if (state['curData'] === null || typeof state['curData'] !== 'object' || DatasetHelper.isArray(state['curData'])) {
 				if (errOnBadData)
-					throw new Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an object');
+					throw Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an object');
 				return false;
 			}
 			var mapId: string;
@@ -1038,7 +1038,7 @@ module wocext {
 			else {
 				var hasDot = token[0] === '.';
 				if (hasDot !== withDot)
-					throw new Error('Invalid path: "' + state['orig'] + '"');
+					throw Error('Invalid path: "' + state['orig'] + '"');
 				mapId = hasDot ? token.slice(1) : token;
 			}
 			var curData = state['curData'][mapId];
@@ -1062,7 +1062,7 @@ module wocext {
 				tok = tokens[i];
 				if (tok[0] === '[') {
 					if (!DatasetHelper.isArray(state['curData']))
-						throw new Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an array');
+						throw Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not an array');
 					arrLen = state['curData'].length;
 					arrIndex = tok === '[]' ? arrLen : parseInt(tok.slice(1, -1), 10);
 					if (state['curData'][arrIndex] === undefined) {
@@ -1079,13 +1079,13 @@ module wocext {
 					completedRelPath += '[' + state['curArrIndex'] + ']';
 				} else {
 					if (state['curData'] === null || typeof state['curData'] !== 'object' || DatasetHelper.isArray(state['curData']))
-						throw new Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not a map');
+						throw Error('Bad path "' + state['orig'] + '": ' + state['curPath'] + ' is not a map');
 					if (tok[0] === '{')
 						mapId = tok.slice(1, -1);
 					else {
 						hasDot = tok[0] === '.';
 						if (hasDot !== (i > 0))
-							throw new Error('Invalid path: "' + state['orig'] + '"');
+							throw Error('Invalid path: "' + state['orig'] + '"');
 						mapId = hasDot ? tok.slice(1) : tok;
 					}
 					if (state['curData'][mapId] === undefined) {
@@ -1109,7 +1109,7 @@ module wocext {
 				return val;
 			if (t === 'string')
 				return parseInt(val, 10);
-			throw new Error('Bad index value (type: ' + t + ')');
+			throw Error('Bad index value (type: ' + t + ')');
 		}
 
 		private getFullPath(relPath: string = null) {
@@ -1119,7 +1119,7 @@ module wocext {
 				return relPath;
 			if (this.isArray) {
 				if (relPath.charAt(0) !== '[')
-					throw new Error('Invalid sub-path "' + relPath + '" because "' + this.path + '" is an array');
+					throw Error('Invalid sub-path "' + relPath + '" because "' + this.path + '" is an array');
 				return this.path + relPath;
 			}
 			return relPath.charAt(0) === '{' ? this.path + relPath : this.path + '.' + relPath;
@@ -1134,11 +1134,11 @@ module wocext {
 			for (var i = 0, len = tokens.length; i < len; ++i) {
 				tok = tokens[i];
 				if (tok === '.' || tok === '{' || tok === '}' || tok === '[' || tok === ']')
-					throw new Error('Invalid path: "' + relPath + '"');
+					throw Error('Invalid path: "' + relPath + '"');
 				if (tok[0] !== '[') {
 					if (tok[0] === '.') {
 						if (i === 0)
-							throw new Error('Invalid path: "' + relPath + '"');
+							throw Error('Invalid path: "' + relPath + '"');
 						tok = '{' + tok.slice(1) + '}';
 					} else if (tok[0] !== '{')
 						tok = '{' + tok + '}';
@@ -1365,7 +1365,7 @@ module wocext {
 
 		private static processWhere(filter: any[], parsed: {}, states: any[]): boolean {
 			if (!DatasetHelper.isArray(filter))
-				throw new Error('A where filter must be an array');
+				throw Error('A where filter must be an array');
 			var len = filter.length;
 			if (len === 0)
 				return true;
@@ -1378,7 +1378,7 @@ module wocext {
 
 		private static processWhereExists(filter: any[], parsed: {}, states: any[]): boolean {
 			if (!DatasetHelper.isArray(filter))
-				throw new Error('A where filter must be an array');
+				throw Error('A where filter must be an array');
 			var len = filter.length;
 			if (len === 0)
 				return true;
@@ -1491,7 +1491,7 @@ module wocext {
 			for (var len = tokens.length; tokI < len; ++tokI) {
 				tok = tokens[tokI];
 				if (tok === '.' || tok === '{' || tok === '}' || tok === '[' || tok === ']')
-					throw new Error('Invalid path: "' + state['orig'] + '"');
+					throw Error('Invalid path: "' + state['orig'] + '"');
 				if (tok[0] === '[') {
 					if (tok === '[]') {
 						for (subI = 0, subLen = state['curData'].length; subI < subLen; ++subI) {

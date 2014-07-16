@@ -162,7 +162,7 @@ module wocext {
 			var elId = screen.getScreenElementId();
 			var $el: JQuery = this.elements[elId];
 			if ($el === undefined)
-				throw new Error('Missing screen element for ID "' + elId + '"');
+				throw Error('Missing screen element for ID "' + elId + '"');
 			return $el;
 		}
 
@@ -197,7 +197,7 @@ module wocext {
 //		public getScreen(up: woc.UrlProps, seh: ScreenElHandler): Screen {
 //			var screen = this.map[up.sel];
 //			if (screen === undefined)
-//				throw new Error('Unknown route "' + up.sel + '"');
+//				throw Error('Unknown route "' + up.sel + '"');
 //			if (this.elId === undefined)
 //				this.elId = seh.addScreenElement(screen.createScreenElement());
 //

@@ -27,13 +27,13 @@ module woc {
 				if (this.thingLoadCount > 0)
 					return;
 				if (doneReported)
-					throw new Error('Bug when loading bundle ("w" mode) "' + this.bundlePath + '": done already reported');
+					throw Error('Bug when loading bundle ("w" mode) "' + this.bundlePath + '": done already reported');
 				doneReported = true;
 				if (this.embedBundleList.length === 0)
-					throw new Error('Empty bundle');
+					throw Error('Empty bundle');
 				var bundleConf = this.embedBundleList[0]['conf'];
 				if (bundleConf['version'] && version && bundleConf['version'] !== version)
-					throw new Error('Conflict in bundle version, attempted "' + version + '" doesn\'nt match with current "' + bundleConf['version'] + '"');
+					throw Error('Conflict in bundle version, attempted "' + version + '" doesn\'nt match with current "' + bundleConf['version'] + '"');
 				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, bundleConf['main']);
 				if (doneCallback)
 					doneCallback();
@@ -161,7 +161,7 @@ module woc {
 				if (encoding === undefined)
 					encoding = bundleProp['conf']['encoding'];
 				else if (bundleProp['conf']['encoding'] !== undefined && encoding !== bundleProp['conf']['encoding'])
-					throw new Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp['conf']['encoding'] + '"');
+					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp['conf']['encoding'] + '"');
 				reqLib = bundleProp['conf']['requireLib'];
 				if (reqLib !== undefined) {
 					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
@@ -217,7 +217,7 @@ module woc {
 			for (var i = 0, len = thingPropList.length; i < len; ++i) {
 				conf = rDataMap[thingPropList[i]['confUrl']];
 				if (conf === undefined)
-					throw new Error('Missing conf for "' + thingPropList[i]['path'] + '"');
+					throw Error('Missing conf for "' + thingPropList[i]['path'] + '"');
 				thingPropList[i]['conf'] = conf;
 			}
 		}
@@ -247,7 +247,7 @@ module woc {
 		private requireAllLib(arr: string[], includedLibNames: {}) {
 			for (var i = 0, len = arr.length; i < len; ++i) {
 				if (!includedLibNames[arr[i]] && !this.libraries.load(arr[i], false))
-					throw new Error('In bundle "' + this.bundlePath + '", unknown library "' + arr[i] + '"');
+					throw Error('In bundle "' + this.bundlePath + '", unknown library "' + arr[i] + '"');
 			}
 		}
 
@@ -274,7 +274,7 @@ module woc {
 				type = thingPropList[i]['type'];
 				conf = thingPropList[i]['conf'];
 				if (conf['encoding'] !== undefined && encoding !== undefined && conf['encoding'] !== encoding)
-					throw new Error('Encoding conflict in bundle "' + this.bundlePath + '" (' + encoding + '): embed "' + path + '" has ' + conf['encoding']);
+					throw Error('Encoding conflict in bundle "' + this.bundlePath + '" (' + encoding + '): embed "' + path + '" has ' + conf['encoding']);
 				embedUrl = thingPropList[i]['bundleUrl'] + '/' + path;
 				switch(type) {
 					case 'L':
@@ -305,7 +305,7 @@ module woc {
 						});
 						break;
 					default:
-						throw new Error('Bad embed type "' + type + '"');
+						throw Error('Bad embed type "' + type + '"');
 				}
 			}
 			// - End
@@ -420,7 +420,7 @@ module woc {
 				for (var i = 0, len = fileNames.length; i < len; ++i) {
 					fUrl = baseUrl + '/' + fileNames[i];
 					if (rDataMap[fUrl] === undefined)
-						throw new Error('Missing content for template "' + fUrl + '"');
+						throw Error('Missing content for template "' + fUrl + '"');
 					html += rDataMap[fUrl];
 				}
 				if (html === '')
@@ -436,7 +436,7 @@ module woc {
 		private static getType(dir: string) {
 			var last = dir.length - 1;
 			if (last <= 2 || dir[last - 1] !== '.')
-				throw new Error('Invalid embed "' + dir + '"');
+				throw Error('Invalid embed "' + dir + '"');
 			switch(dir[last]) {
 				case 's':
 					return 'S';
@@ -447,7 +447,7 @@ module woc {
 				case 'w':
 					return 'BW';
 				default:
-					throw new Error('Invalid embed "' + dir + '"');
+					throw Error('Invalid embed "' + dir + '"');
 			}
 		}
 
@@ -460,7 +460,7 @@ module woc {
 				case 'L':
 					return 'lib.json';
 				default:
-					throw new Error('Invalid conf file type "' + type + '"');
+					throw Error('Invalid conf file type "' + type + '"');
 			}
 		}
 
@@ -530,9 +530,9 @@ module woc {
 			}
 			if (this.loadingCount === 0) {
 				if (notLoaded.length > 0)
-					throw new Error('Cannot load libraries (missing dependencies or loop?): ' + notLoaded.join(', '));
+					throw Error('Cannot load libraries (missing dependencies or loop?): ' + notLoaded.join(', '));
 				if (!this.cb)
-					throw new Error('WLibScriptsLoader has already ended');
+					throw Error('WLibScriptsLoader has already ended');
 				this.cb();
 				this.cb = null;
 			}
@@ -583,7 +583,7 @@ module woc {
 					continue;
 				lib = this.lib[requireLib[i]];
 				if (lib === undefined)
-					throw new Error('The required library "' + requireLib[i] + '" is not found');
+					throw Error('The required library "' + requireLib[i] + '" is not found');
 				if (lib['lastScript'])
 					scripts.push(lib['lastScript']);
 			}

@@ -51,7 +51,7 @@ class WocMake {
 
 	private static formatOptions(opt: {}): {} {
 		if (!opt['inProjectPath'])
-			throw new Error('Parameter "' + 'inProjectPath' + '" is required');
+			throw Error('Parameter "' + 'inProjectPath' + '" is required');
 		return {
 			'inProjectPath': opt['inProjectPath'],
 			'outProjectPath': opt['outProjectPath'] || opt['inProjectPath'],

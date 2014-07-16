@@ -18,7 +18,7 @@ export var fsp = {
 		return new Promise<void>((resolve, reject) => {
 			fs.mkdir(path, null, (err) => {
 				if (err)
-					reject(new Error('Cannot create directory: ' + path));
+					reject(Error('Cannot create directory: ' + path));
 				else
 					resolve();
 			});
@@ -28,7 +28,7 @@ export var fsp = {
 		return new Promise<string[]>((resolve, reject) => {
 			fs.readdir(path, (err, fileNames: string[]) => {
 				if (err)
-					reject(new Error('Cannot read directory: ' + path));
+					reject(Error('Cannot read directory: ' + path));
 				else
 					resolve(fileNames);
 			});

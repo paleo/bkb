@@ -283,7 +283,7 @@ module woc {
 
 		public getTemplate(sel: string, elMap = {}): HTMLElement {
 			if (this.tplSel[sel] === undefined)
-				throw new Error('Unknown template "' + sel + '" in component "' + this.componentName + '"');
+				throw Error('Unknown template "' + sel + '" in component "' + this.componentName + '"');
 			var el = <HTMLElement>this.tplArr[this.tplSel[sel]].cloneNode(true);
 			TemplateParser.fillPlaceholders(el, elMap, this);
 			this.fillLabels(el);
@@ -330,11 +330,11 @@ module woc {
 
 		public register(bundlePath: string, bundleUrl: string, requireLib: string[], script: string, mainClassName: string) {
 			if (this.map[bundlePath] !== undefined)
-				throw new Error('The bundle "' + bundlePath + '" is already registered');
+				throw Error('The bundle "' + bundlePath + '" is already registered');
 			if (requireLib)
 				this.ac.requireLib(requireLib);
 			if (script)
-				globalScopeEval(script);
+				globalEval(script);
 			var cl: any = null;
 			if (mainClassName)
 				cl = LoaderHelper.stringToClass(mainClassName);
@@ -344,11 +344,11 @@ module woc {
 		public start(bundlePath, el) {
 			var main = this.map[bundlePath];
 			if (main === undefined)
-				throw new Error('Unknown bundle "' + bundlePath + '"');
+				throw Error('Unknown bundle "' + bundlePath + '"');
 			if (main === null)
-				throw new Error('Cannot start the bundle "' + bundlePath + '": it hasn\'t a main class');
+				throw Error('Cannot start the bundle "' + bundlePath + '": it hasn\'t a main class');
 			if (main.start === undefined)
-				throw new Error('Cannot start the bundle "' + bundlePath + '": the main class should have a start method');
+				throw Error('Cannot start the bundle "' + bundlePath + '": the main class should have a start method');
 			main.start(el);
 		}
 	}
@@ -365,7 +365,7 @@ module woc {
 
 		public register(libName: string, requireLib: string[], script: string) {
 			if (this.map[libName] !== undefined)
-				throw new Error('The lib "' + libName + '" is already declared');
+				throw Error('The lib "' + libName + '" is already declared');
 			this.map[libName] = {
 				'requireLib': requireLib,
 				'script': script,
@@ -381,19 +381,19 @@ module woc {
 			var prop = this.map[libName];
 			if (prop === undefined) {
 				if (req)
-					throw new Error('Unknown lib "' + libName + '"');
+					throw Error('Unknown lib "' + libName + '"');
 				return false;
 			}
 			if (prop === true)
 				return true;
 			if (prop['requireLib']) {
 				if (prop['loading'])
-					throw new Error('A loop is detected in requireLib for "' + libName + '"');
+					throw Error('A loop is detected in requireLib for "' + libName + '"');
 				prop['loading'] = true;
 				this.ac.requireLib(prop['requireLib']);
 			}
 			if (prop['script'] !== null)
-				globalScopeEval(prop['script']);
+				globalEval(prop['script']);
 			this.map[libName] = true;
 			return true;
 		}
@@ -426,12 +426,12 @@ module woc {
 				for (var i = 0, len = aliasList.length; i < len; ++i) {
 					alias = aliasList[i];
 					if (this.map[alias] !== undefined)
-						throw new Error('The service "' + serviceName + '" cannot declare the alias "' + alias + '": already used');
+						throw Error('The service "' + serviceName + '" cannot declare the alias "' + alias + '": already used');
 					this.map[alias] = prop;
 				}
 			}
 			if (this.map[serviceName] !== undefined)
-				throw new Error('The service "' + serviceName + '" is already declared');
+				throw Error('The service "' + serviceName + '" is already declared');
 			this.map[serviceName] = prop;
 		}
 
@@ -443,12 +443,12 @@ module woc {
 		public getServiceContext(serviceName: string): ImplServiceContext {
 			var prop = this.map[serviceName];
 			if (prop === undefined)
-				throw new Error('Unknown service "' + serviceName + '"');
+				throw Error('Unknown service "' + serviceName + '"');
 			if (prop['sc'] === null) {
 				if (prop['requireLib'])
 					this.ac.requireLib(prop['requireLib']);
 				if (prop['script'] !== null)
-					globalScopeEval(prop['script']);
+					globalEval(prop['script']);
 				var cl = LoaderHelper.stringToClass(prop['coreClass'] || prop['name']);
 				prop['sc'] = new ImplServiceContext(this.ac, prop['name'], prop['baseUrl'], cl);
 			}
@@ -484,7 +484,7 @@ module woc {
 
 		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string) {
 			if (this.map[componentName] !== undefined)
-				throw new Error('Conflict for component "' + componentName + '"');
+				throw Error('Conflict for component "' + componentName + '"');
 			var tplArr, tplSel, tplLab;
 			if (!tplStr) {
 				tplArr = null;
@@ -518,12 +518,12 @@ module woc {
 		public getComponentTypeContext(componentName: string): ImplComponentTypeContext {
 			var prop = this.map[componentName];
 			if (prop === undefined)
-				throw new Error('Unknown component "' + componentName + '"');
+				throw Error('Unknown component "' + componentName + '"');
 			if (prop['cc'] === null) {
 				if (prop['requireLib'])
 					this.ac.requireLib(prop['requireLib']);
 				if (prop['script'] !== null)
-					globalScopeEval(prop['script']);
+					globalEval(prop['script']);
 				prop['cc'] = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl'], prop['tplArr'], prop['tplSel'], prop['tplLab']);
 			}
 			return prop['cc'];
@@ -540,11 +540,11 @@ module woc {
 			var fn: any = window || this;
 			for (var i = 0, len = arr.length; i < len; ++i) {
 				if (fn === undefined)
-					throw new Error('Class not found: "' + s + '"');
+					throw Error('Class not found: "' + s + '"');
 				fn = fn[arr[i]];
 			}
 			if (typeof fn !== 'function')
-				throw new Error('Class not found: "' + s + '"');
+				throw Error('Class not found: "' + s + '"');
 			return fn;
 		}
 
@@ -552,38 +552,6 @@ module woc {
 			if (Array.isArray)
 				return Array.isArray(data);
 			return Object.prototype.toString.call(data) === '[object Array]'; // before EcmaScript 5.1
-		}
-	}
-
-	function globalScopeEval(script: string) {
-		// - Check 'use strict'
-		var needle = ' use strict', len = needle.length;
-		var strict = script.length > len;
-		if (strict) {
-			for (var i = 1; i < len; ++i) {
-				if (script[i] !== needle[i]) {
-					strict = false;
-					break;
-				}
-			}
-		}
-		// - Eval
-		if (strict) {
-			var tag = document.createElement('script');
-			tag.text = script;
-			document.head.appendChild(tag);
-			document.head.removeChild(tag);
-		} else {
-			// Thanks to https://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
-			var glo = window || this;
-			if (glo.execScript) {
-				glo.execScript(script); // IE
-				return;
-			}
-			var fn = function () {
-				glo['eval']['call'](glo, script);
-			};
-			fn();
 		}
 	}
 }
