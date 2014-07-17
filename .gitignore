@@ -5,7 +5,7 @@ node_modules
 *.css
 
 !woc.w/lib/promise-1.0.0.min.js
-!woc.w/es3-polyfills/*
+!woc.w/libjs/*
 
 ext.w/jQueryUI.l/images
 *-0.5

@@ -78,38 +78,13 @@ module woc {
 		// -- Internal
 		// --
 
-		loadBundles(bundlePaths, doneCallback: Function, failCallback: Function, wMode: boolean) {
-			var waitedLoads = bundlePaths.length, hasError = false;
-			if (waitedLoads === 0) {
-				if (doneCallback)
-					doneCallback();
-				return;
-			}
-			var done = () => {
-				if (hasError)
-					return;
-				--waitedLoads;
-				if (waitedLoads === 0 && doneCallback)
-					doneCallback();
-			};
-			var fail = () => {
-				if (hasError)
-					return;
-				hasError = true;
-				if (failCallback)
-					failCallback();
-			};
-			for (var i = 0, len = bundlePaths.length; i < len; ++i)
-				this.loadBundle(bundlePaths[i], done, fail, null, null, false, wMode);
-		}
-
-		static addCssLinkElement(baseUrl: string, fileName: string) {
+		static addCssLinkToDOM(url: string): Promise<void> {
 			var elem = document.createElement('link');
 			elem.rel = 'stylesheet';
 			elem.type = 'text/css';
-			//elem.media = 'all';
-			elem.href = baseUrl + '/' + fileName;
+			elem.href = url;
 			document.head.appendChild(elem);
+			return Promise.resolve();
 		}
 
 		// --
@@ -118,36 +93,25 @@ module woc {
 
 		private loadNormalBundle(bundlePath, bundleUrl, autoLoadCss: boolean): Promise<void> {
 			var bundleName = Loader.getLastDirName(bundlePath);
-			this.ajax.get({
-				'url': bundleUrl + '/' + bundleName + '.json',
-				'done': (bundleData) => {
-					this.onLoadedNormalBundle(bundlePath, bundleUrl, bundleName, doneCallback, failCallback, bundleData, autoLoadCss);
-				}
+			var mainProm = this.ajax.get(bundleUrl + '/' + bundleName + '.json').then((bundleData) => {
+				var p;
+				if (bundleData['preload']) {
+					p = Promise.all(bundleData['preload'].map((bp) => {
+						return this.loadBundle(bp, null, null, false, false);
+					})).then(() => {
+						return this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
+					});
+				} else
+					p = this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
+				if (!autoLoadCss && bundleData['css'])
+					return Promise.all([p, Loader.addCssLinkToDOM(bundleUrl + '/' + bundleName + '.css')]);
+				return p;
 			});
-			if (autoLoadCss)
-				Loader.addCssLinkElement(bundleUrl, bundleName + '.css');
+			return autoLoadCss ? <any>Promise.all([mainProm, Loader.addCssLinkToDOM(bundleUrl + '/' + bundleName + '.css')]) : mainProm;
 		}
 
-		private onLoadedNormalBundle(bundlePath: string, bundleUrl, bundleName, doneCallback: Function, failCallback: Function,
-				bundleData: {}, autoLoadedCss: boolean) {
-			var preload = bundleData['preload'];
-			if (preload) {
-				this.loadBundles(preload, () => {
-					this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
-					if (doneCallback)
-						doneCallback();
-				}, failCallback, false);
-			} else {
-				this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
-				if (doneCallback)
-					doneCallback();
-			}
-			if (!autoLoadedCss && bundleData['css'])
-				Loader.addCssLinkElement(bundleUrl, bundleName + '.css');
-		}
-
-		private registerNormalBundle(bundlePath: string, bundleUrl, bundleData: {}) {
-			var name, data;
+		private registerNormalBundle(bundlePath: string, bundleUrl, bundleData: {}): Promise<void> {
+			var name, data, promList = [];
 			// - Register libraries
 			var servMap = bundleData['libraries'];
 			if (servMap) {
@@ -157,7 +121,7 @@ module woc {
 					data = servMap[name];
 					this.libraries.register(name, data['requireLib'], data['script']);
 					if (data['css'])
-						Loader.addCssLinks(data['css'], bundleUrl);
+						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
 			}
 			// - Register services
@@ -179,15 +143,17 @@ module woc {
 					data = compMap[name];
 					this.components.register(name, bundleUrl, data['requireLib'], data['script'], data['tpl']);
 					if (data['css'])
-						Loader.addCssLinks(data['css'], bundleUrl);
+						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
 			}
 			this.bundles.register(bundlePath, bundleUrl, bundleData['requireLib'], bundleData['script'], bundleData['main']);
+			return <any>Promise.all(promList);
 		}
 
-		private static addCssLinks(list: string[], bundleUrl: string) {
-			for (var i = 0, len = list.length; i < len; ++i)
-				Loader.addCssLinkElement(bundleUrl, list[i]);
+		private static addCssLinks(list: string[], bundleUrl: string): Promise<void> {
+			return <any>Promise.all(list.map((fileName) => {
+				return Loader.addCssLinkToDOM(bundleUrl + '/' + fileName);
+			}));
 		}
 
 		private static getLastDirName(path: string): string {

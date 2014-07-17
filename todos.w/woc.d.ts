@@ -147,8 +147,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		ajax(method: string, opt: {
-					url: string;
+		ajax(method: string, url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
@@ -158,8 +157,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		get(opt: {
-					url: string;
+		get(url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
@@ -169,8 +167,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		head(opt: {
-					url: string;
+		head(url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
@@ -180,8 +177,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		post(opt: {
-					url: string;
+		post(url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
@@ -191,8 +187,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		put(opt: {
-					url: string;
+		put(url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
@@ -202,8 +197,7 @@ declare module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		delete(opt: {
-					url: string;
+		delete(url: string, opt?: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;

@@ -25,84 +25,78 @@ module woc {
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public ajax(method: string, opt: {
-					url: string;
+		public ajax(method: string, url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
+				} = {}): Promise<any> {
 			var sData = opt.sData || null;
 			if (sData && opt.sAsJson) {
 				var orig = sData;
 				sData = {};
 				sData[opt.sAsJson] = JSON.stringify(orig);
 			}
-			return CoreAjax.doXHR(method, opt.url, sData, opt.rDataType || 'json');
+			return CoreAjax.doXHR(method, url, sData, opt.rDataType || 'json');
 		}
 
 		/**
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public get(opt: {
-					url: string;
+		public get(url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
-			return this.ajax('GET', opt);
+				} = {}): Promise<any> {
+			return this.ajax('GET', url, opt);
 		}
 
 		/**
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public head(opt: {
-					url: string;
+		public head(url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
-			return this.ajax('HEAD', opt);
+				} = {}): Promise<any> {
+			return this.ajax('HEAD', url, opt);
 		}
 
 		/**
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public post(opt: {
-					url: string;
+		public post(url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
-			return this.ajax('POST', opt);
+				} = {}): Promise<any> {
+			return this.ajax('POST', url, opt);
 		}
 
 		/**
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public put(opt: {
-					url: string;
+		public put(url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
-			return this.ajax('PUT', opt);
+				} = {}): Promise<any> {
+			return this.ajax('PUT', url, opt);
 		}
 
 		/**
 		 * * rDataType: 'json|script|text' [default: 'json']
 		 * * sAsJson: contains the parameter name
 		 */
-		public delete(opt: {
-					url: string;
+		public delete(url: string, opt: {
 					sData?: {};
 					rDataType?: string;
 					sAsJson?: string;
-				}): Promise<any> {
-			return this.ajax('DELETE', opt);
+				} = {}): Promise<any> {
+			return this.ajax('DELETE', url, opt);
 		}
 
 		// --

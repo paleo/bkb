@@ -377,7 +377,7 @@ module woc {
 			return this.map[libName] !== undefined;
 		}
 
-		public load(libName: string, req: boolean): any {
+		public load(libName: string, req: boolean): boolean {
 			var prop = this.map[libName];
 			if (prop === undefined) {
 				if (req)

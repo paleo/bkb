@@ -7,301 +7,247 @@ module woc {
 	// ## WLoader
 	// ##
 
-	export class WLoader {
-		private ajax: woc.Ajax;
-		private thingDoneCallback: Function;
-		private failCallback: Function;
-		private thingLoadCount = 0;
-		private waitedPreloads = 0;
-		private waitedBundleConf = 0;
-		private embedBundleList = [];
+	interface WBundleProp {
+		path: string;
+		url: string;
+		conf: {};
+	}
+	enum EmbedType {
+		Component, Library, Service, Bundle
+	}
 
-		constructor(private libraries: Libraries, private services: Services, private components: Components,
-				private bundles: Bundles, private loader: Loader, private bundlePath: string, private bundleUrl: string,
-				version: string, doneCallback: Function, failCallback: Function) {
+	export class WLoader {
+
+		// --
+		// -- Initialisation
+		// --
+
+		private ajax: woc.Ajax;
+		private embedBundleList: WBundleProp[] = [];
+		private preloads: Promise<void>[] = [];
+
+		constructor(private libraries: Libraries, private services: Services, private components: Components, private bundles: Bundles,
+								private loader: Loader, private bundlePath: string, private bundleUrl: string, private version: string) {
 			this.ajax = this.services.get('woc.Ajax');
-			var doneReported = false;
-			this.thingDoneCallback = (decCount = true) => {
-				if (decCount)
-					--this.thingLoadCount;
-				if (this.thingLoadCount > 0)
-					return;
-				if (doneReported)
-					throw Error('Bug when loading bundle ("w" mode) "' + this.bundlePath + '": done already reported');
-				doneReported = true;
-				if (this.embedBundleList.length === 0)
-					throw Error('Empty bundle');
-				var bundleConf = this.embedBundleList[0]['conf'];
-				if (bundleConf['version'] && version && bundleConf['version'] !== version)
-					throw Error('Conflict in bundle version, attempted "' + version + '" doesn\'nt match with current "' + bundleConf['version'] + '"');
-				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, bundleConf['main']);
-				if (doneCallback)
-					doneCallback();
-			};
-			var failReported = false;
-			this.failCallback = () => {
-				if (failReported)
-					return;
-				failReported = true;
-				if (failCallback)
-					failCallback();
-			};
 		}
 
 		// --
 		// -- Public
 		// --
 
-		public loadWBundle() {
-			this.doLoadWBundle(this.bundlePath, this.bundleUrl);
-		}
-
-		// --
-		// -- Internal
-		// --
-
-		static addScriptElement(url, cb, services: Services) {
-			var ready = () => {
-				if (cb) {
-					try {
-						cb();
-					} catch (err) {
-						services.get('woc.Log').unexpectedErr(err);
-					}
-					cb = null;
-				}
-			};
-			var head = document.head || document.getElementsByTagName('head')[0];
-			var script = document.createElement('script');
-			script.onreadystatechange = function () {
-				if (this.readyState === 'complete')
-					ready();
-			};
-			script.onload = ready;
-			script.src = url;
-			head.appendChild(script);
+		public loadWBundle(): Promise<void> {
+			return this.loadBundleConfRecursive(this.bundlePath, this.bundleUrl).then(() => {
+				return Promise.all(this.preloads);
+			}).then(() => {
+				var lsc = new WLoaderLSC(this.embedBundleList);
+				return lsc.loadAll();
+			}).then((prop: WBundleProp) => {
+				var conf = prop['conf'];
+				if (conf['version'] && this.version && conf['version'] !== this.version)
+					throw Error('Conflict in bundle version, attempted "' + this.version + '" doesn\'nt match with current "' + conf['version'] + '"');
+				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, conf['main']);
+			});
 		}
 
 		// --
 		// -- Private - Embed bundles
 		// --
 
-		private doLoadWBundle(bundlePath, bundleUrl) {
-			var preloadDone = () => {
-				--this.waitedPreloads;
-				this.loadAllEmbedBundles();
-			};
-			++this.waitedBundleConf;
-			this.ajax.get({
-				'url': bundleUrl + '/bundle.json',
-				'done': (bundleConf) => {
-					this.embedBundleList.push({
-						'path': bundlePath,
-						'url': bundleUrl,
-						'conf': bundleConf
-					});
-					--this.waitedBundleConf;
-					this.loadEmbedBundlesConf(bundlePath, bundleUrl, bundleConf);
-					if (bundleConf['preload']) {
-						++this.waitedPreloads;
-						this.loader.loadBundles(bundleConf['preload'], preloadDone, this.failCallback, false);
-					} else
-						this.loadAllEmbedBundles();
-				},
-				'fail': this.failCallback
+		private loadBundleConfRecursive(bundlePath, bundleUrl): Promise<void> {
+			return this.ajax.get(bundleUrl + '/bundle.json').then((bundleConf) => {
+				if (bundleConf['preload']) {
+					Array.prototype.push.apply(this.preloads, bundleConf['preload'].map((bp) => {
+						return this.loader.loadBundle(bp, null, null, false, false);
+					}));
+				}
+				this.embedBundleList.push({
+					path: bundlePath,
+					url: bundleUrl,
+					conf: bundleConf
+				});
+				if (bundleConf['embed'] !== undefined) {
+					return Promise.all(bundleConf['embed'].map((dir) => {
+						if (WLoaderLSC.getType(dir) === EmbedType.Bundle)
+							return this.loadBundleConfRecursive(bundlePath + '/' + dir, bundleUrl + '/' + dir);
+						return null;
+					}));
+				}
+			});
+		}
+	}
+	
+	// ##
+	// ## WLoaderLibServComp
+	// ##
+
+	class WLoaderLSC {
+		
+		private scriptLoader: WScriptLoader;
+		private cssLoader: WCssLoader;
+		private tplLoader: WTplLoader;
+		private mergedBundleProp: {};
+		private thingList: {}[];
+
+		constructor(libraries: Libraries, services: Services, components: Components, private ajax: woc.Ajax,
+								private bundlePath: string, private embedBundleList: WBundleProp[] = []) {
+			this.scriptLoader = new WScriptLoader(libraries);
+			this.cssLoader = new WCssLoader();
+			this.tplLoader = new WTplLoader(ajax);
+			this.initMergedBundleProp();
+			this.initThingList();
+		}
+
+		public loadAll(): Promise<void> {
+			return Promise.all(this.thingList.map((prop) => {
+				return this.ajax.get(prop['confUrl']);
+			})).then((confList) => {
+				this.fillThingLoaders(confList);
+				this.loadAllWDataPart1();
 			});
 		}
 
-		private loadEmbedBundlesConf(bundlePath, bundleUrl, bundleConf) {
-			var embed = bundleConf['embed'];
-			if (embed === undefined)
-				return;
-			var dir;
-			for (var i = 0, len = embed.length; i < len; ++i) {
-				dir = embed[i];
-				if (WLoader.getType(dir) === 'BW')
-					this.doLoadWBundle(bundlePath + '/' + dir, bundleUrl + '/' + dir);
-			}
-		}
-
-		private loadAllEmbedBundles() {
-			if (this.waitedPreloads > 0 || this.waitedBundleConf > 0)
-				return;
-			this.loadAllWConf();
-		}
-
-		// --
-		// -- Private - Libraries, Services, Components
-		// --
-
-		private loadAllWConf() {
-			// - Make thingPropList
-			var thingPropList = [], bundleReqLibSet = {}, bundleScripts = [], bundleCss = [], encoding = undefined;
-			var i, len, j, lenJ, embed, reqLib, dir, type, bundleProp;
-			for (i = 0, len = this.embedBundleList.length; i < len; ++i) {
-				bundleProp = this.embedBundleList[i];
-				embed = bundleProp['conf']['embed'];
-				if (embed !== undefined) {
-					for (j = 0, lenJ = embed.length; j < lenJ; ++j) {
-						dir = embed[j];
-						type = WLoader.getType(dir);
-						if (type !== 'BW') {
-							thingPropList.push({
-								'type': type,
-								'path': dir,
-								'confUrl': bundleProp['url'] + '/' + dir + '/' + WLoader.getConfFileName(type),
-								'bundleUrl': bundleProp['url'],
-								'bundlePath': bundleProp['path'],
-								'bundleConf': bundleProp['conf'],
-								'conf': null
-							});
-						}
-					}
+		private fillThingLoaders(confList: {}[]): Promise<void> {
+			// - Fill loaders
+			var prop, conf;
+			for (var i = 0, len = this.thingList.length; i < len; ++i) {
+				prop = this.thingList[i];
+				conf = confList[i];
+				switch(prop['type']) {
+					case EmbedType.Library:
+						this.libLoader.add(prop, conf);
+						break;
+					case EmbedType.Service:
+						this.servLoader.add(prop, conf);
+						break;
+					case EmbedType.Component:
+						this.compLoader.add(prop, conf);
+						break;
+					default:
+						throw Error('Bad embed type "' + prop['type'] + '"');
 				}
-				if (encoding === undefined)
-					encoding = bundleProp['conf']['encoding'];
-				else if (bundleProp['conf']['encoding'] !== undefined && encoding !== bundleProp['conf']['encoding'])
-					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp['conf']['encoding'] + '"');
-				reqLib = bundleProp['conf']['requireLib'];
+			}
+			// - Check required libraries
+			for (var i = 0, len = confList.length; i < len; ++i) {
+				conf = confList[i];
+				if (conf['requireLib'])
+					this.libLoader.requireAllLib(conf['requireLib']);
+			}
+			this.libLoader.requireAllLib(this.mergedBundleProp['requireLib']);
+		}
+
+		
+		
+		private initMergedBundleProp() {
+			var j, lenJ, reqLib, bundleProp, reqLibSet = {}, bundleScripts = [], cssList = [], encoding = null;
+			for (var i = 0, len = this.embedBundleList.length; i < len; ++i) {
+				bundleProp = this.embedBundleList[i];
+				if (!encoding)
+					encoding = bundleProp.conf['encoding'];
+				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
+					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
+				reqLib = bundleProp.conf['requireLib'];
 				if (reqLib !== undefined) {
 					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
-						bundleReqLibSet[reqLib[j]] = true;
+						reqLibSet[reqLib[j]] = true;
 				}
-				if (bundleProp['conf']['script'] !== undefined)
-					bundleScripts.push([bundleProp['url'], WLoader.toFileList(bundleProp['conf']['script'])]);
-				if (bundleProp['conf']['css'] !== undefined)
-					bundleCss.push([bundleProp['url'], bundleProp['conf']['css']]);
+				if (bundleProp.conf['script'] !== undefined)
+					bundleScripts.push([bundleProp.url, WLoaderLSC.toFileList(bundleProp.conf['script'])]);
+				if (bundleProp.conf['css'] !== undefined)
+					cssList.push([bundleProp.url, bundleProp.conf['css']]);
 			}
-			// - Make mergedBundleProp
-			var bundleReqLibList = [];
-			for (var libName in bundleReqLibSet) {
-				if (bundleReqLibSet.hasOwnProperty(libName))
-					bundleReqLibList.push(libName);
+			var reqLibList = [];
+			for (var libName in reqLibSet) {
+				if (reqLibSet.hasOwnProperty(libName))
+					reqLibList.push(libName);
 			}
-			var mergedBundleProp = {
+			this.mergedBundleProp = {
 				'encoding': encoding,
-				'requireLib': bundleReqLibList,
+				'requireLib': reqLibList,
 				'scriptsArr': bundleScripts,
-				'cssArr': bundleCss
+				'cssArr': cssList
 			};
-			// - Case of empty bundle
-			if (thingPropList.length === 0) {
-				this.includeLibs(thingPropList, mergedBundleProp);
-				this.thingDoneCallback(false);
-				return;
-			}
-			// - Make ajax optList
-			var optList = [];
-			for (i = 0, len = thingPropList.length; i < len; ++i) {
-				optList.push({
-					'method': 'GET',
-					'url': thingPropList[i]['confUrl']
-				});
-			}
-			// - Load all
-			++this.thingLoadCount;
-			this.ajax.bundleAjax({
-				'urls': optList,
-				'done': (rDataMap) => {
-					this.populateThingPropConf(thingPropList, rDataMap);
-					var libScriptsLoader = this.includeLibs(thingPropList, mergedBundleProp);
-					this.loadAllWDataPart1(thingPropList, mergedBundleProp, libScriptsLoader);
-					this.thingDoneCallback();
-				},
-				'fail': this.failCallback
-			});
 		}
 
-		private populateThingPropConf(thingPropList, rDataMap) {
-			var conf;
-			for (var i = 0, len = thingPropList.length; i < len; ++i) {
-				conf = rDataMap[thingPropList[i]['confUrl']];
-				if (conf === undefined)
-					throw Error('Missing conf for "' + thingPropList[i]['path'] + '"');
-				thingPropList[i]['conf'] = conf;
-			}
-		}
-
-		private includeLibs(thingPropList, mergedBundleProp): WLibScriptsLoader {
-			var libScriptsLoader = new WLibScriptsLoader(this.libraries, this.services);
-			// - Add into the lib loader
-			var includedLibNames = {}, prop, conf, url;
-			for (var i = 0, len = thingPropList.length; i < len; ++i) {
-				prop = thingPropList[i];
-				conf = prop['conf'];
-				if (prop['type'] === 'L') {
-					url = prop['bundleUrl'] + '/' + prop['path'];
-					libScriptsLoader.add(conf['name'], url, WLoader.toFileList(conf['script']), conf['requireLib']);
-					includedLibNames[conf['name']] = true;
+		private initThingList() {
+			this.thingList = [];
+			var j, lenJ, embed, dir, url, type, bundleProp;
+			for (var i = 0, len = this.embedBundleList.length; i < len; ++i) {
+				bundleProp = this.embedBundleList[i];
+				embed = bundleProp.conf['embed'];
+				if (embed === undefined)
+					continue;
+				for (j = 0, lenJ = embed.length; j < lenJ; ++j) {
+					dir = embed[j];
+					type = WLoaderLSC.getType(dir);
+					if (type === EmbedType.Bundle)
+						continue;
+					url = bundleProp.url + '/' + dir;
+					this.thingList.push({
+						'type': type,
+						'path': dir,
+						'url': url,
+						'confUrl': url + '/' + WLoaderLSC.getConfFileName(type),
+						'bundleUrl': bundleProp.url,
+						'bundlePath': bundleProp.path,
+						'bundleConf': bundleProp.conf,
+						'conf': null
+					});
 				}
 			}
-			// - Include lib from other bundles
-			for (i = 0, len = thingPropList.length; i < len; ++i) {
-				if (conf['requireLib'])
-					this.requireAllLib(conf['requireLib'], includedLibNames);
-			}
-			this.requireAllLib(mergedBundleProp['requireLib'], includedLibNames);
-			return libScriptsLoader;
 		}
 
-		private requireAllLib(arr: string[], includedLibNames: {}) {
-			for (var i = 0, len = arr.length; i < len; ++i) {
-				if (!includedLibNames[arr[i]] && !this.libraries.load(arr[i], false))
-					throw Error('In bundle "' + this.bundlePath + '", unknown library "' + arr[i] + '"');
-			}
-		}
 
-		private loadAllWDataPart1(thingPropList, mergedBundleProp, libScriptsLoader: WLibScriptsLoader) {
+		private loadAllWDataPart1() {
 			var i: number, len, scriptsToLoad = [], arr;
 			// - Merged bundle - scripts
-			arr = mergedBundleProp['scriptsArr'];
+			arr = this.mergedBundleProp['scriptsArr'];
 			if (arr !== undefined) {
 				for (var i = 0, len = arr.length; i < len; ++i)
 					scriptsToLoad.push(arr[i]);
 			}
 			// - Merged bundle - css
-			arr = mergedBundleProp['cssArr'];
+			arr = this.mergedBundleProp['cssArr'];
 			if (arr !== undefined) {
 				for (var i = 0, len = arr.length; i < len; ++i)
-					WLoader.addCssLinkElements(arr[i][0], arr[i][1]);
+					WLoaderLSC.addCssLinkElements(arr[i][0], arr[i][1]);
 			}
 			// - Embed things
 			var listsByTypes = {'S': [], 'C': [], 'L': []};
-			var confUrl, path, embedUrl, conf, type, encoding = mergedBundleProp['encoding'];
-			for (i = 0, len = thingPropList.length; i < len; ++i) {
-				path = thingPropList[i]['path'];
-				confUrl = thingPropList[i]['confUrl'];
-				type = thingPropList[i]['type'];
-				conf = thingPropList[i]['conf'];
+			var confUrl, path, embedUrl, conf, type, encoding = this.mergedBundleProp['encoding'];
+			for (i = 0, len = this.thingList.length; i < len; ++i) {
+				path = this.thingList[i]['path'];
+				confUrl = this.thingList[i]['confUrl'];
+				type = this.thingList[i]['type'];
+				conf = this.thingList[i]['conf'];
 				if (conf['encoding'] !== undefined && encoding !== undefined && conf['encoding'] !== encoding)
 					throw Error('Encoding conflict in bundle "' + this.bundlePath + '" (' + encoding + '): embed "' + path + '" has ' + conf['encoding']);
-				embedUrl = thingPropList[i]['bundleUrl'] + '/' + path;
+				embedUrl = this.thingList[i]['bundleUrl'] + '/' + path;
 				switch(type) {
-					case 'L':
+					case EmbedType.Library:
 						if (conf['css'] !== undefined)
-							WLoader.addCssLinkElements(embedUrl, WLoader.toFileList(conf['css']));
+							WLoaderLSC.addCssLinkElements(embedUrl, WLoaderLSC.toFileList(conf['css']));
 						listsByTypes[type].push({
 							'name': conf['name']
 						});
 						break;
-					case 'S':
+					case EmbedType.Service:
 						if (conf['script'] !== undefined)
-							scriptsToLoad.push([embedUrl, WLoader.toFileList(conf['script'])]);
+							scriptsToLoad.push([embedUrl, WLoaderLSC.toFileList(conf['script'])]);
 						listsByTypes[type].push({
 							'name': conf['name'],
 							'baseUrl': embedUrl,
 							'alias': conf['alias']
 						});
 						break;
-					case 'C':
+					case EmbedType.Component:
 						if (conf['css'] !== undefined)
-							WLoader.addCssLinkElements(embedUrl, WLoader.toFileList(conf['css']));
+							WLoaderLSC.addCssLinkElements(embedUrl, WLoaderLSC.toFileList(conf['css']));
 						if (conf['script'] !== undefined)
-							scriptsToLoad.push([embedUrl, WLoader.toFileList(conf['script'])]);
+							scriptsToLoad.push([embedUrl, WLoaderLSC.toFileList(conf['script'])]);
 						listsByTypes[type].push({
 							'name': conf['name'],
 							'baseUrl': embedUrl,
-							'tpl': WLoader.toFileList(conf['tpl'])
+							'tpl': WLoaderLSC.toFileList(conf['tpl'])
 						});
 						break;
 					default:
@@ -309,10 +255,10 @@ module woc {
 				}
 			}
 			// - End
-			this.loadAllWDataPart2(scriptsToLoad, listsByTypes, libScriptsLoader);
+			this.loadAllWDataPart2(scriptsToLoad, listsByTypes, libLoader);
 		}
 
-		private loadAllWDataPart2(scriptsToLoad, listsByTypes, libScriptsLoader: WLibScriptsLoader) {
+		private loadAllWDataPart2(scriptsToLoad, listsByTypes, libLoader: WLibLoader) {
 			var i: number, len: number, j: number, jLen: number, fileNames;
 			// - Try to end function
 			var oScriptsLoaded = false, lScriptsLoaded = false, ajaxEnded = false, tplRDataMap = null, endDone = false;
@@ -320,16 +266,16 @@ module woc {
 				if (endDone) {
 				}
 				if (lScriptsLoaded && oScriptsLoaded && ajaxEnded) {
-					this.registerAllWLibraries(listsByTypes['L']);
-					this.registerAllWServices(listsByTypes['S']);
-					this.registerAllWComponents(listsByTypes['C'], tplRDataMap);
+					this.registerAllWLibraries(listsByTypes[EmbedType.Library]);
+					this.registerAllWServices(listsByTypes[EmbedType.Service]);
+					this.registerAllWComponents(listsByTypes[EmbedType.Component], tplRDataMap);
 					endDone = true;
 				}
 				this.thingDoneCallback(decCount);
 			};
 			// - Load lib scripts
 			++this.thingLoadCount;
-			libScriptsLoader.loadAll(() => {
+			libLoader.loadAll(() => {
 				lScriptsLoaded = true;
 				tryToEnd(true);
 			});
@@ -353,8 +299,8 @@ module woc {
 			}
 			// - Make optList for templates
 			var optList = [], prop;
-			for (i = 0, len = listsByTypes['C'].length; i < len; ++i) {
-				prop = listsByTypes['C'][i];
+			for (i = 0, len = listsByTypes[EmbedType.Component].length; i < len; ++i) {
+				prop = listsByTypes[EmbedType.Component][i];
 				fileNames = prop['tpl'];
 				if (fileNames) {
 					for (j = 0, jLen = fileNames.length; j < jLen; ++j) {
@@ -384,68 +330,23 @@ module woc {
 			tryToEnd(false);
 		}
 
-		private registerAllWLibraries(lList) {
-			var prop;
-			for (var i = 0, len = lList.length; i < len; ++i) {
-				prop = lList[i];
-				this.libraries.register(prop['name'], null, null);
-			}
-		}
-
-		private registerAllWServices(sList) {
-			var prop;
-			for (var i = 0, len = sList.length; i < len; ++i) {
-				prop = sList[i];
-				this.services.register(prop['name'], prop['baseUrl'], prop['alias'], null, null);
-			}
-		}
-
-		private registerAllWComponents(cList, rDataMap) {
-			var prop;
-			for (var i = 0, len = cList.length; i < len; ++i) {
-				prop = cList[i];
-				this.registerWComponent(prop, rDataMap);
-			}
-		}
-
-		private registerWComponent(prop, rDataMap) {
-			var baseUrl = prop['baseUrl'], fileNames = prop['tpl'], html;
-			if (fileNames === undefined)
-				html = null;
-			else {
-				html = '';
-				if (!rDataMap)
-					rDataMap = {};
-				var fUrl;
-				for (var i = 0, len = fileNames.length; i < len; ++i) {
-					fUrl = baseUrl + '/' + fileNames[i];
-					if (rDataMap[fUrl] === undefined)
-						throw Error('Missing content for template "' + fUrl + '"');
-					html += rDataMap[fUrl];
-				}
-				if (html === '')
-					html = null;
-			}
-			this.components.register(prop['name'], baseUrl, null, null, html);
-		}
-
 		// --
 		// -- Private - Tools
 		// --
 
-		private static getType(dir: string) {
+		static getType(dir: string) {
 			var last = dir.length - 1;
 			if (last <= 2 || dir[last - 1] !== '.')
 				throw Error('Invalid embed "' + dir + '"');
 			switch(dir[last]) {
 				case 's':
-					return 'S';
+					return EmbedType.Service;
 				case 'c':
-					return 'C';
+					return EmbedType.Component;
 				case 'l':
-					return 'L';
+					return EmbedType.Library;
 				case 'w':
-					return 'BW';
+					return EmbedType.Bundle;
 				default:
 					throw Error('Invalid embed "' + dir + '"');
 			}
@@ -453,11 +354,11 @@ module woc {
 
 		private static getConfFileName(type: string) {
 			switch(type) {
-				case 'S':
+				case EmbedType.Service:
 					return 'serv.json';
-				case 'C':
+				case EmbedType.Component:
 					return 'comp.json';
-				case 'L':
+				case EmbedType.Library:
 					return 'lib.json';
 				default:
 					throw Error('Invalid conf file type "' + type + '"');
@@ -471,7 +372,7 @@ module woc {
 				return;
 			}
 			for (var i = 0, len = urlList.length; i < len; ++i) {
-				WLoader.addScriptElement(urlList[i], () => {
+				WLoaderLSC.addScriptElement(urlList[i], () => {
 					--waitedLoads;
 					if (waitedLoads === 0)
 						cb();
@@ -479,23 +380,25 @@ module woc {
 			}
 		}
 
-		private static addCssLinkElements(baseUrl, fileNames) {
+		private static addCssLinkElements(baseUrl, fileNames): Promise<void> {
 			for (var i = 0, len = fileNames.length; i < len; ++i)
-				Loader.addCssLinkElement(baseUrl, fileNames[i]);
+				Loader.addCssLinkToDOM(baseUrl, fileNames[i]);
 		}
 
-		private static toFileList(script: any): string[] {
+		public static toFileList(script: any): string[] {
 			return script ? (typeof script === 'string' ? [script] : script) : [];
 		}
 	}
 
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	// ##
-	// ## WLibScriptsLoader
+	// ## WLibLoader
 	// ##
 
-	export class WLibScriptsLoader {
+	class WLibLoader {
 
-		private lib = {};
+		private libMap = {};
 		private cb: Function;
 		private scripts: {};
 		private done: {};
@@ -504,19 +407,35 @@ module woc {
 		constructor(private libraries: Libraries, private services: Services) {
 		}
 
-		public add(libName: string, baseUrl: string, fileNameList: any, requireLib: string[]) {
-			this.lib[libName] = {
-				'baseUrl': baseUrl,
-				'fileNameList': fileNameList,
-				'requireLib': requireLib,
-				'lastScript': fileNameList.length === 0 ? null : baseUrl + '/' + fileNameList[fileNameList.length - 1]
+		public add(prop, conf) {
+			this.libMap[conf['name']] = {
+				'baseUrl': prop['url'],
+				'fileNameList': WLoaderLSC.toFileList(conf['script']),
+				'requireLib': conf['requireLib']
 			};
 		}
+		
+		public requireAllLib(libNames: string[]): void {
+			var l;
+			for (var i = 0, len = libNames.length; i < len; ++i) {
+				l = libNames[i];
+				if (this.libMap[l] === undefined && this.libraries.load(l, false))
+					throw Error('Cannot find the required library "' + l + '"');
+			}
+		}
 
-		public loadAll(cb: Function) {
+		public loadAll(): Promise<void> {
 			this.cb = cb;
 			this.initScripts();
 			this.loadReadyScripts();
+		}
+
+		public registerAll() {
+			var prop;
+			for (var i = 0, len = lList.length; i < len; ++i) {
+				prop = lList[i];
+				this.libraries.register(prop['name'], null, null);
+			}
 		}
 
 		private loadReadyScripts() {
@@ -560,12 +479,12 @@ module woc {
 			this.scripts = {};
 			this.done = {};
 			var fileNameList, baseUrl, requireScripts, url, i, len;
-			for (var libName in this.lib) {
-				if (!this.lib.hasOwnProperty(libName))
+			for (var libName in this.libMap) {
+				if (!this.libMap.hasOwnProperty(libName))
 					continue;
-				fileNameList = this.lib[libName]['fileNameList'];
-				baseUrl = this.lib[libName]['baseUrl'];
-				requireScripts = this.toRequireScripts(this.lib[libName]['requireLib']);
+				fileNameList = this.libMap[libName]['fileNameList'];
+				baseUrl = this.libMap[libName]['baseUrl'];
+				requireScripts = this.toRequireScripts(this.libMap[libName]['requireLib']);
 				for (i = 0, len = fileNameList.length; i < len; ++i) {
 					url = baseUrl + '/' + fileNameList[i];
 					this.scripts[url] = requireScripts;
@@ -581,13 +500,282 @@ module woc {
 			for (var i = 0, len = requireLib.length; i < len; ++i) {
 				if (this.libraries.load(requireLib[i], false))
 					continue;
-				lib = this.lib[requireLib[i]];
+				lib = this.libMap[requireLib[i]];
 				if (lib === undefined)
 					throw Error('The required library "' + requireLib[i] + '" is not found');
 				if (lib['lastScript'])
 					scripts.push(lib['lastScript']);
 			}
 			return scripts;
+		}
+	}
+
+	// ##
+	// ## WServLoader
+	// ##
+
+	class WServLoader {
+		private servMap = {};
+
+		constructor(private services: Services) {
+		}
+
+		public add(prop, conf) {
+			this.servMap[servName] = {
+				'baseUrl': baseUrl,
+				'fileNameList': fileNameList,
+				'lastScript': fileNameList.length === 0 ? null : baseUrl + '/' + fileNameList[fileNameList.length - 1]
+			};
+		}
+
+		public loadAll(): Promise<void> {
+		}
+
+		public registerAll() {
+			var prop;
+			for (var i = 0, len = sList.length; i < len; ++i) {
+				prop = sList[i];
+				this.services.register(prop['name'], prop['baseUrl'], prop['alias'], null, null);
+			}
+		}
+	}
+
+	// ##
+	// ## WCompLoader
+	// ##
+
+	class WCompLoader {
+		private compMap = {};
+
+		constructor(private components: Components) {
+		}
+
+		public add(prop, conf) {
+			this.compMap[compName] = {
+				'baseUrl': baseUrl,
+				'fileNameList': fileNameList,
+				'lastScript': fileNameList.length === 0 ? null : baseUrl + '/' + fileNameList[fileNameList.length - 1]
+			};
+		}
+
+		public loadAll(): Promise<void> {
+		}
+
+		public registerAll() {
+			var prop;
+			for (var i = 0, len = cList.length; i < len; ++i) {
+				prop = cList[i];
+				this.registerWComponent(prop, rDataMap);
+			}
+		}
+
+		private registerWComponent(prop, tplDataMap) {
+			var baseUrl = prop['baseUrl'], fileNames = prop['tpl'], html;
+			if (fileNames === undefined)
+				html = null;
+			else {
+				html = '';
+				if (!tplDataMap)
+					tplDataMap = {};
+				var fUrl;
+				for (var i = 0, len = fileNames.length; i < len; ++i) {
+					fUrl = baseUrl + '/' + fileNames[i];
+					if (tplDataMap[fUrl] === undefined)
+						throw Error('Missing content for template "' + fUrl + '"');
+					html += tplDataMap[fUrl];
+				}
+				if (html === '')
+					html = null;
+			}
+			this.components.register(prop['name'], baseUrl, null, null, html);
+		}
+	}
+
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ##
+	// ## WScriptLoader
+	// ##
+
+	class WScriptLoader {
+		private libMap = {};
+		private urlSet = {};
+		private waitList = [];
+		private promises = [];
+		private mustLoadAll = false;
+		private runCount = 0;
+
+		constructor(private libraries: Libraries) {
+		}
+
+		public add(thingName: string, urls: string[], requireLib: string[] = []) {
+			this.doAdd(thingName, urls, requireLib, null);
+		}
+
+		public addLib(libName: string, urls: string[], requireLib: string[] = []) {
+			if (this.libMap[libName] === true || (this.libMap[libName] === undefined && this.libraries.load(name, false)))
+				throw Error('Library "' + libName + '" is already defined');
+			this.libMap[libName] = false;
+			this.doAdd(libName, urls, requireLib, libName);
+		}
+
+		public getPromise(): Promise<void> {
+			if (this.promises.length === 0 && this.waitList.length > 0)
+				return Promise.reject(Error('Fail to load scripts for: ' + this.toDebugStringWait()));
+			this.mustLoadAll = true;
+			return <any>Promise.all(this.promises);
+		}
+
+		private doAdd(thingName: string, urls: string[], requireLib: string[], libName: string) {
+			// - Validation
+			var url;
+			for (var i = 0, len = urls.length; i < len; ++i) {
+				url = urls[i];
+				if (this.urlSet[url])
+					throw Error('Script "' + url + '" cannot be included twice');
+				this.urlSet[url] = true;
+			}
+			// - Add
+			this.fillLibMap(requireLib);
+			this.waitList.push({
+				'thingName': thingName,
+				'libName': libName,
+				'urls': urls,
+				'requireLib': requireLib
+			});
+			this.runWaited();
+		}
+
+		private loadUrls(urls: string[]) {
+			urls.forEach((url) => {
+				++this.runCount;
+				this.promises.push(WScriptLoader.addScriptToDOM(url).then(() => {
+					--this.runCount;
+					this.runWaited();
+				}));
+			});
+		}
+
+		private runWaited() {
+			var prop, withStarted = false, hasWaited = false;
+			for (var k in this.waitList) {
+				if (!this.waitList.hasOwnProperty(k))
+					continue;
+				prop = this.waitList[k];
+				if (this.areLibReady(prop['requireLib'])) {
+					withStarted = true;
+					this.loadUrls(prop['urls']);
+					if (prop['libName'])
+						this.libMap[prop['libName']] = true;
+					delete this.waitList[k];
+				} else
+					hasWaited = true;
+			}
+			if (this.mustLoadAll && !withStarted && hasWaited && this.runCount === 0)
+				throw Error('Fail to load scripts for: ' + this.toDebugStringWait());
+		}
+
+		private areLibReady(requireLib: string[]) {
+			for (var i = 0, len = requireLib.length; i < len; ++i) {
+				if (!this.libMap[requireLib[i]])
+					return false;
+			}
+			return true;
+		}
+
+		private fillLibMap(requireLib: string[]) {
+			var name: string;
+			for (var i = 0, len = requireLib.length; i < len; ++i) {
+				name = requireLib[i];
+				if (this.libMap[name] === undefined)
+					this.libMap[name] = this.libraries.load(name, false);
+			}
+		}
+
+		private toDebugStringWait() {
+			var list = [];
+			for (var k in this.waitList) {
+				if (!this.waitList.hasOwnProperty(k))
+					continue;
+				list.push(this.waitList[k]['thingName']);
+			}
+			return list.join(', ');
+		}
+
+		private static addScriptToDOM(url): Promise<void> {
+			return new Promise(function (resolve, reject) {
+				var script = document.createElement('script');
+				if (script.onreadystatechange) { // IE8
+					script.onreadystatechange = function () {
+						if (script.readyState === 'complete')
+							resolve();
+						else
+							reject();
+					};
+				} else {
+					script.onload = resolve;
+					script.onerror = reject;
+				}
+				script.src = url;
+				var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0];
+				head.appendChild(script);
+			});
+		}
+	}
+
+	// ##
+	// ## WCssLoader
+	// ##
+
+	class WCssLoader {
+		private promises = [];
+
+		constructor() {
+		}
+
+		public add(thingName: string, urls: string[]) {
+			this.promises.push(Promise.all(urls.map((url) => {
+				return Loader.addCssLinkToDOM(url);
+			})).catch((e: Error) => {
+				throw Error('Fail to load CSS of "' + thingName + '": ' + e.message);
+			}));
+		}
+
+		public getPromise(): Promise<void> {
+			return <any>Promise.all(this.promises);
+		}
+	}
+
+	// ##
+	// ## WTplLoader
+	// ##
+
+	class WTplLoader {
+		private compNames = [];
+		private promises = [];
+
+		constructor(private ajax: woc.Ajax) {
+		}
+
+		public add(compName: string, urls: string[]) {
+			this.compNames.push(compName);
+			this.promises.push(Promise.all(urls.map((url) => {
+				return this.ajax.get(url, {'rDataType': 'text'});
+			})).then((arr: string[]) => {
+				return arr.join('\n');
+			}, (e: Error) => {
+				throw Error('Fail to load templates in "' + compName + '": ' + e.message);
+			}));
+		}
+
+		public getPromise(): Promise<{[index: string]: string}> {
+			return Promise.all(this.promises).then((arr: string[]) => {
+				var map;
+				for (var i = 0, len = arr.length; i < len; ++i)
+					map[this.compNames[i]] = arr[i];
+				return map;
+			});
 		}
 	}
 }
