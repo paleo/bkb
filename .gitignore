@@ -5,7 +5,6 @@ node_modules
 *.css
 
 !woc.w/lib/*
-!es5-shim.min.js
 
 ext.w/jQueryUI.l/images
 *-0.5
