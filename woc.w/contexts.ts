@@ -82,8 +82,8 @@ module woc {
 		 * @param bundlePath
 		 * @param opt
 		 */
-		public loadBundle(bundlePath: string, opt = {}): void {
-			this.loader.loadBundle(bundlePath, opt['done'], opt['fail'], opt['start'], opt['version'], opt['autoLoadCss'], opt['w']);
+		public loadBundle(bundlePath: string, opt = {}): Promise<void> {
+			return this.loader.loadBundle(bundlePath, opt['start'], opt['version'], opt['autoLoadCss'], opt['w']);
 		}
 
 		public hasLib(libName): boolean {

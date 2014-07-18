@@ -1,7 +1,7 @@
-/// <reference path="jquery.d.ts" />
-/// <reference path="../woc.d.ts" />
-/// <reference path='../ext.w/wocext_helpers.l/helpers.ts' />
+/// <reference path="d.ts/jquery.d.ts" />
+/// <reference path="d.ts/woc.d.ts" />
 /// <reference path='todos_List.c/List.ts' />
+/// <reference path='../ext.w/wocext_helpers.l/helpers.ts' />
 
 module todos {
 	'use strict';

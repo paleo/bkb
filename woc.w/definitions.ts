@@ -88,7 +88,7 @@ module woc {
 		 * @param bundlePath
 		 * @param opt
 		 */
-		loadBundle(bundlePath: string, opt?: {}): void;
+		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
 		hasLib(libName): boolean;
 		includeLib(libName): boolean;
 		requireLib(libName: any): void;

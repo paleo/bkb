@@ -4,8 +4,8 @@ node_modules
 *.map
 *.css
 
-!woc.w/lib/promise-1.0.0.min.js
-!woc.w/libjs/*
+!woc.w/lib/*
+!es5-shim.min.js
 
 ext.w/jQueryUI.l/images
 *-0.5

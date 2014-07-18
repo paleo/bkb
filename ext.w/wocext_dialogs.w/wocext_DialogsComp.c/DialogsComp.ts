@@ -1,5 +1,5 @@
-/// <reference path='../../../woc.d.ts' />
-/// <reference path='../jquery.d.ts' />
+/// <reference path='../../d.ts/woc.d.ts' />
+/// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../wocext_helpers.l/helpers.ts' />
 /// <reference path='../../wocsingle_Button.c/Button.ts' />
 
@@ -73,8 +73,6 @@ module wocext {
 			var props = this.dialogs[dialogId];
 			if (!props)
 				throw Error('Unknown dialog "' + dialogId + '"');
-//console.log('open dialog ' + dialogId);
-//console.log(prop);
 			if (props['openedId'] !== null)
 				return;
 			if (props['hideBelow'])

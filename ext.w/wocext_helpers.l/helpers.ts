@@ -1,4 +1,4 @@
-/// <reference path='../../woc.d.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
 
 module wocext.helpers {
 	'use strict';

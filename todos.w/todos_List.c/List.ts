@@ -1,7 +1,7 @@
-/// <reference path='../../woc.d.ts' />
-/// <reference path='../jquery.d.ts' />
-/// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path="../todos_Item.c/Item.ts" />
+/// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />
 
 module todos {
 	'use strict';

@@ -1,3 +1,4 @@
+/// <reference path="definitions.ts" />
 /// <reference path="loader.ts" />
 'use strict';
 
@@ -72,28 +73,26 @@
 
 	// ext(w) shop-hep-2.3.5.w
 	function preloadBundles(ac: woc.ApplicationContext, preloadStr: string) {
-		var arr = preloadStr.split(' '), waited = arr.length, started = false;
-		var onBundleLoaded = function () {
-			if (--waited > 0 || started)
-				return;
-			started = true;
-			autoStartBundles(ac);
-		};
-		var tokens, name;
-		for (var i = 0, len = waited; i < len; ++i) {
+		var arr = preloadStr.split(' ');
+		var tokens, name, promises = [];
+		for (var i = 0, len = arr.length; i < len; ++i) {
 			tokens = /(?:-([0-9]+(?:\.[0-9])*))?(\.w)?(?:\(([^\)]+)\))?$/.exec(arr[i]);
 			if (tokens === null) {
 				reportStartErr('Invalid preload "' + arr[i] + '"');
 				return;
 			}
 			name = arr[i].slice(0, arr[i].length - tokens[0].length);
-			ac.loadBundle(name, {
+			promises.push(ac.loadBundle(name, {
 				'autoLoadCss': tokens[3] === 'css',
 				'w': tokens[2] !== undefined,
-				'version': tokens[1],
-				'done': onBundleLoaded
-			});
+				'version': tokens[1]
+			}));
 		}
+		Promise.all(promises).then(() => {
+			autoStartBundles(ac);
+		}).catch((e) => {
+			reportStartErr(e);
+		});
 	}
 
 	function autoStartBundles(ac: woc.ApplicationContext) {
@@ -102,6 +101,8 @@
 			el = matches[i];
 			ac.loadBundle(el.getAttribute('data-woc-exec'), {
 				'start': el
+			}).catch((e) => {
+				reportStartErr(e);
 			});
 		}
 	}

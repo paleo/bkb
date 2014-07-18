@@ -4,7 +4,7 @@
 module woc {
 
 	// ##
-	// ## WLoader
+	// ## Interfaces
 	// ##
 
 	interface WBundleProp {
@@ -13,6 +13,7 @@ module woc {
 		url: string;
 		conf: {};
 	}
+
 	interface WThingProp {
 		type: WEmbedType;
 		path: string;
@@ -21,9 +22,14 @@ module woc {
 		bundleProp: WBundleProp;
 		conf: {}
 	}
+
 	enum WEmbedType {
 		Component, Library, Service, Bundle
 	}
+
+	// ##
+	// ## WLoader
+	// ##
 
 	export class WLoader {
 
@@ -33,6 +39,7 @@ module woc {
 
 		private ajax: woc.Ajax;
 		private embedBundleList: WBundleProp[] = [];
+		private mergedBundleConf: {};
 		private preloads: Promise<void>[] = [];
 
 		constructor(private libraries: Libraries, private services: Services, private components: Components, private bundles: Bundles,
@@ -46,13 +53,14 @@ module woc {
 
 		public loadWBundle(): Promise<void> {
 			return this.loadBundleConfRecursive(this.bundlePath, null, this.bundleUrl).then(() => {
+				this.initMergedBundleConf();
 				return Promise.all(this.preloads);
 			}).then(() => {
 				var lsc = new WLoaderLSC(this.libraries, this.services, this.components, this.ajax, this.bundlePath, this.bundleUrl,
-					this.embedBundleList);
+					this.embedBundleList, this.mergedBundleConf);
 				return lsc.loadAll();
-			}).then((prop: WBundleProp) => {
-				var conf = prop['conf'];
+			}).then(() => {
+				var conf = this.mergedBundleConf;
 				if (conf['version'] && this.version && conf['version'] !== this.version)
 					throw Error('Conflict in bundle version, attempted "' + this.version + '" doesn\'nt match with current "' + conf['version'] + '"');
 				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, conf['main']);
@@ -64,7 +72,7 @@ module woc {
 		// --
 
 		private loadBundleConfRecursive(bundlePath, bundleEmbedPath, bundleUrl): Promise<void> {
-			return this.ajax.get(bundleUrl + '/bundle.json').then((bundleConf) => {
+			return this.ajax.get(bundleUrl + '/bundle.json').then<void>((bundleConf) => {
 				if (bundleConf['preload']) {
 					Array.prototype.push.apply(this.preloads, bundleConf['preload'].map((bp) => {
 						return this.loader.loadBundle(bp, null, null, false, false);
@@ -86,6 +94,40 @@ module woc {
 				}
 			});
 		}
+
+		private initMergedBundleConf() {
+			var i, len, j, lenJ, reqLib, bundleProp, reqLibSet = {}, scripts = [], cssList = [], encoding = null;
+			for (i = 0, len = this.embedBundleList.length; i < len; ++i) {
+				bundleProp = this.embedBundleList[i];
+				if (!encoding)
+					encoding = bundleProp.conf['encoding'];
+				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
+					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
+				reqLib = bundleProp.conf['requireLib'];
+				if (reqLib !== undefined) {
+					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
+						reqLibSet[reqLib[j]] = true;
+				}
+				if (bundleProp.conf['script'] !== undefined)
+					Array.prototype.push.apply(scripts, WLoaderLSC.toFileList(bundleProp.conf['script'], bundleProp.embedPath));
+				if (bundleProp.conf['css'] !== undefined)
+					Array.prototype.push.apply(cssList, WLoaderLSC.toFileList(bundleProp.conf['css'], bundleProp.embedPath));
+			}
+			var reqLibList = [];
+			for (var libName in reqLibSet) {
+				if (reqLibSet.hasOwnProperty(libName))
+					reqLibList.push(libName);
+			}
+			var mainConf = len > 0 ? this.embedBundleList[0].conf : null;
+			this.mergedBundleConf = {
+				'version': mainConf ? mainConf['version'] : undefined,
+				'main': mainConf ? mainConf['main'] : undefined,
+				'encoding': encoding,
+				'requireLib': reqLibList,
+				'script': scripts,
+				'css': cssList
+			};
+		}
 	}
 	
 	// ##
@@ -94,13 +136,11 @@ module woc {
 
 	class WLoaderLSC {
 		
-		private mergedBundleConf: {};
 		private thingList: WThingProp[];
 
 		constructor(private libraries: Libraries, private services: Services, private components: Components, private ajax: woc.Ajax,
-								private bundlePath: string, private bundleUrl: string, private embedBundleList: WBundleProp[] = []) {
-			this.initMergedBundleConf();
-			this.initThingList();
+								private bundlePath: string, private bundleUrl: string, private embedBundleList: WBundleProp[],
+								private mergedBundleConf: {}) {
 			this.initThingList();
 		}
 
@@ -147,44 +187,13 @@ module woc {
 				this.mergedBundleConf['requireLib']);
 			cssLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['css']));
 			// - Promises
-			return Promise.all([
+			return Promise.all<any>([
 				scriptLoader.getPromise(),
 				cssLoader.getPromise(),
 				tplLoader.getPromise()
 			]).then((arr) => {
 				return arr[2];
 			});
-		}
-
-		private initMergedBundleConf() {
-			var j, lenJ, reqLib, bundleProp, reqLibSet = {}, scripts = [], cssList = [], encoding = null;
-			for (var i = 0, len = this.embedBundleList.length; i < len; ++i) {
-				bundleProp = this.embedBundleList[i];
-				if (!encoding)
-					encoding = bundleProp.conf['encoding'];
-				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
-					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
-				reqLib = bundleProp.conf['requireLib'];
-				if (reqLib !== undefined) {
-					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
-						reqLibSet[reqLib[j]] = true;
-				}
-				if (bundleProp.conf['script'] !== undefined)
-					Array.prototype.push.apply(scripts, WLoaderLSC.toFileList(bundleProp.conf['script'], bundleProp.embedPath));
-				if (bundleProp.conf['css'] !== undefined)
-					Array.prototype.push.apply(cssList, WLoaderLSC.toFileList(bundleProp.conf['css'], bundleProp.embedPath));
-			}
-			var reqLibList = [];
-			for (var libName in reqLibSet) {
-				if (reqLibSet.hasOwnProperty(libName))
-					reqLibList.push(libName);
-			}
-			this.mergedBundleConf = {
-				'encoding': encoding,
-				'requireLib': reqLibList,
-				'script': scripts,
-				'css': cssList
-			};
 		}
 
 		private initThingList() {
@@ -268,7 +277,7 @@ module woc {
 			}
 		}
 
-		private static getConfFileName(type: string) {
+		private static getConfFileName(type: WEmbedType) {
 			switch(type) {
 				case WEmbedType.Service:
 					return 'serv.json';
@@ -337,14 +346,13 @@ module woc {
 			this.runWaited();
 		}
 
-		private loadUrls(baseUrl: string, relUrls: string[]) {
-			relUrls.forEach((relUrl) => {
-				++this.runCount;
-				this.promises.push(WScriptLoader.addScriptToDOM(baseUrl + '/' + relUrl).then(() => {
-					--this.runCount;
-					this.runWaited();
-				}));
-			});
+		private fillLibMap(requireLib: string[]) {
+			var name: string;
+			for (var i = 0, len = requireLib.length; i < len; ++i) {
+				name = requireLib[i];
+				if (this.libMap[name] === undefined)
+					this.libMap[name] = this.libraries.load(name, false);
+			}
 		}
 
 		private runWaited() {
@@ -355,9 +363,7 @@ module woc {
 				prop = this.waitList[k];
 				if (this.areLibReady(prop['requireLib'])) {
 					withStarted = true;
-					this.loadUrls(prop['baseUrl'], prop['relUrls']);
-					if (prop['libName'])
-						this.libMap[prop['libName']] = true;
+					this.loadUrls(prop['baseUrl'], prop['relUrls'], prop['libName']);
 					delete this.waitList[k];
 				} else
 					hasWaited = true;
@@ -374,13 +380,18 @@ module woc {
 			return true;
 		}
 
-		private fillLibMap(requireLib: string[]) {
-			var name: string;
-			for (var i = 0, len = requireLib.length; i < len; ++i) {
-				name = requireLib[i];
-				if (this.libMap[name] === undefined)
-					this.libMap[name] = this.libraries.load(name, false);
-			}
+		private loadUrls(baseUrl: string, relUrls: string[], libName: string) {
+			++this.runCount;
+			this.promises.push(relUrls.reduce((sequence: Promise<void>, relUrl) => {
+				return sequence.then(() => {
+					return WScriptLoader.addScriptToDOM(baseUrl + '/' + relUrl);
+				});
+			}, Promise.resolve<void>()).then(() => {
+				if (libName)
+					this.libMap[libName] = true;
+				--this.runCount;
+				this.runWaited();
+			}));
 		}
 
 		private toDebugStringWait() {
@@ -394,18 +405,22 @@ module woc {
 		}
 
 		private static addScriptToDOM(url): Promise<void> {
-			return new Promise(function (resolve, reject) {
+			return new Promise<void>(function (resolve, reject) {
 				var script = document.createElement('script');
 				if (script.onreadystatechange) { // IE8
 					script.onreadystatechange = function () {
 						if (script.readyState === 'complete')
 							resolve();
 						else
-							reject();
+							reject(Error('Fail to load script: ' + url));
 					};
 				} else {
-					script.onload = resolve;
-					script.onerror = reject;
+					script.onload = () => {
+						resolve();
+					};
+					script.onerror = () => {
+						reject(Error('Fail to load script: ' + url));
+					};
 				}
 				script.src = url;
 				var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0];

@@ -1,4 +1,4 @@
-/// <reference path='../../../woc.d.ts' />
+/// <reference path='../../d.ts/woc.d.ts' />
 /// <reference path='../../wocext_helpers.l/helpers.ts' />
 /// <reference path='../wocext_DialogsComp.c/DialogsComp.ts' />
 

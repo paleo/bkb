@@ -1,5 +1,5 @@
-/// <reference path='../../woc.d.ts' />
-/// <reference path='../jquery.d.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/jquery.d.ts' />
 
 module wocsingle {
 	'use strict';

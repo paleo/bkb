@@ -4,7 +4,8 @@ var woc;
 
 (function () {
 	// - Parameters
-	var scripts = ['loader.js', 'log.js', 'ajax.js', 'router.js'];
+	var scripts = ['comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'tplparser.js', 'serv-log.js', 'serv-ajax.js',
+		'serv-router.js'];
 	function reportStartErr(err: any) {
 		var errStr, stack;
 		if (typeof err === 'object') {
@@ -56,7 +57,7 @@ var woc;
 		var head = document.head || document.getElementsByTagName('head')[0];
 		var script = document.createElement('script');
 		script.onreadystatechange = function () {
-			if (this.readyState === 'complete')
+			if (script.readyState === 'complete')
 				done();
 		};
 		script.onload = done;

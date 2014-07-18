@@ -50,16 +50,17 @@ module woc {
 		}
 
 		public loadBundle(bundlePath: string, startOnElem, version: string, autoLoadCss: boolean, wMode: boolean): Promise<void> {
+			var retProm = (p: Promise<void>): Promise<void> => {
+				if (!startOnElem)
+					return p;
+				return p.then(() => {
+					this.bundles.start(bundlePath, startOnElem);
+				});
+			};
 			// - Known bundle
 			var p = this.bundlePromMap[bundlePath];
-			if (p !== undefined) {
-				if (startOnElem) {
-					p.then(() => {
-						this.bundles.start(bundlePath, startOnElem);
-					});
-				}
-				return p;
-			}
+			if (p !== undefined)
+				return retProm(p);
 			// - First call
 			var bundleUrl = this.appUrl + '/' + bundlePath;
 			if (wMode)
@@ -72,6 +73,7 @@ module woc {
 			} else
 				p = this.loadNormalBundle(bundlePath, bundleUrl, autoLoadCss);
 			this.bundlePromMap[bundlePath] = p;
+			return retProm(p);
 		}
 
 		// --
@@ -84,7 +86,7 @@ module woc {
 			elem.type = 'text/css';
 			elem.href = url;
 			document.head.appendChild(elem);
-			return Promise.resolve();
+			return Promise.resolve<void>();
 		}
 
 		// --

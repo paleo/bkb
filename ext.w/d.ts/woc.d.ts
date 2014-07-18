@@ -79,14 +79,12 @@ declare module woc {
 		 * 	'autoLoadCss': boolean,
 		 * 	'version': string,
 		 * 	'w': boolean,
-		 * 	'start': -DOM-element-,
-		 * 	'done': Function,
-		 * 	'fail': Function
+		 * 	'start': -DOM-element-
 		 * }</pre>
 		 * @param bundlePath
 		 * @param opt
 		 */
-		loadBundle(bundlePath: string, opt?: {}): void;
+		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
 		hasLib(libName): boolean;
 		includeLib(libName): boolean;
 		requireLib(libName: any): void;
