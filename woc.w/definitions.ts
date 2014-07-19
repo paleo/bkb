@@ -3,13 +3,19 @@
 module woc {
 
 	// ##
-	// ## Contexts
+	// ## These interfaces are implemented by the user classes
 	// ##
 
+	/**
+	 * constructor: function (ac: woc.ApplicationContext)
+	 */
 	export interface BundleMain {
 		start(element): void;
 	}
 
+	/**
+	 * constructor: function (cc: woc.ComponentContext, props: any)
+	 */
 	export interface Component {
 		compose?(...props): Component;
 		setData?(...data): Component;
@@ -21,9 +27,23 @@ module woc {
 		destruct?(removeFromDOM: boolean): void;
 	}
 
+	/**
+	 * constructor: function (live: boolean)
+	 */
 	export interface LiveState {
 		isLive(): boolean;
-		addLiveListener(cb: (live: boolean) => void): void;
+		addLiveListener(cb: (live: boolean) => void): Function;
+	}
+
+	export interface TemplateEngineService {
+		makeProcessor(ctc: woc.ComponentTypeContext, tplStr: string): woc.TemplateProcessor;
+	}
+
+	/**
+	 * constructor: function (ctc: ComponentTypeContext, tplStr: string)
+	 */
+	export interface TemplateProcessor {
+		getContextMethods(): {[index: string]: Function};
 	}
 
 	export interface Dialog {
@@ -65,6 +85,10 @@ module woc {
 		 */
 		showConfirm(msgHtml: string, buttonList: any[]): void;
 	}
+
+	// ##
+	// ## Contexts
+	// ##
 
 	export interface ApplicationContext {
 		properties: {};
@@ -113,12 +137,18 @@ module woc {
 		requireComponent(componentName): void;
 	}
 
+	export interface ComponentTypeContext {
+		getApplicationContext(): ApplicationContext;
+		getComponentName(): string;
+		getComponentBaseUrl(): string;
+		createOwnComponent(props: {}, st: LiveState): any;
+	}
+
 	export interface ComponentContext {
 		getApplicationContext(): ApplicationContext;
 		getLiveState(): LiveState;
 		getComponentName(): string;
 		getComponentBaseUrl(): string;
-		getTemplate(sel: string, elMap?: {}): HTMLElement;
 		createOwnComponent(props?: {}, st?: LiveState): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
@@ -130,13 +160,6 @@ module woc {
 		requireLib(libName): void;
 		requireService(serviceName): void;
 		requireComponent(componentName): void;
-	}
-
-	export interface ComponentTypeContext {
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
-		getTemplate(sel: string, elMap?: {}): HTMLElement;
-		createOwnComponent(props: {}, st: LiveState): any;
 	}
 
 	// ##

@@ -4,7 +4,7 @@ var woc;
 
 (function () {
 	// - Parameters
-	var scripts = ['comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'tplparser.js', 'serv-log.js', 'serv-ajax.js',
+	var scripts = ['utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'serv-log.js', 'serv-ajax.js',
 		'serv-router.js'];
 	function reportStartErr(err: any) {
 		var errStr, stack;

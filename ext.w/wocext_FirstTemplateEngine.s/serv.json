@@ -1,0 +1,6 @@
+{
+	"woc": "0.6",
+	"encoding": "utf8",
+	"script": ["FirstTemplateEngine.js"],
+	"name": "wocext.FirstTemplateEngine"
+}

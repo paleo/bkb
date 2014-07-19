@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path='../todos_List.c/List.ts' />
 /// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />

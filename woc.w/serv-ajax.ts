@@ -1,4 +1,5 @@
 /// <reference path='definitions.ts' />
+/// <reference path="utils.ts" />
 'use strict';
 
 module woc {

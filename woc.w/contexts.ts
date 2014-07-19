@@ -1,5 +1,4 @@
 /// <reference path="definitions.ts" />
-/// <reference path="tplparser.ts" />
 /// <reference path="comptree.ts" />
 /// <reference path="loader.ts" />
 'use strict';
@@ -193,6 +192,31 @@ module woc {
 	}
 
 	// ##
+	// ## ImplComponentTypeContext
+	// ##
+
+	export class ImplComponentTypeContext implements ComponentTypeContext {
+		constructor(private ac: ImplApplicationContext, private componentName: string, private componentBaseUrl: string) {
+		}
+
+		public getApplicationContext(): ApplicationContext {
+			return this.ac;
+		}
+
+		public getComponentName(): string {
+			return this.componentName;
+		}
+
+		public getComponentBaseUrl(): string {
+			return this.componentBaseUrl;
+		}
+
+		public createOwnComponent(props: {}, st: LiveState): any {
+			return this.ac.createComponent(this.componentName, props, st);
+		}
+	}
+
+	// ##
 	// ## ImplComponentContext
 	// ##
 
@@ -214,10 +238,6 @@ module woc {
 
 		public getComponentBaseUrl(): string {
 			return this.ctc.getComponentBaseUrl();
-		}
-
-		public getTemplate(sel: string, elMap = {}): HTMLElement {
-			return this.ctc.getTemplate(sel, elMap);
 		}
 
 		public createOwnComponent(props: {} = null, st: LiveState = null): any {
@@ -258,63 +278,6 @@ module woc {
 
 		public requireComponent(componentName): void {
 			this.ac.requireComponent(componentName);
-		}
-	}
-
-	// ##
-	// ## ImplComponentTypeContext
-	// ##
-
-	export class ImplComponentTypeContext implements ComponentTypeContext {
-		constructor(private ac: ImplApplicationContext, private componentName: string, private componentBaseUrl: string,
-								private tplArr: {}, private tplSel: {}, private tplLab: {}) {
-			// TODO Reference all labels in the l10n service
-			// tplLab: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is
-			// the key in JSON language files
-		}
-
-		public getComponentName(): string {
-			return this.componentName;
-		}
-
-		public getComponentBaseUrl(): string {
-			return this.componentBaseUrl;
-		}
-
-		public getTemplate(sel: string, elMap = {}): HTMLElement {
-			if (this.tplSel[sel] === undefined)
-				throw Error('Unknown template "' + sel + '" in component "' + this.componentName + '"');
-			var el = <HTMLElement>this.tplArr[this.tplSel[sel]].cloneNode(true);
-			TemplateParser.fillPlaceholders(el, elMap, this);
-			this.fillLabels(el);
-			return el;
-		}
-
-		public createOwnComponent(props: {}, st: LiveState): any {
-			return this.ac.createComponent(this.componentName, props, st);
-		}
-
-
-		private fillLabels(el) {
-			var list;
-			for (var lblId in this.tplLab) {
-				if (!this.tplLab.hasOwnProperty(lblId))
-					continue;
-				list = ImplComponentTypeContext.getElementsByClassName(lblId, el);
-				if (list.length !== 1)
-					continue;
-				list[0].textContent = this.tplLab[lblId]; // TODO Use the l10n label in the current language here
-			}
-		}
-
-		private static getElementsByClassName(className, fromElem) {
-			if (fromElem.getElementsByClassName)
-				return fromElem.getElementsByClassName(className);
-			// - Fallback for IE8, thanks to http://code-tricks.com/javascript-get-element-by-class-name/
-			var descendants = fromElem.getElementsByTagName('*'), i = -1, e, list = [];
-			while (e = descendants[++i])
-				((' ' + (e['class'] || e.className) + ' ').indexOf(' ' + className + ' ') !== -1) && list.push(e);
-			return list;
 		}
 	}
 
@@ -468,13 +431,11 @@ module woc {
 	export class Components {
 
 		private log;
-		private tplParser: TemplateParser;
 		private compTree: ComponentTree;
 		private map = {};
 
 		constructor(private ac: ImplApplicationContext) {
 			this.log = ac.getService('woc.Log');
-			this.tplParser = new TemplateParser();
 			this.compTree = new ComponentTree();
 		}
 
@@ -485,30 +446,21 @@ module woc {
 		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string) {
 			if (this.map[componentName] !== undefined)
 				throw Error('Conflict for component "' + componentName + '"');
-			var tplArr, tplSel, tplLab;
-			if (!tplStr) {
-				tplArr = null;
-				tplSel = null;
-				tplLab = null;
-			} else {
-				tplArr = this.tplParser.parse(componentName, tplStr);
-				tplSel = this.tplParser.getBySelMap();
-				tplLab = this.tplParser.getLabels();
-			}
 			this.map[componentName] = {
 				'requireLib': requireLib,
 				'script': script,
-				'tplArr': tplArr,
-				'tplSel': tplSel,
-				'tplLab': tplLab,
+				'tplStr': tplStr,
 				'baseUrl': componentBaseUrl,
-				'cc': null
+				'ctc': null
 			};
 		}
 
 		public create(componentName: string, props: {}, st: LiveState, compTreeArg: {}): Component {
+			var prop = this.map[componentName];
+			if (prop === undefined)
+				throw Error('Unknown component "' + componentName + '"');
 			var id = this.compTree.newPlaceholder(componentName, compTreeArg);
-			var cc = new ImplComponentContext(this.ac, this.getComponentTypeContext(componentName), st, id);
+			var cc = new prop['CC'](this.ac, this.getComponentTypeContext(componentName), st, id);
 			var cl = LoaderHelper.stringToClass(componentName);
 			var c = new cl(cc, props ? props : {});
 			this.compTree.setComp(id, c);
@@ -519,14 +471,36 @@ module woc {
 			var prop = this.map[componentName];
 			if (prop === undefined)
 				throw Error('Unknown component "' + componentName + '"');
-			if (prop['cc'] === null) {
+			if (prop['ctc'] === null) {
 				if (prop['requireLib'])
 					this.ac.requireLib(prop['requireLib']);
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
-				prop['cc'] = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl'], prop['tplArr'], prop['tplSel'], prop['tplLab']);
+				this.makeContexts(componentName, prop);
 			}
-			return prop['cc'];
+			return prop['ctc'];
+		}
+
+		private makeContexts(componentName: string, prop) {
+			// - Make an instance of ComponentTypeContext
+			var ctc = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl']);
+			var tplParser = new FirstTemplateProcessor(ctc, prop['tplStr']); // TODO find it dynamically
+			var methods = tplParser.getContextMethods();
+			for (var k in methods) {
+				if (methods.hasOwnProperty(k))
+					ctc[k] = methods[k];
+			}
+			prop['ctc'] = ctc;
+			// - Make a new context class from methods and ImplComponentTypeContext
+			var CC = function (ac: ImplApplicationContext, ctc: ImplComponentTypeContext, st: LiveState, compId: number) {
+				ImplComponentContext.call(this, ac, ctc, st, compId);
+			};
+			CC.prototype = Object.create(ImplComponentContext.prototype);
+			for (var k in methods) {
+				if (methods.hasOwnProperty(k))
+					CC.prototype[k] = methods[k];
+			}
+			prop['CC'] = CC;
 		}
 	}
 

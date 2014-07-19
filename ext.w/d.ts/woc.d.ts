@@ -1,13 +1,19 @@
 declare module woc {
 
 	// ##
-	// ## Contexts
+	// ## These interfaces are implemented by the user classes
 	// ##
 
+	/**
+	 * constructor: function (ac: woc.ApplicationContext)
+	 */
 	interface BundleMain {
 		start(element): void;
 	}
 
+	/**
+	 * constructor: function (cc: woc.ComponentContext, props: any)
+	 */
 	interface Component {
 		compose?(...props): Component;
 		setData?(...data): Component;
@@ -19,9 +25,23 @@ declare module woc {
 		destruct?(removeFromDOM: boolean): void;
 	}
 
+	/**
+	 * constructor: function (live: boolean)
+	 */
 	interface LiveState {
 		isLive(): boolean;
-		addLiveListener(cb: (live: boolean) => void): void;
+		addLiveListener(cb: (live: boolean) => void): Function;
+	}
+
+	interface TemplateEngineService {
+		makeProcessor(ctc: woc.ComponentTypeContext, tplStr: string): woc.TemplateProcessor;
+	}
+
+	/**
+	 * constructor: function (ctc: ComponentTypeContext, tplStr: string)
+	 */
+	interface TemplateProcessor {
+		getContextMethods(): {[index: string]: Function};
 	}
 
 	interface Dialog {
@@ -64,6 +84,10 @@ declare module woc {
 		showConfirm(msgHtml: string, buttonList: any[]): void;
 	}
 
+	// ##
+	// ## Contexts
+	// ##
+
 	interface ApplicationContext {
 		properties: {};
 		isDebug(): boolean;
@@ -79,7 +103,9 @@ declare module woc {
 		 * 	'autoLoadCss': boolean,
 		 * 	'version': string,
 		 * 	'w': boolean,
-		 * 	'start': -DOM-element-
+		 * 	'start': -DOM-element-,
+		 * 	'done': Function,
+		 * 	'fail': Function
 		 * }</pre>
 		 * @param bundlePath
 		 * @param opt
@@ -109,12 +135,18 @@ declare module woc {
 		requireComponent(componentName): void;
 	}
 
+	interface ComponentTypeContext {
+		getApplicationContext(): ApplicationContext;
+		getComponentName(): string;
+		getComponentBaseUrl(): string;
+		createOwnComponent(props: {}, st: LiveState): any;
+	}
+
 	interface ComponentContext {
 		getApplicationContext(): ApplicationContext;
 		getLiveState(): LiveState;
 		getComponentName(): string;
 		getComponentBaseUrl(): string;
-		getTemplate(sel: string, elMap?: {}): HTMLElement;
 		createOwnComponent(props?: {}, st?: LiveState): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
@@ -128,17 +160,10 @@ declare module woc {
 		requireComponent(componentName): void;
 	}
 
-	interface ComponentTypeContext {
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
-		getTemplate(sel: string, elMap?: {}): HTMLElement;
-		createOwnComponent(props: {}, st: LiveState): any;
-	}
-
 	// ##
 	// ## Ajax service
 	// ##
-	
+
 	interface Ajax {
 		/**
 		 * * method: 'GET|POST|PUT|DELETE|HEAD'
@@ -205,7 +230,7 @@ declare module woc {
 	// ##
 	// ## Log service
 	// ##
-	
+
 	interface Log {
 		/**
 		*
@@ -256,6 +281,10 @@ declare module woc {
 		getCurrentUrlProps(): UrlProps;
 	}
 }
+
+// ##
+// ## Utils
+// ##
 
 declare module woc {
 	function globalEval(script: string): void;

@@ -1,25 +1,52 @@
-/// <reference path="definitions.ts" />
-'use strict';
+/// <reference path='../d.ts/woc.d.ts' />
 
-module woc {
-	export class TemplateParser {
+module wocext {
+	'use strict';
+
+	export class FirstTemplateEngine implements woc.TemplateEngineService {
+		public makeProcessor(ctc: woc.ComponentTypeContext, tplStr: string): woc.TemplateProcessor {
+			return new Processor(ctc, tplStr);
+		}
+	}
+	
+	class Processor implements woc.TemplateProcessor {
 
 		private static DATA_PH = 'data-woc-mYr4-ph';
-		private componentName: string;
+		private templates: HTMLElement[];
 		private bySelMap: {};
-		private placeholders: {};
 		private labels: {};
+		private placeholders: {};
 		private lblPrefix: string;
 		private lblCount: number;
 
-		public static fillPlaceholders(el, elMap: {}, context: ComponentTypeContext) {
+		constructor(private ctc: woc.ComponentTypeContext, tplStr: string) {
+			this.parse(tplStr);
+			// TODO Reference all labels in the l10n service
+			// labels: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is
+			// the key in JSON language files
+		}
+
+		public getContextMethods(): {[index: string]: Function} {
+			return {
+				getTemplate: (sel: string, elMap = {}): HTMLElement => {
+					if (this.bySelMap[sel] === undefined)
+						throw Error('Unknown template "' + sel + '" in component "' + this.ctc.getComponentName() + '"');
+					var el = <HTMLElement>this.templates[this.bySelMap[sel]].cloneNode(true);
+					this.fillPlaceholders(el, elMap);
+					this.fillLabels(el);
+					return el;
+				}
+			};
+		}
+
+		private fillPlaceholders(el, elMap: {}) {
 			var list = [], all = el.getElementsByTagName('span'), marker, name;
 			for (var i = 0, len = all.length; i < len; ++i) {
 				marker = all[i];
-				name = marker.getAttribute(TemplateParser.DATA_PH);
+				name = marker.getAttribute(Processor.DATA_PH);
 				if (name) {
 					if (elMap[name] === undefined)
-						throw Error('In component "' + context.getComponentName() + '", missing element for placeholder "' + name + '"');
+						throw Error('In component "' + this.ctc.getComponentName() + '", missing element for placeholder "' + name + '"');
 					if (elMap[name] !== null && elMap[name]['tagName'] === undefined)
 						throw Error('Elements to put in placeholders must be DOM elements');
 					list.push([marker, elMap[name]]);
@@ -36,14 +63,25 @@ module woc {
 			}
 		}
 
-		public parse(componentName: string, templatesStr: string): {}[] {
-			this.componentName = componentName;
+		private fillLabels(el: HTMLElement) {
+			var list;
+			for (var lblId in this.labels) {
+				if (!this.labels.hasOwnProperty(lblId))
+					continue;
+				list = Processor.getElementsByClassName(lblId, el);
+				if (list.length !== 1)
+					continue;
+				list[0].textContent = this.labels[lblId]; // TODO Use the l10n label in the current language here
+			}
+		}
+
+		private parse(templatesStr: string) {
 			this.bySelMap = {};
 			this.placeholders = {};
 			this.labels = {};
 			this.lblPrefix = null;
 			this.lblCount = 0;
-			var templates = [];
+			this.templates = [];
 			templatesStr = this.addMarkers(templatesStr);
 			var rmSelSet = {};
 			var parser = document.createElement('div');
@@ -51,8 +89,8 @@ module woc {
 			var el, tplId, cssClasses;
 			for (var i = 0, len = parser.childNodes.length; i < len; ++i) {
 				el = parser.childNodes[i];
-				tplId = templates.length;
-				templates[tplId] = el;
+				tplId = this.templates.length;
+				this.templates[tplId] = el;
 				this.addTplSel(rmSelSet, el.nodeName.toLowerCase(), tplId);
 				if (el.id)
 					this.addTplSel(rmSelSet, '#' + el.id, tplId);
@@ -64,17 +102,8 @@ module woc {
 			}
 //			for (var k in this.placeholders) {
 //				if (this.placeholders.hasOwnProperty(k))
-//					throw Error('In templates of component "' + this.componentName + '": placeholder "' + k + '" should be replaced here');
+//					throw Error('In templates of component "' + this.ctc.getComponentName() + '": placeholder "' + k + '" should be replaced here');
 //			}
-			return templates;
-		}
-
-		public getBySelMap(): {} {
-			return this.bySelMap;
-		}
-
-		public getLabels(): {} {
-			return this.labels;
 		}
 
 		private addTplSel(rmSelSet: {}, sel: string, tplId: number): boolean {
@@ -92,9 +121,9 @@ module woc {
 			var pieces: string[] = [];
 			var cur = 0, inner, end, pieceIndex = 0, innerStr, cmdEnd, cmd, cmdVal;
 			while ((cur = str.indexOf('{', cur)) !== -1) {
-				if (TemplateParser.isEscaped(str, cur)) {
+				if (Processor.isEscaped(str, cur)) {
 					if (cur >= 1) {
-						pieces.push(TemplateParser.unescape(str.slice(pieceIndex, cur - 1)));
+						pieces.push(Processor.unescape(str.slice(pieceIndex, cur - 1)));
 						pieceIndex = cur;
 					}
 					++cur;
@@ -110,8 +139,8 @@ module woc {
 					cur = end + 1;
 					continue;
 				}
-				pieces.push(TemplateParser.unescape(str.slice(pieceIndex, cur)));
-				cmd = TemplateParser.trim(innerStr.slice(0, cmdEnd));
+				pieces.push(Processor.unescape(str.slice(pieceIndex, cur)));
+				cmd = Processor.trim(innerStr.slice(0, cmdEnd));
 				cmdVal = innerStr.slice(cmdEnd + 1);
 				if (cmd === 'placeholder')
 					this.addPlaceholder(pieces, cmdVal);
@@ -124,15 +153,15 @@ module woc {
 			}
 			if (pieceIndex === 0)
 				return str;
-			pieces.push(TemplateParser.unescape(str.slice(pieceIndex)));
+			pieces.push(Processor.unescape(str.slice(pieceIndex)));
 			return pieces.join('');
 		}
 
 		private addPlaceholder(pieces: string[], name: string) {
-			var name = TemplateParser.trim(name);
+			var name = Processor.trim(name);
 			if (this.placeholders[name])
-				throw Error('Conflict in templates of component "' + this.componentName + '": several placeholders "' + name + '"');
-			pieces.push('<span ' + TemplateParser.DATA_PH + '="' + name + '"></span>');
+				throw Error('Conflict in templates of component "' + this.ctc.getComponentName() + '": several placeholders "' + name + '"');
+			pieces.push('<span ' + Processor.DATA_PH + '="' + name + '"></span>');
 			this.placeholders[name] = true;
 		}
 
@@ -143,19 +172,19 @@ module woc {
 				return false;
 			var classIndex = cmd.indexOf('.', 5), cssClass, tagName;
 			if (classIndex === -1) {
-				tagName = TemplateParser.trim(cmd.slice(4));
+				tagName = Processor.trim(cmd.slice(4));
 				cssClass = '';
 			} else {
-				tagName = TemplateParser.trim(cmd.slice(4, classIndex));
-				cssClass = TemplateParser.trim(cmd.slice(classIndex + 1)) + ' ';
+				tagName = Processor.trim(cmd.slice(4, classIndex));
+				cssClass = Processor.trim(cmd.slice(classIndex + 1)) + ' ';
 			}
 			if (tagName === '')
-				throw Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
+				throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getComponentName() + '"');
 			var lblId = this.makeLblId();
-			this.labels[lblId] = TemplateParser.formatLabelStr(lblStr);
+			this.labels[lblId] = Processor.formatLabelStr(lblStr);
 			if (tagName === 'class') {
 				if (cssClass)
-					throw Error('Invalid label "' + cmd + '" in templates of component "' + this.componentName + '"');
+					throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getComponentName() + '"');
 				pieces.push(lblId);
 			} else
 				pieces.push('<' + tagName + ' class="' + cssClass + lblId + '"></' + tagName + '>');
@@ -164,7 +193,7 @@ module woc {
 
 		private makeLblId(): string {
 			if (this.lblPrefix === null)
-				this.lblPrefix = 'wocl10n~' + this.componentName.replace(/\./g, '~') + '~';
+				this.lblPrefix = 'wocl10n~' + this.ctc.getComponentName().replace(/\./g, '~') + '~';
 			return this.lblPrefix + (this.lblCount++);
 		}
 
@@ -185,6 +214,16 @@ module woc {
 
 		private static unescape(s: string): string {
 			return s.replace(/\\\\/g, '\\');
+		}
+
+		private static getElementsByClassName(className: string, fromElem: HTMLElement): any {
+			if (fromElem.getElementsByClassName)
+				return fromElem.getElementsByClassName(className);
+			// - Fallback for IE8, thanks to http://code-tricks.com/javascript-get-element-by-class-name/
+			var descendants = fromElem.getElementsByTagName('*'), i = -1, e, list = [];
+			while (e = descendants[++i])
+				((' ' + (e['class'] || e.className) + ' ').indexOf(' ' + className + ' ') !== -1) && list.push(e);
+			return list;
 		}
 	}
 }
