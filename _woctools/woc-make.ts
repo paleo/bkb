@@ -10,7 +10,7 @@ if (argv['h'] || argv['help'] || argv['_'].length === 0) {
 		'\t-i --in-project-path path-to-input-dir (default is current)\n' +
 		'\t-o --out-project-path path-to-output-dir (default is value from -i)\n' +
 		'\t-e --default-encoding the default enconding (default utf8)\n' +
-		'\t-f --include-files "list of extensions" (default is "png gif jpg jpeg")\n' +
+		'\t-l --include-files "list of extensions" (default is "png gif jpg jpeg")\n' +
 		'\t-j --minify-js true|false (default is true)\n' +
 		'\t-c --minify-css true|false (default is true)\n' +
 		'\t-m --minify-html true|false (default is true)\n' +
@@ -29,7 +29,7 @@ var tool = new WocMake({
 	'inProjectPath': inPath,
 	'outProjectPath': argv['o'] || argv['out-project-path'] || inPath,
 	'defaultEncoding': argv['e'] || argv['default-encoding'] || 'utf8',
-	'includeFiles': argv['f'] || argv['include-files'] || 'png gif jpg jpeg',
+	'includeFiles': argv['l'] || argv['include-files'] || 'png gif jpg jpeg',
 	'minifyJs': toBool(argv['j'] || argv['minify-js'], true),
 	'minifyCss': toBool(argv['c'] || argv['minify-css'], true),
 	'minifyHtml': toBool(argv['m'] || argv['minify-html'], true)

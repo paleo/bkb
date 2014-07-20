@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module wocsingle {
@@ -55,9 +55,8 @@ module wocsingle {
 			return this;
 		}
 
-		public destruct(removeFromDOM: boolean) {
-			if (removeFromDOM)
-				this.$btn.remove();
+		public destructInDOM() {
+			this.$btn.remove();
 		}
 
 		// --

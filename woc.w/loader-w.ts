@@ -178,7 +178,7 @@ module woc {
 					case WEmbedType.Component:
 						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['requireLib']);
 						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
-						tplLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['tpl']));
+						tplLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['templates']));
 						break;
 				}
 			}
@@ -251,8 +251,10 @@ module woc {
 			for (var i = 0, len = servList.length; i < len; ++i)
 				this.services.register(servList[i].conf['name'], servList[i].url, servList[i].conf['alias'], null, null);
 			// - Components
-			for (var i = 0, len = compList.length; i < len; ++i)
-				this.components.register(compList[i].conf['name'], compList[i].url, null, null, tplMap[compList[i].conf['name']]);
+			for (var i = 0, len = compList.length; i < len; ++i) {
+				this.components.register(compList[i].conf['name'], compList[i].url, null, null, tplMap[compList[i].conf['name']],
+					compList[i].conf['templateEngine']);
+			}
 		}
 
 		// --

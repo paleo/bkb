@@ -24,7 +24,8 @@ module woc {
 		show?(): Component;
 		hide?(): Component;
 		setEnabled?(b: boolean): Component;
-		destruct?(removeFromDOM: boolean): void;
+		destructInDOM?(): void;
+		destruct?(): void;
 	}
 
 	/**

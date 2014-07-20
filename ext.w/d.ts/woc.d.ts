@@ -22,7 +22,8 @@ declare module woc {
 		show?(): Component;
 		hide?(): Component;
 		setEnabled?(b: boolean): Component;
-		destruct?(removeFromDOM: boolean): void;
+		destructInDOM?(): void;
+		destruct?(): void;
 	}
 
 	/**
@@ -288,6 +289,7 @@ declare module woc {
 
 declare module woc {
 	function globalEval(script: string): void;
+	function toClass(s: string): any;
 }
 
 // Type definitions for es6-promise

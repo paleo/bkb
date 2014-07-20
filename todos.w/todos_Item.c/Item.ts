@@ -28,9 +28,8 @@ module todos {
 			return this.$bloc[0];
 		}
 
-		public destruct(removeFromDOM: boolean) {
-			if (removeFromDOM)
-				this.$bloc.remove();
+		public destructInDOM() {
+			this.$bloc.remove();
 		}
 
 		private removeFromList() {

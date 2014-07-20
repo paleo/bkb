@@ -1,9 +1,10 @@
 {
 	"woc": "0.6",
 	"encoding": "utf8",
+	"templateEngine": ["wocext.FirstTemplateEngine"],
 	"requireLib": ["jQuery"],
 	"script": ["DialogsComp.js"],
-	"tpl": ["t.html"],
+	"templates": ["t.html"],
 	"css": ["p.css"],
 	"name": "wocext.DialogsComp"
 }

@@ -98,18 +98,22 @@ class BundleWriter {
 		});
 	}
 
-	public addComponent(name: string, requireLib: string[], script: {}[], tpl: {}[], css: {}[]): Promise<void> {
+	public addComponent(name: string, requireLib: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
+		if (requireLib !== null)
+			comp['requireLib'] = requireLib;
+		if (templateEngine)
+			comp['templateEngine'] = templateEngine;
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			comp['script'] = content;
-			if (requireLib !== null)
-				comp['requireLib'] = requireLib;
 		}));
 		if (tpl !== null) {
+			if (!templateEngine)
+				console.log('[Warning] Component "' + name + '" has templates without template engine');
 			pList.push(BundleWriter.concatFiles('Component ' + name, tpl, this.htmlMinifier, 'html').then((content: string): void => {
-				comp['tpl'] = content;
+				comp['templates'] = content;
 			}));
 		}
 		if (css !== null) {

@@ -33,4 +33,17 @@ module woc {
 			fn();
 		}
 	}
+
+	export function toClass(s: string): any {
+		var arr = s.split('.');
+		var fn: any = window || this;
+		for (var i = 0, len = arr.length; i < len; ++i) {
+			if (fn === undefined)
+				throw Error('Class not found: "' + s + '"');
+			fn = fn[arr[i]];
+		}
+		if (typeof fn !== 'function')
+			throw Error('Class not found: "' + s + '"');
+		return fn;
+	}
 }

@@ -4,7 +4,7 @@
 	"templateEngine": ["wocext.FirstTemplateEngine"],
 	"requireLib": ["jQuery"],
 	"script": ["Item.js"],
-	"tpl": ["t.html"],
+	"templates": ["t.html"],
 	"css": ["p.css"],
 	"name": "todos.Item"
 }

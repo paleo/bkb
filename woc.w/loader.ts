@@ -46,10 +46,10 @@ module woc {
 		}
 
 		// --
-		// -- Internal
+		// -- Public tools
 		// --
 
-		static addCssLinkToDOM(url: string): Promise<void> {
+		public static addCssLinkToDOM(url: string): Promise<void> {
 			var elem = document.createElement('link');
 			elem.rel = 'stylesheet';
 			elem.type = 'text/css';
@@ -84,12 +84,12 @@ module woc {
 		private registerNormalBundle(bundlePath: string, bundleUrl, bundleData: {}): Promise<void> {
 			var name, data, promList = [];
 			// - Register libraries
-			var servMap = bundleData['libraries'];
-			if (servMap) {
-				for (name in servMap) {
-					if (!servMap.hasOwnProperty(name))
+			var libMap = bundleData['libraries'];
+			if (libMap) {
+				for (name in libMap) {
+					if (!libMap.hasOwnProperty(name))
 						continue;
-					data = servMap[name];
+					data = libMap[name];
 					this.libraries.register(name, data['requireLib'], data['script']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
@@ -112,7 +112,7 @@ module woc {
 					if (!compMap.hasOwnProperty(name))
 						continue;
 					data = compMap[name];
-					this.components.register(name, bundleUrl, data['requireLib'], data['script'], data['tpl']);
+					this.components.register(name, bundleUrl, data['requireLib'], data['script'], data['templates'], data['templateEngine']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}

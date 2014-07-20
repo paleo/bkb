@@ -162,11 +162,12 @@ class BundleWReader {
 			if (Project.isEmpty(conf['script']))
 				throw Error('Missing "scripts" in ' + jsonPath);
 			var script = this.makeFileArr(dirRelPath, conf['script']);
-			var templates = this.makeFileArr(dirRelPath, conf['tpl']);
+			var templates = this.makeFileArr(dirRelPath, conf['templates']);
 			var css = this.makeFileArr(dirRelPath, conf['css']);
 			// - Add into the writer
 			return Promise.all([
-				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['requireLib']), script, templates, css),
+				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['requireLib']), script, css, templates,
+					conf['templateEngine']),
 				this.includeOtherFiles(writer, dirName, {'comp.json': true})
 			]);
 		});
@@ -184,7 +185,7 @@ class BundleWReader {
 			arr.push({
 				'name': name,
 				'path': fPath,
-				'minified': /\.min\.([a-z0-9]+)$/.test(name),
+				'minified': /[\.\-]min\.([a-z0-9]+)$/.test(name),
 				'contentPromise': this.project.readInputFile(fPath, this.encoding)
 			});
 		}

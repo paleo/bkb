@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path='../wocext_helpers.l/helpers.ts' />
 
@@ -82,9 +82,11 @@ module wocext {
 			return this.$container[0];
 		}
 
-		public destruct(removeFromDOM: boolean) {
-			if (removeFromDOM)
-				this.$container.remove();
+		public destructInDOM() {
+			this.$container.remove();
+		}
+
+		public destruct() {
 			for (var i = 0, len = this.rmCbList.length; i < len; ++i)
 				this.rmCbList[i]();
 		}

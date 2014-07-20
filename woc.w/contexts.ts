@@ -52,7 +52,7 @@ module woc {
 		}
 
 		public removeComponent(c: any, fromDOM = false): void {
-			if (LoaderHelper.isArray(c)) {
+			if (Array.isArray(c)) {
 				var compTree = this.components.getComponentTree();
 				for (var i = 0, len = c.length; i < len; ++i)
 					compTree.destruct(c[i], fromDOM);
@@ -298,10 +298,11 @@ module woc {
 				this.ac.requireLib(requireLib);
 			if (script)
 				globalEval(script);
-			var cl: any = null;
-			if (mainClassName)
-				cl = LoaderHelper.stringToClass(mainClassName);
-			this.map[bundlePath] = cl ? new cl(this.ac, bundleUrl) : null;
+			if (mainClassName) {
+				var Cl = toClass(mainClassName);
+				this.map[bundlePath] = new Cl(this.ac, bundleUrl);
+			} else
+				this.map[bundlePath] = null;
 		}
 
 		public start(bundlePath, el) {
@@ -412,7 +413,7 @@ module woc {
 					this.ac.requireLib(prop['requireLib']);
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
-				var cl = LoaderHelper.stringToClass(prop['coreClass'] || prop['name']);
+				var cl = toClass(prop['coreClass'] || prop['name']);
 				prop['sc'] = new ImplServiceContext(this.ac, prop['name'], prop['baseUrl'], cl);
 			}
 			return prop['sc'];
@@ -443,7 +444,8 @@ module woc {
 			return this.compTree;
 		}
 
-		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string) {
+		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string,
+				templateEngine: string) {
 			if (this.map[componentName] !== undefined)
 				throw Error('Conflict for component "' + componentName + '"');
 			this.map[componentName] = {
@@ -451,6 +453,7 @@ module woc {
 				'script': script,
 				'tplStr': tplStr,
 				'baseUrl': componentBaseUrl,
+				'templateEngine': templateEngine,
 				'ctc': null
 			};
 		}
@@ -460,9 +463,10 @@ module woc {
 			if (prop === undefined)
 				throw Error('Unknown component "' + componentName + '"');
 			var id = this.compTree.newPlaceholder(componentName, compTreeArg);
-			var cc = new prop['CC'](this.ac, this.getComponentTypeContext(componentName), st, id);
-			var cl = LoaderHelper.stringToClass(componentName);
-			var c = new cl(cc, props ? props : {});
+			var ctc = this.getComponentTypeContext(componentName);
+			var cc = new prop['CC'](this.ac, ctc, st, id);
+			var Cl = toClass(componentName);
+			var c = new Cl(cc, props ? props : {});
 			this.compTree.setComp(id, c);
 			return c;
 		}
@@ -484,8 +488,13 @@ module woc {
 		private makeContexts(componentName: string, prop) {
 			// - Make an instance of ComponentTypeContext
 			var ctc = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl']);
-			var tplParser = new FirstTemplateProcessor(ctc, prop['tplStr']); // TODO find it dynamically
-			var methods = tplParser.getContextMethods();
+			if (!prop['templateEngine']) {
+				prop['ctc'] = ctc;
+				prop['CC'] = ImplComponentContext;
+				return;
+			}
+			var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
+			var methods = tplEng.makeProcessor(ctc, prop['tplStr']).getContextMethods();
 			for (var k in methods) {
 				if (methods.hasOwnProperty(k))
 					ctc[k] = methods[k];
@@ -501,31 +510,6 @@ module woc {
 					CC.prototype[k] = methods[k];
 			}
 			prop['CC'] = CC;
-		}
-	}
-
-	// ##
-	// ## LoaderHelper
-	// ##
-
-	class LoaderHelper {
-		public static stringToClass(s: string): any {
-			var arr = s.split('.');
-			var fn: any = window || this;
-			for (var i = 0, len = arr.length; i < len; ++i) {
-				if (fn === undefined)
-					throw Error('Class not found: "' + s + '"');
-				fn = fn[arr[i]];
-			}
-			if (typeof fn !== 'function')
-				throw Error('Class not found: "' + s + '"');
-			return fn;
-		}
-
-		public static isArray(data) {
-			if (Array.isArray)
-				return Array.isArray(data);
-			return Object.prototype.toString.call(data) === '[object Array]'; // before EcmaScript 5.1
 		}
 	}
 }

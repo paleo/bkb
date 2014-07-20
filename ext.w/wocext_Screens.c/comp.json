@@ -1,8 +1,9 @@
 {
 	"woc": "0.6",
 	"encoding": "utf8",
+	"templateEngine": ["wocext.FirstTemplateEngine"],
 	"requireLib": ["jQuery", "wocext.helpers"],
 	"script": ["Screens.js"],
-	"tpl": ["t.html"],
+	"templates": ["t.html"],
 	"name": "wocext.Screens"
 }

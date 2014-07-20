@@ -76,8 +76,10 @@ module woc {
 				throw Error('Unknown component "' + id + '" (already removed?)');
 			if (item['comp'] === null)
 				throw Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
+			if (removeFromDOM && item['comp']['destructInDOM'] !== undefined)
+				item['comp']['destructInDOM']();
 			if (item['comp']['destruct'] !== undefined)
-				item['comp']['destruct'](removeFromDOM);
+				item['comp']['destruct']();
 			var children = item['children'];
 			for (var childId in children) {
 				if (children.hasOwnProperty(childId))

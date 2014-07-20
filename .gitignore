@@ -3,6 +3,7 @@ node_modules
 *.js
 *.map
 *.css
+_wocscripts/releases
 
 !woc.w/lib/*
 
