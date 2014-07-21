@@ -51,8 +51,8 @@ class BundleWReader {
 		// - Bundle
 		if (!Project.isEmpty(this.conf['preload']))
 			writer.putBundleVal('preload', Project.cloneData(this.conf['preload']));
-		if (!Project.isEmpty(this.conf['requireLib']))
-			writer.putBundleVal('requireLib', Project.cloneData(this.conf['requireLib']));
+		if (!Project.isEmpty(this.conf['useLibrary']))
+			writer.putBundleVal('useLibrary', Project.cloneData(this.conf['useLibrary']));
 		if (!Project.isEmpty(this.conf['script'])) {
 			p = p.then(() => {
 				return writer.setBundleScript(this.makeFileArr(this.bundleRelPath, this.conf['script']));
@@ -120,7 +120,7 @@ class BundleWReader {
 			var css = this.makeFileArr(dirRelPath, conf['css']);
 			// - Add into the writer
 			return Promise.all([
-				writer.addLibrary(conf['name'], BundleWReader.arrayOrNull(conf['requireLib']), script, css),
+				writer.addLibrary(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, css),
 				this.includeOtherFiles(writer, dirName, {'lib.json': true})
 			]);
 		});
@@ -144,7 +144,7 @@ class BundleWReader {
 				aliasStrOrArr = null;
 			// - Add into the writer
 			return Promise.all([
-				writer.addService(conf['name'], BundleWReader.arrayOrNull(conf['requireLib']), script, aliasStrOrArr),
+				writer.addService(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, aliasStrOrArr),
 				this.includeOtherFiles(writer, dirName, {'serv.json': true})
 			]);
 		});
@@ -166,7 +166,7 @@ class BundleWReader {
 			var css = this.makeFileArr(dirRelPath, conf['css']);
 			// - Add into the writer
 			return Promise.all([
-				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['requireLib']), script, css, templates,
+				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, css, templates,
 					conf['templateEngine']),
 				this.includeOtherFiles(writer, dirName, {'comp.json': true})
 			]);

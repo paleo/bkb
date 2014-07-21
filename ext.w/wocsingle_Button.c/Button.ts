@@ -23,7 +23,7 @@ module wocsingle {
 			if (this.withAjax) {
 				this.$btn = $(cc.getTemplate('.ajax-btn'));
 				this.$ajaxFlag = $('<img class="ajax-flag" alt="">');
-				this.$ajaxFlag.attr('src', cc.getComponentBaseUrl() + '/ajax-loader.gif');
+				this.$ajaxFlag.attr('src', cc.getOwnBaseUrl() + '/ajax-loader.gif');
 				this.$ajaxFlag.hide();
 				this.$ajaxFlag.appendTo(this.$btn);
 			} else

@@ -9,8 +9,8 @@ module woc {
 	// ## Functions
 	// ##
 
-	export function makeApplicationContext(properties: {}, debug = false): ApplicationContext {
-		return new ImplApplicationContext(properties, debug);
+	export function makeApplicationContext(properties: AppProperties, firstRelUrl: string): ApplicationContext {
+		return new ImplApplicationContext(properties, firstRelUrl);
 	}
 
 	// ##
@@ -25,9 +25,9 @@ module woc {
 		private bundles: Bundles;
 		private loader: Loader;
 
-		constructor(public properties: {}, private debug = false) {
+		constructor(public appProperties: AppProperties, firstRelUrl: string) {
 			if (Object.freeze)
-				Object.freeze(properties);
+				Object.freeze(appProperties);
 			this.libraries = new Libraries(this);
 			this.services = new Services(this);
 			this.components = new Components(this);
@@ -38,10 +38,6 @@ module woc {
 		// --
 		// -- ApplicationContext
 		// --
-
-		public isDebug(): boolean {
-			return this.debug;
-		}
 
 		public getService(serviceName): any {
 			return this.services.get(serviceName);
@@ -58,14 +54,6 @@ module woc {
 					compTree.destruct(c[i], fromDOM);
 			} else
 				this.components.getComponentTree().destruct(c, fromDOM);
-		}
-
-		public getServiceContext(serviceName: string): ServiceContext {
-			return this.services.getServiceContext(serviceName);
-		}
-
-		public getComponentTypeContext(componentName: string): ComponentTypeContext {
-			return this.components.getComponentTypeContext(componentName);
 		}
 
 		/**
@@ -85,7 +73,7 @@ module woc {
 			return this.loader.loadBundle(bundlePath, opt['start'], opt['version'], opt['autoLoadCss'], opt['w']);
 		}
 
-		public hasLib(libName): boolean {
+		public hasLibrary(libName: any): boolean {
 			return this.libraries.has(libName);
 		}
 
@@ -93,20 +81,15 @@ module woc {
 			return this.libraries.load(libName, false);
 		}
 
-		public requireLib(libName: any): void {
-			if (typeof libName === 'string')
-				this.libraries.load(libName, true);
-			else {
-				for (var i = 0, len = libName.length; i < len; ++i)
-					this.libraries.load(libName[i], true);
-			}
+		public evalLibrary(libName: any): void {
+			this.libraries.load(libName, true);
 		}
 
-		public requireService(serviceName): void {
+		public evalService(serviceName): void {
 			this.services.getServiceContext(serviceName);
 		}
 
-		public requireComponent(componentName): void {
+		public evalComponent(componentName): void {
 			this.components.getComponentTypeContext(componentName);
 		}
 
@@ -132,7 +115,7 @@ module woc {
 	}
 
 	// ##
-	// ## ImplServiceContext
+	// ## ServiceContext
 	// ##
 
 	export class ImplServiceContext implements ServiceContext {
@@ -146,16 +129,12 @@ module woc {
 			return this.ac;
 		}
 
-		public getServiceName(): string {
+		public getOwnName(): string {
 			return this.serviceName;
 		}
 
-		public getServiceBaseUrl(): string {
+		public getOwnBaseUrl(): string {
 			return this.serviceBaseUrl;
-		}
-
-		public getOwnService(): any {
-			return this.service;
 		}
 
 		public getService(serviceName): any {
@@ -170,24 +149,28 @@ module woc {
 			this.ac.removeComponent(c, fromDOM);
 		}
 
-		public hasLib(libName): boolean {
-			return this.ac.hasLib(libName);
+		public hasLibrary(libName): boolean {
+			return this.ac.hasLibrary(libName);
 		}
 
 		public includeLib(libName): boolean {
 			return this.ac.includeLib(libName);
 		}
 
-		public requireLib(libName): void {
-			this.ac.requireLib(libName);
+		public evalLibrary(libName): void {
+			this.ac.evalLibrary(libName);
 		}
 
-		public requireService(serviceName): void {
-			this.ac.requireService(serviceName);
+		public evalService(serviceName): void {
+			this.ac.evalService(serviceName);
 		}
 
-		public requireComponent(componentName): void {
-			this.ac.requireComponent(componentName);
+		public evalComponent(componentName): void {
+			this.ac.evalComponent(componentName);
+		}
+
+		public getOwnService(): any {
+			return this.service;
 		}
 	}
 
@@ -203,16 +186,12 @@ module woc {
 			return this.ac;
 		}
 
-		public getComponentName(): string {
+		public getOwnName(): string {
 			return this.componentName;
 		}
 
-		public getComponentBaseUrl(): string {
+		public getOwnBaseUrl(): string {
 			return this.componentBaseUrl;
-		}
-
-		public createOwnComponent(props: {}, st: LiveState): any {
-			return this.ac.createComponent(this.componentName, props, st);
 		}
 	}
 
@@ -221,27 +200,13 @@ module woc {
 	// ##
 
 	export class ImplComponentContext implements ComponentContext {
+		public appProperties: AppProperties; // Dynamically set on the prototype
+
 		constructor(private ac: ImplApplicationContext, private ctc: ImplComponentTypeContext, private st: LiveState, private compId: number) {
 		}
 
-		public getApplicationContext(): ApplicationContext {
-			return this.ac;
-		}
-
-		public getLiveState(): LiveState {
-			return this.st;
-		}
-
-		public getComponentName(): string {
-			return this.ctc.getComponentName();
-		}
-
-		public getComponentBaseUrl(): string {
-			return this.ctc.getComponentBaseUrl();
-		}
-
-		public createOwnComponent(props: {} = null, st: LiveState = null): any {
-			return this.ctc.createOwnComponent(props, st ? st : this.st);
+		public getService(serviceName): any {
+			return this.ac.getService(serviceName);
 		}
 
 		public createComponent(componentName: string, props: {} = null, st: LiveState = null): any {
@@ -256,29 +221,37 @@ module woc {
 			this.ac.removeComponentFromId(this.compId, fromDOM);
 		}
 
-		public getService(serviceName): any {
-			return this.ac.getService(serviceName);
+		public hasLibrary(libName: any): boolean {
+			return this.ac.hasLibrary(libName);
 		}
 
-		public hasLib(libName): boolean {
-			return this.ac.hasLib(libName);
+		public evalLibrary(libName: any): void {
+			this.ac.evalLibrary(libName);
 		}
 
-		public includeLib(libName): boolean {
-			return this.ac.includeLib(libName);
+		public evalService(serviceName: any): void {
+			this.ac.evalService(serviceName);
 		}
 
-		public requireLib(libName): void {
-			this.ac.requireLib(libName);
+		public evalComponent(componentName: any): void {
+			this.ac.evalComponent(componentName);
 		}
 
-		public requireService(serviceName): void {
-			this.ac.requireService(serviceName);
+		public getOwnName(): string {
+			return this.ctc.getOwnName();
 		}
 
-		public requireComponent(componentName): void {
-			this.ac.requireComponent(componentName);
+		public getOwnBaseUrl(): string {
+			return this.ctc.getOwnBaseUrl();
 		}
+
+		public getLiveState(): LiveState {
+			return this.st;
+		}
+
+//		public getApplicationContext(): ApplicationContext {
+//			return this.ac;
+//		}
 	}
 
 	// ##
@@ -291,11 +264,11 @@ module woc {
 		constructor(private ac: ImplApplicationContext) {
 		}
 
-		public register(bundlePath: string, bundleUrl: string, requireLib: string[], script: string, mainClassName: string) {
+		public register(bundlePath: string, bundleUrl: string, useLibrary: string[], script: string, mainClassName: string) {
 			if (this.map[bundlePath] !== undefined)
 				throw Error('The bundle "' + bundlePath + '" is already registered');
-			if (requireLib)
-				this.ac.requireLib(requireLib);
+			if (useLibrary)
+				this.ac.evalLibrary(useLibrary);
 			if (script)
 				globalEval(script);
 			if (mainClassName) {
@@ -327,21 +300,36 @@ module woc {
 		constructor(private ac: ImplApplicationContext) {
 		}
 
-		public register(libName: string, requireLib: string[], script: string) {
+		public register(libName: string, useLibrary: string[], script: string) {
 			if (this.map[libName] !== undefined)
 				throw Error('The lib "' + libName + '" is already declared');
 			this.map[libName] = {
-				'requireLib': requireLib,
+				'useLibrary': useLibrary,
 				'script': script,
 				'loading': false
 			};
 		}
 
-		public has(libName: string): boolean {
-			return this.map[libName] !== undefined;
+		public has(libName: any): boolean {
+			if (typeof libName === 'string')
+				return this.map[libName] !== undefined;
+			for (var i = 0, len = libName.length; i < len; ++i) {
+				if (this.map[libName[i]] === undefined)
+					return false;
+			}
+			return true;
 		}
 
-		public load(libName: string, req: boolean): boolean {
+		public load(libName: any, req: boolean): boolean {
+			if (typeof libName === 'string')
+				return this.loadSingle(libName, req);
+			var done = true;
+			for (var i = 0, len = libName.length; i < len; ++i)
+				done = this.loadSingle(libName[i], req) && done;
+			return done;
+		}
+
+		private loadSingle(libName: string, req: boolean): boolean {
 			var prop = this.map[libName];
 			if (prop === undefined) {
 				if (req)
@@ -350,11 +338,11 @@ module woc {
 			}
 			if (prop === true)
 				return true;
-			if (prop['requireLib']) {
+			if (prop['useLibrary']) {
 				if (prop['loading'])
-					throw Error('A loop is detected in requireLib for "' + libName + '"');
+					throw Error('A loop is detected in useLibrary for "' + libName + '"');
 				prop['loading'] = true;
-				this.ac.requireLib(prop['requireLib']);
+				this.ac.evalLibrary(prop['useLibrary']);
 			}
 			if (prop['script'] !== null)
 				globalEval(prop['script']);
@@ -376,11 +364,11 @@ module woc {
 			this.coreRegister('woc.Router', 'woc.CoreRouter');
 		}
 
-		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, requireLib: string[], script: string) {
+		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useLibrary: string[], script: string) {
 			var prop = {
 				'name': serviceName,
 				'baseUrl': serviceBaseUrl,
-				'requireLib': requireLib,
+				'useLibrary': useLibrary,
 				'script': script,
 				'sc': null
 			};
@@ -409,8 +397,8 @@ module woc {
 			if (prop === undefined)
 				throw Error('Unknown service "' + serviceName + '"');
 			if (prop['sc'] === null) {
-				if (prop['requireLib'])
-					this.ac.requireLib(prop['requireLib']);
+				if (prop['useLibrary'])
+					this.ac.evalLibrary(prop['useLibrary']);
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
 				var cl = toClass(prop['coreClass'] || prop['name']);
@@ -444,12 +432,12 @@ module woc {
 			return this.compTree;
 		}
 
-		public register(componentName: string, componentBaseUrl: string, requireLib: string[], script: string, tplStr: string,
+		public register(componentName: string, componentBaseUrl: string, useLibrary: string[], script: string, tplStr: string,
 				templateEngine: string) {
 			if (this.map[componentName] !== undefined)
 				throw Error('Conflict for component "' + componentName + '"');
 			this.map[componentName] = {
-				'requireLib': requireLib,
+				'useLibrary': useLibrary,
 				'script': script,
 				'tplStr': tplStr,
 				'baseUrl': componentBaseUrl,
@@ -476,8 +464,8 @@ module woc {
 			if (prop === undefined)
 				throw Error('Unknown component "' + componentName + '"');
 			if (prop['ctc'] === null) {
-				if (prop['requireLib'])
-					this.ac.requireLib(prop['requireLib']);
+				if (prop['useLibrary'])
+					this.ac.evalLibrary(prop['useLibrary']);
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
 				this.makeContexts(componentName, prop);
@@ -493,18 +481,15 @@ module woc {
 				prop['CC'] = ImplComponentContext;
 				return;
 			}
-			var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
-			var methods = tplEng.makeProcessor(ctc, prop['tplStr']).getContextMethods();
-			for (var k in methods) {
-				if (methods.hasOwnProperty(k))
-					ctc[k] = methods[k];
-			}
 			prop['ctc'] = ctc;
 			// - Make a new context class from methods and ImplComponentTypeContext
 			var CC = function (ac: ImplApplicationContext, ctc: ImplComponentTypeContext, st: LiveState, compId: number) {
 				ImplComponentContext.call(this, ac, ctc, st, compId);
 			};
 			CC.prototype = Object.create(ImplComponentContext.prototype);
+			CC.prototype.appProperties = this.ac.appProperties;
+			var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
+			var methods = tplEng.makeProcessor(ctc, prop['tplStr']).getContextMethods();
 			for (var k in methods) {
 				if (methods.hasOwnProperty(k))
 					CC.prototype[k] = methods[k];

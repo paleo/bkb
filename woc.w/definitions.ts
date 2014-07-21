@@ -91,15 +91,26 @@ module woc {
 	// ## Contexts
 	// ##
 
+	export interface AppProperties {
+		url: string;
+		baseUrl: string;
+	}
+
 	export interface ApplicationContext {
-		properties: {};
-		isDebug(): boolean;
 		getService(serviceName): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
-		getServiceContext(serviceName: string): ServiceContext;
-		getComponentTypeContext(componentName: string): ComponentTypeContext;
+		hasLibrary(libName: string): boolean;
+		hasLibrary(libName: string[]): boolean;
+		evalLibrary(libName: string): void;
+		evalLibrary(libName: string[]): void;
+		evalService(serviceName: string): void;
+		evalService(serviceName: string[]): void;
+		evalComponent(componentName: string): void;
+		evalComponent(componentName: string[]): void;
+		appProperties: AppProperties;
+		getFirstRelUrl(): string;
 		/**
 		 * Available options:
 		 * <pre>{
@@ -114,53 +125,51 @@ module woc {
 		 * @param opt
 		 */
 		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
-		hasLib(libName): boolean;
-		includeLib(libName): boolean;
-		requireLib(libName: any): void;
-		requireService(serviceName: string): void;
-		requireComponent(componentName: string): void;
 		getDebugTree(): {};
 	}
 
 	export interface ServiceContext {
-		getApplicationContext(): ApplicationContext;
-		getServiceName(): string;
-		getServiceBaseUrl(): string;
-		getOwnService(): any;
 		getService(serviceName): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
-		hasLib(libName): boolean;
-		includeLib(libName): boolean;
-		requireLib(libName): void;
-		requireService(serviceName): void;
-		requireComponent(componentName): void;
+		hasLibrary(libName: string): boolean;
+		hasLibrary(libName: string[]): boolean;
+		evalLibrary(libName: string): void;
+		evalLibrary(libName: string[]): void;
+		evalService(serviceName: string): void;
+		evalService(serviceName: string[]): void;
+		evalComponent(componentName: string): void;
+		evalComponent(componentName: string[]): void;
+		appProperties: AppProperties;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
+		getApplicationContext(): ApplicationContext;
 	}
 
 	export interface ComponentTypeContext {
-		getApplicationContext(): ApplicationContext;
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
-		createOwnComponent(props: {}, st: LiveState): any;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
 	}
 
 	export interface ComponentContext {
-		getApplicationContext(): ApplicationContext;
-		getLiveState(): LiveState;
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
-		createOwnComponent(props?: {}, st?: LiveState): any;
+		getService(serviceName): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
 		removeOwnComponent(fromDOM?: boolean): void;
-		getService(serviceName): any;
-		hasLib(libName): boolean;
-		includeLib(libName): boolean;
-		requireLib(libName): void;
-		requireService(serviceName): void;
-		requireComponent(componentName): void;
+		hasLibrary(libName: string): boolean;
+		hasLibrary(libName: string[]): boolean;
+		evalLibrary(libName: string): void;
+		evalLibrary(libName: string[]): void;
+		evalService(serviceName: string): void;
+		evalService(serviceName: string[]): void;
+		evalComponent(componentName: string): void;
+		evalComponent(componentName: string[]): void;
+		appProperties: AppProperties;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
+		getLiveState(): LiveState;
 	}
 
 	// ##

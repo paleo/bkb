@@ -103,7 +103,7 @@ module woc {
 					encoding = bundleProp.conf['encoding'];
 				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
 					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
-				reqLib = bundleProp.conf['requireLib'];
+				reqLib = bundleProp.conf['useLibrary'];
 				if (reqLib !== undefined) {
 					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
 						reqLibSet[reqLib[j]] = true;
@@ -123,7 +123,7 @@ module woc {
 				'version': mainConf ? mainConf['version'] : undefined,
 				'main': mainConf ? mainConf['main'] : undefined,
 				'encoding': encoding,
-				'requireLib': reqLibList,
+				'useLibrary': reqLibList,
 				'script': scripts,
 				'css': cssList
 			};
@@ -169,14 +169,14 @@ module woc {
 				prop = this.thingList[i];
 				switch(prop.type) {
 					case WEmbedType.Library:
-						scriptLoader.addLib(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['requireLib']);
+						scriptLoader.addLib(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
 						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
 						break;
 					case WEmbedType.Service:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['requireLib']);
+						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
 						break;
 					case WEmbedType.Component:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['requireLib']);
+						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
 						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
 						tplLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['templates']));
 						break;
@@ -184,7 +184,7 @@ module woc {
 			}
 			// - Bundle
 			scriptLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['script']),
-				this.mergedBundleConf['requireLib']);
+				this.mergedBundleConf['useLibrary']);
 			cssLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['css']));
 			// - Promises
 			return Promise.all<any>([
@@ -317,15 +317,15 @@ module woc {
 		constructor(private libraries: Libraries) {
 		}
 
-		public add(thingName: string, baseUrl: string, relUrls: string[], requireLib: string[] = []) {
-			this.doAdd(thingName, baseUrl, relUrls, requireLib, null);
+		public add(thingName: string, baseUrl: string, relUrls: string[], useLibrary: string[] = []) {
+			this.doAdd(thingName, baseUrl, relUrls, useLibrary, null);
 		}
 
-		public addLib(libName: string, baseUrl: string, relUrls: string[], requireLib: string[] = []) {
+		public addLib(libName: string, baseUrl: string, relUrls: string[], useLibrary: string[] = []) {
 			if (this.libMap[libName] === true || (this.libMap[libName] === undefined && this.libraries.load(name, false)))
 				throw Error('Library "' + libName + '" is already defined');
 			this.libMap[libName] = false;
-			this.doAdd(libName, baseUrl, relUrls, requireLib, libName);
+			this.doAdd(libName, baseUrl, relUrls, useLibrary, libName);
 		}
 
 		public getPromise(): Promise<void> {
@@ -335,23 +335,23 @@ module woc {
 			return <any>Promise.all(this.promises);
 		}
 
-		private doAdd(thingName: string, baseUrl: string, relUrls: string[], requireLib: string[], libName: string) {
+		private doAdd(thingName: string, baseUrl: string, relUrls: string[], useLibrary: string[], libName: string) {
 			this.urlValidator.add(baseUrl, relUrls);
-			this.fillLibMap(requireLib);
+			this.fillLibMap(useLibrary);
 			this.waitList.push({
 				'thingName': thingName,
 				'libName': libName,
 				'baseUrl': baseUrl,
 				'relUrls': relUrls,
-				'requireLib': requireLib
+				'useLibrary': useLibrary
 			});
 			this.runWaited();
 		}
 
-		private fillLibMap(requireLib: string[]) {
+		private fillLibMap(useLibrary: string[]) {
 			var name: string;
-			for (var i = 0, len = requireLib.length; i < len; ++i) {
-				name = requireLib[i];
+			for (var i = 0, len = useLibrary.length; i < len; ++i) {
+				name = useLibrary[i];
 				if (this.libMap[name] === undefined)
 					this.libMap[name] = this.libraries.load(name, false);
 			}
@@ -363,7 +363,7 @@ module woc {
 				if (!this.waitList.hasOwnProperty(k))
 					continue;
 				prop = this.waitList[k];
-				if (this.areLibReady(prop['requireLib'])) {
+				if (this.areLibReady(prop['useLibrary'])) {
 					withStarted = true;
 					this.loadUrls(prop['baseUrl'], prop['relUrls'], prop['libName']);
 					delete this.waitList[k];
@@ -374,9 +374,9 @@ module woc {
 				throw Error('Fail to load scripts for: ' + this.toDebugStringWait());
 		}
 
-		private areLibReady(requireLib: string[]) {
-			for (var i = 0, len = requireLib.length; i < len; ++i) {
-				if (!this.libMap[requireLib[i]])
+		private areLibReady(useLibrary: string[]) {
+			for (var i = 0, len = useLibrary.length; i < len; ++i) {
+				if (!this.libMap[useLibrary[i]])
 					return false;
 			}
 			return true;

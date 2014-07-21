@@ -54,10 +54,10 @@ module woc {
 			this.withHashBang = opt['hashBang'] ? true : false;
 			// - Base URL
 			var ac = this.sc.getApplicationContext();
-			this.baseUrl = ac.properties['baseUrl'];
+			this.baseUrl = ac.appProperties.baseUrl;
 			if (this.withHashBang)
 				this.baseUrl += '#!';
-			this.firstRelUrl = ac.properties['firstRelUrl'];
+			this.firstRelUrl = ac.getFirstRelUrl();
 			if (!this.firstRelUrl)
 				this.firstRelUrl = CoreRouter.getDefaultFirstRelUrl(this.baseUrl, this.withHashBang);
 			if (this.withHistory) {

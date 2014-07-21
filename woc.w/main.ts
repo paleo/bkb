@@ -52,17 +52,11 @@
 			if (strStartsWith(baseUrl, prefix))
 				baseUrl = baseUrl.slice(prefix.length);
 		}
-		var appUrl = document.documentElement.getAttribute('data-woc-app');
-		if (!appUrl)
-			appUrl = baseUrl;
-		var firstRelUrl = document.documentElement.getAttribute('data-woc-first');
-		if (firstRelUrl === '')
-			firstRelUrl = null;
+		var firstRelUrl = document.documentElement.getAttribute('data-woc-first') || null;
 		var ac = woc.makeApplicationContext({
-			'appUrl': appUrl,
-			'baseUrl': baseUrl,
-			'firstRelUrl': firstRelUrl
-		});
+			'url': document.documentElement.getAttribute('data-woc-app') || baseUrl,
+			'baseUrl': baseUrl
+		}, firstRelUrl);
 		// - Load bundles
 		var preload = document.documentElement.getAttribute('data-woc-preload');
 		if (preload)

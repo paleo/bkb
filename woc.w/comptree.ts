@@ -13,7 +13,7 @@ module woc {
 				case 'A':
 					return this.addFromRoot(cName, '/');
 				case 'S':
-					return this.addFromRoot(cName, compTreeArg['sc'].getServiceName());
+					return this.addFromRoot(cName, compTreeArg['sc'].getOwnName());
 				case 'C':
 					var parentId = compTreeArg['id'];
 					if (this.list[parentId] === undefined)

@@ -1,8 +1,11 @@
 {
 	"woc": "0.6",
 	"encoding": "utf8",
+
 	"templateEngine": ["wocext.FirstTemplateEngine"],
-	"requireLib": ["jQuery"],
+	"useLibrary": ["jQuery"],
+	"useService": ["wocext.Cookies"],
+	"useComponent": ["wocsingle.Button"],
 	"script": "List.js",
 	"templates": "t.html",
 	"css": "p.css",

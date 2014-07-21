@@ -14,7 +14,7 @@ module woc {
 
 		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components, private bundles: Bundles) {
-			this.appUrl = ac.properties['appUrl'];
+			this.appUrl = ac.appProperties.appUrl;
 			this.ajax = this.services.get('woc.Ajax');
 		}
 
@@ -90,7 +90,7 @@ module woc {
 					if (!libMap.hasOwnProperty(name))
 						continue;
 					data = libMap[name];
-					this.libraries.register(name, data['requireLib'], data['script']);
+					this.libraries.register(name, data['useLibrary'], data['script']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
@@ -102,7 +102,7 @@ module woc {
 					if (!servMap.hasOwnProperty(name))
 						continue;
 					data = servMap[name];
-					this.services.register(name, bundleUrl, data['alias'], data['requireLib'], data['script']);
+					this.services.register(name, bundleUrl, data['alias'], data['useLibrary'], data['script']);
 				}
 			}
 			// - Register components
@@ -112,12 +112,12 @@ module woc {
 					if (!compMap.hasOwnProperty(name))
 						continue;
 					data = compMap[name];
-					this.components.register(name, bundleUrl, data['requireLib'], data['script'], data['templates'], data['templateEngine']);
+					this.components.register(name, bundleUrl, data['useLibrary'], data['script'], data['templates'], data['templateEngine']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
 			}
-			this.bundles.register(bundlePath, bundleUrl, bundleData['requireLib'], bundleData['script'], bundleData['main']);
+			this.bundles.register(bundlePath, bundleUrl, bundleData['useLibrary'], bundleData['script'], bundleData['main']);
 			return <any>Promise.all(promList);
 		}
 

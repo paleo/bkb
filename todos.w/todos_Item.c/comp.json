@@ -2,7 +2,7 @@
 	"woc": "0.6",
 	"encoding": "utf8",
 	"templateEngine": ["wocext.FirstTemplateEngine"],
-	"requireLib": ["jQuery"],
+	"useLibrary": ["jQuery"],
 	"script": ["Item.js"],
 	"templates": ["t.html"],
 	"css": ["p.css"],

@@ -91,7 +91,6 @@ declare module woc {
 
 	interface ApplicationContext {
 		properties: {};
-		isDebug(): boolean;
 		getService(serviceName): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
@@ -112,53 +111,53 @@ declare module woc {
 		 * @param opt
 		 */
 		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
-		hasLib(libName): boolean;
+		hasLibrary(libName: string): boolean;
+		hasLibrary(libName: string[]): boolean;
 		includeLib(libName): boolean;
 		requireLib(libName: any): void;
-		requireService(serviceName: string): void;
-		requireComponent(componentName: string): void;
+		evalService(serviceName: string): void;
+		evalComponent(componentName: string): void;
 		getDebugTree(): {};
 	}
 
 	interface ServiceContext {
 		getApplicationContext(): ApplicationContext;
-		getServiceName(): string;
-		getServiceBaseUrl(): string;
-		getOwnService(): any;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
 		getService(serviceName): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
-		hasLib(libName): boolean;
+		hasLibrary(libName): boolean;
 		includeLib(libName): boolean;
 		requireLib(libName): void;
-		requireService(serviceName): void;
-		requireComponent(componentName): void;
+		evalService(serviceName): void;
+		evalComponent(componentName): void;
 	}
 
 	interface ComponentTypeContext {
 		getApplicationContext(): ApplicationContext;
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
 		createOwnComponent(props: {}, st: LiveState): any;
 	}
 
 	interface ComponentContext {
 		getApplicationContext(): ApplicationContext;
 		getLiveState(): LiveState;
-		getComponentName(): string;
-		getComponentBaseUrl(): string;
+		getOwnName(): string;
+		getOwnBaseUrl(): string;
 		createOwnComponent(props?: {}, st?: LiveState): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
 		removeOwnComponent(fromDOM?: boolean): void;
 		getService(serviceName): any;
-		hasLib(libName): boolean;
+		hasLibrary(libName): boolean;
 		includeLib(libName): boolean;
 		requireLib(libName): void;
-		requireService(serviceName): void;
-		requireComponent(componentName): void;
+		evalService(serviceName): void;
+		evalComponent(componentName): void;
 	}
 
 	// ##

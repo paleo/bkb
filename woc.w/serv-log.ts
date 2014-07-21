@@ -9,12 +9,10 @@ module woc {
 		// --
 
 		private hasConsole: boolean;
-		private debug: boolean;
 		private listeners = [];
 
-		constructor(sc: woc.ServiceContext) {
+		constructor() {
 			this.hasConsole = typeof console !== 'undefined';
-			this.debug = sc.getApplicationContext().isDebug();
 		}
 
 		/**
@@ -42,8 +40,7 @@ module woc {
 		}
 
 		public trace(msg: string) {
-			if (this.debug)
-				this.fireEvent('trace', msg);
+			this.fireEvent('trace', msg);
 		}
 
 		public unexpectedErr(err) {

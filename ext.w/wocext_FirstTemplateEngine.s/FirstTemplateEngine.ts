@@ -30,7 +30,7 @@ module wocext {
 			return {
 				getTemplate: (sel: string, elMap = {}): HTMLElement => {
 					if (this.bySelMap[sel] === undefined)
-						throw Error('Unknown template "' + sel + '" in component "' + this.ctc.getComponentName() + '"');
+						throw Error('Unknown template "' + sel + '" in component "' + this.ctc.getOwnName() + '"');
 					var el = <HTMLElement>this.templates[this.bySelMap[sel]].cloneNode(true);
 					this.fillPlaceholders(el, elMap);
 					this.fillLabels(el);
@@ -46,7 +46,7 @@ module wocext {
 				name = marker.getAttribute(Processor.DATA_PH);
 				if (name) {
 					if (elMap[name] === undefined)
-						throw Error('In component "' + this.ctc.getComponentName() + '", missing element for placeholder "' + name + '"');
+						throw Error('In component "' + this.ctc.getOwnName() + '", missing element for placeholder "' + name + '"');
 					if (elMap[name] !== null && elMap[name]['tagName'] === undefined)
 						throw Error('Elements to put in placeholders must be DOM elements');
 					list.push([marker, elMap[name]]);
@@ -102,7 +102,7 @@ module wocext {
 			}
 //			for (var k in this.placeholders) {
 //				if (this.placeholders.hasOwnProperty(k))
-//					throw Error('In templates of component "' + this.ctc.getComponentName() + '": placeholder "' + k + '" should be replaced here');
+//					throw Error('In templates of component "' + this.ctc.getOwnName() + '": placeholder "' + k + '" should be replaced here');
 //			}
 		}
 
@@ -160,7 +160,7 @@ module wocext {
 		private addPlaceholder(pieces: string[], name: string) {
 			var name = Processor.trim(name);
 			if (this.placeholders[name])
-				throw Error('Conflict in templates of component "' + this.ctc.getComponentName() + '": several placeholders "' + name + '"');
+				throw Error('Conflict in templates of component "' + this.ctc.getOwnName() + '": several placeholders "' + name + '"');
 			pieces.push('<span ' + Processor.DATA_PH + '="' + name + '"></span>');
 			this.placeholders[name] = true;
 		}
@@ -179,12 +179,12 @@ module wocext {
 				cssClass = Processor.trim(cmd.slice(classIndex + 1)) + ' ';
 			}
 			if (tagName === '')
-				throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getComponentName() + '"');
+				throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getOwnName() + '"');
 			var lblId = this.makeLblId();
 			this.labels[lblId] = Processor.formatLabelStr(lblStr);
 			if (tagName === 'class') {
 				if (cssClass)
-					throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getComponentName() + '"');
+					throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getOwnName() + '"');
 				pieces.push(lblId);
 			} else
 				pieces.push('<' + tagName + ' class="' + cssClass + lblId + '"></' + tagName + '>');
@@ -193,7 +193,7 @@ module wocext {
 
 		private makeLblId(): string {
 			if (this.lblPrefix === null)
-				this.lblPrefix = 'wocl10n~' + this.ctc.getComponentName().replace(/\./g, '~') + '~';
+				this.lblPrefix = 'wocl10n~' + this.ctc.getOwnName().replace(/\./g, '~') + '~';
 			return this.lblPrefix + (this.lblCount++);
 		}
 

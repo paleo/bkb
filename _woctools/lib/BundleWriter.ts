@@ -56,12 +56,12 @@ class BundleWriter {
 		});
 	}
 
-	public addLibrary(name: string, requireLib: string[], script: {}[], css: {}[]): Promise<void> {
+	public addLibrary(name: string, useLibrary: string[], script: {}[], css: {}[]): Promise<void> {
 		if (this.libraries[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several libraries "' + name + '"');
 		var lib = {};
-		if (requireLib !== null)
-			lib['requireLib'] = requireLib;
+		if (useLibrary !== null)
+			lib['useLibrary'] = useLibrary;
 		var p = Promise.resolve<void>();
 		if (script) {
 			p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
@@ -83,27 +83,27 @@ class BundleWriter {
 		});
 	}
 
-	public addService(name: string, requireLib: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
+	public addService(name: string, useLibrary: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
 		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			var serv = {
 				'script': content
 			};
-			if (requireLib !== null)
-				serv['requireLib'] = requireLib;
+			if (useLibrary !== null)
+				serv['useLibrary'] = useLibrary;
 			if (aliasStrOrArr !== null)
 				serv['alias'] = aliasStrOrArr;
 			this.services[name] = serv;
 		});
 	}
 
-	public addComponent(name: string, requireLib: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
+	public addComponent(name: string, useLibrary: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
-		if (requireLib !== null)
-			comp['requireLib'] = requireLib;
+		if (useLibrary !== null)
+			comp['useLibrary'] = useLibrary;
 		if (templateEngine)
 			comp['templateEngine'] = templateEngine;
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
