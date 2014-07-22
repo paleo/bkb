@@ -46,7 +46,9 @@ module todos {
 		private createItem() {
 			var id = this.items.length;
 			var item = <todos.Item>this.cc.createComponent('todos.Item', {
-				'list': this,
+				'cbRemove': () => {
+					this.removeItem(id);
+				},
 				'itemId': id,
 				'label': 'TODO ' + (id + 1)
 			});

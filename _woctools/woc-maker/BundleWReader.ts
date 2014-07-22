@@ -144,7 +144,8 @@ class BundleWReader {
 				aliasStrOrArr = null;
 			// - Add into the writer
 			return Promise.all([
-				writer.addService(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, aliasStrOrArr),
+				writer.addService(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']),
+					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, aliasStrOrArr),
 				this.includeOtherFiles(writer, dirName, {'serv.json': true})
 			]);
 		});
@@ -166,7 +167,8 @@ class BundleWReader {
 			var css = this.makeFileArr(dirRelPath, conf['css']);
 			// - Add into the writer
 			return Promise.all([
-				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, css, templates,
+				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']),
+					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, css, templates,
 					conf['templateEngine']),
 				this.includeOtherFiles(writer, dirName, {'comp.json': true})
 			]);

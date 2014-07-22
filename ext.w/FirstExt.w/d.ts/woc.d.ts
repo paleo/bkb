@@ -99,7 +99,7 @@ declare module woc {
 	}
 
 	interface ApplicationContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
@@ -131,7 +131,7 @@ declare module woc {
 	}
 
 	interface ServiceContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
@@ -169,7 +169,7 @@ declare module woc {
 	}
 
 	interface ComponentContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;

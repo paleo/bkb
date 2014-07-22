@@ -101,7 +101,7 @@ module woc {
 	}
 
 	export interface ApplicationContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
@@ -133,7 +133,7 @@ module woc {
 	}
 
 	export interface ServiceContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
@@ -171,7 +171,7 @@ module woc {
 	}
 
 	export interface ComponentContext {
-		getService(serviceName): any;
+		getService(serviceName: string): any;
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;

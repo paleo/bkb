@@ -30,7 +30,7 @@ class BundleWriter {
 	private components = {};
 	private css: string[] = [];
 	private subDirCssMap = {};
-	private otherFileSet = {};
+	private otherFiles = {};
 
 	constructor(private project: Project, private bundleName: string, bundleVersion: string) {
 		this.bundleDirName = bundleName + (bundleVersion ? '-' + bundleVersion : '');
@@ -83,7 +83,8 @@ class BundleWriter {
 		});
 	}
 
-	public addService(name: string, useLibrary: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
+	public addService(name: string, useLibrary: string[], useService: string[], useComponent: string[], script: {}[],
+										aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
 		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
@@ -92,18 +93,27 @@ class BundleWriter {
 			};
 			if (useLibrary !== null)
 				serv['useLibrary'] = useLibrary;
+			if (useService !== null)
+				serv['useService'] = useService;
+			if (useComponent !== null)
+				serv['useComponent'] = useComponent;
 			if (aliasStrOrArr !== null)
 				serv['alias'] = aliasStrOrArr;
 			this.services[name] = serv;
 		});
 	}
 
-	public addComponent(name: string, useLibrary: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
+	public addComponent(name: string, useLibrary: string[], useService: string[], useComponent: string[], script: {}[], css: {}[],
+											tpl: {}[], templateEngine: string): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
 		if (useLibrary !== null)
 			comp['useLibrary'] = useLibrary;
+		if (useService !== null)
+			comp['useService'] = useService;
+		if (useComponent !== null)
+			comp['useComponent'] = useComponent;
 		if (templateEngine)
 			comp['templateEngine'] = templateEngine;
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
@@ -130,13 +140,23 @@ class BundleWriter {
 	}
 
 	public addOtherFileOrDir(fileName: string, relPath: string, fullPath: string, st: fs.Stats): void {
-		if (this.otherFileSet[fileName])
-			throw Error('Conflict, several files "' + fileName + '", please rename one');
-		this.otherFileSet[fileName] = {
-			'relPath': relPath,
-			'fullPath': fullPath,
-			'stat': st
-		};
+		if (this.otherFiles[fileName]) {
+			if (!st.isDirectory() || !this.otherFiles[fileName]['stat'].isDirectory())
+				throw Error('Conflict, several files "' + fileName + '", please rename one');
+			if (!this.otherFiles[fileName]['merge'])
+				this.otherFiles[fileName]['merge'] = [];
+			this.otherFiles[fileName]['merge'].push({
+				'relPath': relPath,
+				'fullPath': fullPath,
+				'stat': st
+			});
+		} else {
+			this.otherFiles[fileName] = {
+				'relPath': relPath,
+				'fullPath': fullPath,
+				'stat': st
+			};
+		}
 	}
 
 	public write(rmDestination: boolean): Promise<boolean> {
@@ -215,59 +235,73 @@ class BundleWriter {
 	}
 
 	private copyOtherFiles(): Promise<void> {
-		var makeP = (inputRelPath, inputFullPath, st: fs.Stats, outputRelPath, outputFullPath): Promise<void> => {
+		var makeP = (inputRelPath, inputFullPath, st: fs.Stats, outputRelPath, outputFullPath, dirMerge): Promise<void> => {
 			return fsp.exists(outputFullPath).then((b): any => {
 				if (b)
 					throw Error('Name conflict: cannot overwrite file "' + outputRelPath + '" with other file "' + inputRelPath + '"');
 				if (st.isDirectory())
-					return this.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, this.project);
+					return this.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, this.project, dirMerge);
 				else
 					return fsl.copyFile(inputFullPath, outputFullPath);
 			});
 		};
 		var allP: Promise<void>[] = [];
-		for (var fileName in this.otherFileSet) {
-			if (!this.otherFileSet.hasOwnProperty(fileName))
+		for (var fileName in this.otherFiles) {
+			if (!this.otherFiles.hasOwnProperty(fileName))
 				continue;
 			allP.push(makeP(
-				this.otherFileSet[fileName]['relPath'],
-				this.otherFileSet[fileName]['fullPath'],
-				this.otherFileSet[fileName]['stat'],
+				this.otherFiles[fileName]['relPath'],
+				this.otherFiles[fileName]['fullPath'],
+				this.otherFiles[fileName]['stat'],
 				path.join(this.bundleDirName, fileName),
-				path.join(this.bundlePath, fileName)
+				path.join(this.bundlePath, fileName),
+				this.otherFiles[fileName]['merge']
 			));
 		}
 		return <any>Promise.all(allP);
 	}
 
-	private copyOtherDir(inputRelPath, inputDirPath: string, outputDirPath: string, project: Project): Promise<boolean> {
+	private copyOtherDir(inputRelPath, inputDirPath: string, outputDirPath: string, project: Project, dirMerge): Promise<boolean> {
+		var makeCb = (prop) => {
+			return () => this.copyOrMergeOtherDir(prop['relPath'], prop['fullPath'], outputDirPath, project);
+		};
+		var p = this.copyOrMergeOtherDir(inputRelPath, inputDirPath, outputDirPath, project);
+		if (dirMerge) {
+			for (var i = 0, len = dirMerge.length; i < len; ++i)
+				p = p.then(makeCb(dirMerge[i]));
+		}
+		return p;
+	}
+
+	private copyOrMergeOtherDir(inputRelPath, inputDirPath: string, outputDirPath: string, project: Project): Promise<boolean> {
+		var copyChildren = () => {
+			return fsp.readdir(inputDirPath).then((list: string[]) => {
+				var inRelChildPath, inChildPath, outChildPath, allP: Promise<any>[] = [];
+				for(var i = 0; i < list.length; i++) {
+					if (list[i] === '.' || list[i] === '..')
+						continue;
+					inRelChildPath = path.join(inputRelPath, list[i]);
+					inChildPath = path.join(inputDirPath, list[i]);
+					outChildPath = path.join(outputDirPath, list[i]);
+					allP.push(fsp.stat(inChildPath).then<boolean>(makeStatCb(inRelChildPath, inChildPath, outChildPath, list[i])));
+				}
+				return Promise.all(allP);
+			});
+		};
+		var makeStatCb = (inRelChildPath, inChildPath, outChildPath, childName) => {
+			return (st: fs.Stats): any => {
+				if (st.isDirectory())
+					return this.copyOrMergeOtherDir(inRelChildPath, inChildPath, outChildPath, project);
+				else if (this.isSubDirCss(inRelChildPath))
+					return fsl.copyFile(inChildPath, outChildPath);
+				else if (project.canIncludeOtherFile(childName))
+					return fsl.copyFile(inChildPath, outChildPath);
+			};
+		};
 		return this.otherDirContainsSomething(inputRelPath, inputDirPath, project).then((b): any => {
 			if (!b)
 				return false;
-			var makeStatSb = (inRelChildPath, inChildPath, outChildPath, childName) => {
-				return (st: fs.Stats): any => {
-					if (st.isDirectory())
-						return this.copyOtherDir(inRelChildPath, inChildPath, outChildPath, project);
-					else if (this.isSubDirCss(inRelChildPath))
-						return fsl.copyFile(inChildPath, outChildPath);
-					else if (project.canIncludeOtherFile(childName))
-						return fsl.copyFile(inChildPath, outChildPath);
-				};
-			};
-			fsp.mkdir(outputDirPath).then(() => {
-				return fsp.readdir(inputDirPath).then((list: string[]) => {
-					var inRelChildPath, inChildPath, outChildPath, allP: Promise<any>[] = [];
-					for(var i = 0; i < list.length; i++) {
-						if (list[i] === '.' || list[i] === '..')
-							continue;
-						inRelChildPath = path.join(inputRelPath, list[i]);
-						inChildPath = path.join(inputDirPath, list[i]);
-						outChildPath = path.join(outputDirPath, list[i]);
-						allP.push(fsp.stat(inChildPath).then<boolean>(makeStatSb(inRelChildPath, inChildPath, outChildPath, list[i])));
-					}
-					return Promise.all(allP);
-				});
-			}).then(() => {
+			fsp.mkdir(outputDirPath).then(copyChildren, copyChildren).then(() => {
 				return true;
 			});
 		});

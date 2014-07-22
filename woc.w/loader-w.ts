@@ -68,6 +68,28 @@ module woc {
 		}
 
 		// --
+		// -- Internal tools
+		// --
+
+		static cleanConf(conf: {}): void {
+			var cleanArr = (arrName: string) => {
+				if (conf[arrName] === undefined)
+					return;
+				if (conf[arrName] === null)
+					delete conf[arrName];
+				else if (typeof conf[arrName] === 'string')
+					conf[arrName] = [conf[arrName]];
+			};
+			cleanArr('preload');
+			cleanArr('useLibrary');
+			cleanArr('useService');
+			cleanArr('useComponent');
+			cleanArr('script');
+			cleanArr('css');
+			cleanArr('templates');
+		}
+
+		// --
 		// -- Private - Embed bundles
 		// --
 
@@ -78,6 +100,7 @@ module woc {
 						return this.loader.loadBundle(bp, null, null, false, false);
 					}));
 				}
+				WLoader.cleanConf(bundleConf);
 				this.embedBundleList.push({
 					path: bundlePath,
 					embedPath: bundleEmbedPath,
@@ -148,8 +171,10 @@ module woc {
 			return Promise.all(this.thingList.map((prop) => {
 				return this.ajax.get(prop.confUrl);
 			})).then((confList) => {
-				for (var i = 0, len = this.thingList.length; i < len; ++i)
+				for (var i = 0, len = this.thingList.length; i < len; ++i) {
+					WLoader.cleanConf(confList[i]);
 					this.thingList[i].conf = confList[i];
+				}
 				return this.fillFileLoaders();
 			}).then((tplMap) => {
 				return this.registerAll(tplMap);
@@ -244,16 +269,21 @@ module woc {
 						throw Error('Invalid type "' + prop.type + '"');
 				}
 			}
+			var conf;
 			// - Libraries
 			for (var i = 0, len = libList.length; i < len; ++i)
 				this.libraries.register(libList[i].conf['name'], null, null);
 			// - Services
-			for (var i = 0, len = servList.length; i < len; ++i)
-				this.services.register(servList[i].conf['name'], servList[i].url, servList[i].conf['alias'], null, null);
+			for (var i = 0, len = servList.length; i < len; ++i) {
+				conf = servList[i].conf;
+				this.services.register(conf['name'], servList[i].url, servList[i].conf['alias'], null, conf['useService'],
+					conf['useComponent'], null);
+			}
 			// - Components
 			for (var i = 0, len = compList.length; i < len; ++i) {
-				this.components.register(compList[i].conf['name'], compList[i].url, null, null, tplMap[compList[i].conf['name']],
-					compList[i].conf['templateEngine']);
+				conf = compList[i].conf;
+				this.components.register(conf['name'], compList[i].url, null, conf['useService'], conf['useComponent'], null,
+					tplMap[conf['name']], conf['templateEngine']);
 			}
 		}
 

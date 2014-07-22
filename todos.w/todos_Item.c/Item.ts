@@ -1,6 +1,5 @@
 /// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
-/// <reference path='../todos_List.c/List.ts' />
 /// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
 module todos {
@@ -9,8 +8,7 @@ module todos {
 	export class Item implements woc.Component {
 		private $bloc: JQuery;
 		private btn: Unit.Button;
-		private curList: todos.List;
-		private curItemId: number;
+		private cbRemove: () => void;
 
 		constructor(private cc: woc.ComponentContext, props: {}) {
 			this.btn = cc.createComponent('Unit.Button', {'label': '×'});
@@ -19,8 +17,7 @@ module todos {
 				e.preventDefault();
 				this.removeFromList();
 			});
-			this.curItemId = props['itemId'];
-			this.curList = props['list'];
+			this.cbRemove = props['cbRemove'];
 			this.$bloc.find('.lbl').text(props['label']);
 		}
 
@@ -33,7 +30,7 @@ module todos {
 		}
 
 		private removeFromList() {
-			this.curList.removeItem(this.curItemId);
+			this.cbRemove();
 		}
 	}
 }

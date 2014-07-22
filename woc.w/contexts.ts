@@ -47,7 +47,7 @@ module woc {
 		// -- ApplicationContext
 		// --
 
-		public getService(serviceName): any {
+		public getService(serviceName: string): any {
 			return this.services.get(serviceName);
 		}
 
@@ -145,19 +145,28 @@ module woc {
 
 	export class ImplServiceContext implements ServiceContext {
 		private service: any;
+		private authServices: {};
+		private authComponents: {};
 
 		public appConfig: AppConfig;
 
-		constructor(private ac: ImplApplicationContext, private serviceName: string, private serviceBaseUrl: string, cl: any) {
+		constructor(private ac: ImplApplicationContext, private serviceName: string, private serviceBaseUrl: string, cl: any,
+								useService: string[], useComponent: string[]) {
 			this.appConfig = ac.appConfig;
 			this.service = new cl(this);
+			this.authServices = ContextHelper.toSet(useService);
+			this.authComponents = ContextHelper.toSet(useComponent);
 		}
 
-		public getService(serviceName): any {
+		public getService(serviceName: string): any {
+			if (!this.authServices[serviceName])
+				throw Error('Unauthorized access to the service "' + serviceName + '"');
 			return this.ac.getService(serviceName);
 		}
 
 		public createComponent(componentName: string, props: {}, st: LiveState): any {
+			if (!this.authComponents[componentName])
+				throw Error('Unauthorized access to the component "' + componentName + '"');
 			return this.ac.createComponentFromServ(componentName, props, st, this);
 		}
 
@@ -207,7 +216,13 @@ module woc {
 	// ##
 
 	export class ImplComponentTypeContext implements ComponentTypeContext {
-		constructor(private componentName: string, private componentBaseUrl: string) {
+		private authServices: {};
+		private authComponents: {};
+
+		constructor(private ac: ImplApplicationContext, private componentName: string, private componentBaseUrl: string,
+								useService: string[], useComponent: string[]) {
+			this.authServices = ContextHelper.toSet(useService);
+			this.authComponents = ContextHelper.toSet(useComponent);
 		}
 
 		public getOwnName(): string {
@@ -216,6 +231,18 @@ module woc {
 
 		public getOwnBaseUrl(): string {
 			return this.componentBaseUrl;
+		}
+
+		public getService(serviceName: string): any {
+			if (!this.authServices[serviceName])
+				throw Error('Unauthorized access to the service "' + serviceName + '"');
+			return this.ac.getService(serviceName);
+		}
+
+		public createComponent(componentName: string, props: {}, st: LiveState, compId: number): any {
+			if (!this.authComponents[componentName])
+				throw Error('Unauthorized access to the component "' + componentName + '"');
+			return this.ac.createComponentFromComp(componentName, props, st, compId);
 		}
 	}
 
@@ -229,12 +256,12 @@ module woc {
 		constructor(private ac: ImplApplicationContext, private ctc: ImplComponentTypeContext, private st: LiveState, private compId: number) {
 		}
 
-		public getService(serviceName): any {
-			return this.ac.getService(serviceName);
+		public getService(serviceName: string): any {
+			return this.ctc.getService(serviceName);
 		}
 
 		public createComponent(componentName: string, props: {} = null, st: LiveState = null): any {
-			return this.ac.createComponentFromComp(componentName, props, st ? st : this.st, this.compId);
+			return this.ctc.createComponent(componentName, props, st ? st : this.st, this.compId);
 		}
 
 		public removeComponent(c: any, fromDOM = false): void {
@@ -369,11 +396,14 @@ module woc {
 			this.coreRegister('woc.Router', 'woc.CoreRouter');
 		}
 
-		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useLibrary: string[], script: string) {
+		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useLibrary: string[], useService: string[],
+										useComponent: string[], script: string) {
 			var prop = {
 				'name': serviceName,
 				'baseUrl': serviceBaseUrl,
 				'useLibrary': useLibrary,
+				'useService': useService,
+				'useComponent': useComponent,
 				'script': script,
 				'sc': null
 			};
@@ -407,13 +437,13 @@ module woc {
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
 				var cl = toClass(prop['coreClass'] || prop['name']);
-				prop['sc'] = new ImplServiceContext(this.ac, prop['name'], prop['baseUrl'], cl);
+				prop['sc'] = new ImplServiceContext(this.ac, prop['name'], prop['baseUrl'], cl, prop['useService'], prop['useComponent']);
 			}
 			return prop['sc'];
 		}
 
 		private coreRegister(serviceName: string, coreClass: string) {
-			this.register(serviceName, null, null, null, null);
+			this.register(serviceName, null, null, null, null, null, null);
 			this.map[serviceName]['coreClass'] = coreClass;
 		}
 	}
@@ -437,12 +467,14 @@ module woc {
 			return this.compTree;
 		}
 
-		public register(componentName: string, componentBaseUrl: string, useLibrary: string[], script: string, tplStr: string,
-				templateEngine: string) {
+		public register(componentName: string, componentBaseUrl: string, useLibrary: string[], useService: string[],
+										useComponent: string[], script: string, tplStr: string, templateEngine: string) {
 			if (this.map[componentName] !== undefined)
 				throw Error('Conflict for component "' + componentName + '"');
 			this.map[componentName] = {
 				'useLibrary': useLibrary,
+				'useService': useService,
+				'useComponent': useComponent,
 				'script': script,
 				'tplStr': tplStr,
 				'baseUrl': componentBaseUrl,
@@ -480,7 +512,7 @@ module woc {
 
 		private makeContexts(componentName: string, prop) {
 			// - Make an instance of ComponentTypeContext
-			var ctc = new ImplComponentTypeContext(componentName, prop['baseUrl']);
+			var ctc = new ImplComponentTypeContext(this.ac, componentName, prop['baseUrl'], prop['useService'], prop['useComponent']);
 			if (!prop['templateEngine']) {
 				prop['ctc'] = ctc;
 				prop['CC'] = ImplComponentContext;
@@ -500,6 +532,21 @@ module woc {
 					CC.prototype[k] = methods[k];
 			}
 			prop['CC'] = CC;
+		}
+	}
+
+	// ##
+	// ## ContextHelper
+	// ##
+
+	class ContextHelper {
+		public static toSet(names: string[]): {[index: string]: boolean} {
+			var s: any = {};
+			if (names) {
+				for (var i = 0, len = names.length; i < len; ++i)
+					s[names[i]] = true;
+			}
+			return s;
 		}
 	}
 }
