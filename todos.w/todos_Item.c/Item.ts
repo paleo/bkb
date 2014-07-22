@@ -1,19 +1,19 @@
 /// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path='../todos_List.c/List.ts' />
-/// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />
+/// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
 module todos {
 	'use strict';
 
 	export class Item implements woc.Component {
 		private $bloc: JQuery;
-		private btn: wocsingle.Button;
+		private btn: Unit.Button;
 		private curList: todos.List;
 		private curItemId: number;
 
 		constructor(private cc: woc.ComponentContext, props: {}) {
-			this.btn = cc.createComponent('wocsingle.Button', {'label': '×'});
+			this.btn = cc.createComponent('Unit.Button', {'label': '×'});
 			this.$bloc = $(cc.getTemplate('.todos-item', {'button': this.btn.getElement()}));
 			this.btn.click((e) => {
 				e.preventDefault();

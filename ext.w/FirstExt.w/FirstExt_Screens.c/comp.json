@@ -2,9 +2,8 @@
 	"woc": "0.6",
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
-	"useLibrary": ["jQuery"],
-	"script": ["Item.js"],
+	"useLibrary": ["jQuery", "FirstExt.Helpers"],
+	"script": ["Screens.js"],
 	"templates": ["t.html"],
-	"css": ["p.css"],
-	"name": "todos.Item"
+	"name": "FirstExt.Screens"
 }

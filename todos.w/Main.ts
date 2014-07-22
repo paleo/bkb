@@ -1,7 +1,7 @@
 /// <reference path="d.ts/wocbundle.d.ts" />
 /// <reference path="d.ts/jquery.d.ts" />
 /// <reference path='todos_List.c/List.ts' />
-/// <reference path='../ext.w/wocext_helpers.l/helpers.ts' />
+/// <reference path='../ext.w/FirstExt.w/FirstExt_Helpers.l/Helpers.ts' />
 
 module todos {
 	'use strict';
@@ -11,15 +11,15 @@ module todos {
 		}
 
 		public start(element) {
-			var st = new wocext.helpers.GenericLiveState(true);
+			var st = new FirstExt.Helpers.GenericLiveState(true);
 			var list = <todos.List>this.ac.createComponent('todos.List', {'title': 'My First List', 'count': 3}, st);
 			$(element).append(list.getElement());
 
-			var btn = this.ac.createComponent('wocsingle.Button', {'label': 'TREE'}, st).click(() => {
+			var btn = this.ac.createComponent('Unit.Button', {'label': 'TREE'}, st).click(() => {
 				console.log(Main.stringifyTree(this.ac.getDebugTree()));
 			});
 			$(element).append(btn.getElement());
-			btn = this.ac.createComponent('wocsingle.Button', {'label': 'END'}, st).click(() => {
+			btn = this.ac.createComponent('Unit.Button', {'label': 'END'}, st).click(() => {
 				this.ac.removeComponent(list, true);
 			});
 			$(element).append(btn.getElement());

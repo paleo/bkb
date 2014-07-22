@@ -9,7 +9,6 @@
   "bin": {
     "woc-make": "./woc-make.js"
   },
-  "main": "index.js",
   "dependencies": {
     "optimist": "~0.6.1",
     "uglify-js": "~2.4.13",

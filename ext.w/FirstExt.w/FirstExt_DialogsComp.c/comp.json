@@ -3,8 +3,8 @@
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
 	"useLibrary": ["jQuery"],
-	"script": "List.js",
-	"templates": "t.html",
-	"css": "p.css",
-	"name": "todos.List"
+	"script": ["DialogsComp.js"],
+	"templates": ["t.html"],
+	"css": ["p.css"],
+	"name": "FirstExt.DialogsComp"
 }

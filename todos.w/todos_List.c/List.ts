@@ -1,7 +1,7 @@
 /// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path="../todos_Item.c/Item.ts" />
-/// <reference path='../../ext.w/wocsingle_Button.c/Button.ts' />
+/// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
 module todos {
 	'use strict';
@@ -10,10 +10,10 @@ module todos {
 		private $bloc: JQuery;
 		private $ul: JQuery;
 		private items: {}[] = null;
-		private btn: wocsingle.Button;
+		private btn: Unit.Button;
 
 		constructor(private cc: woc.ComponentContext, props: {}) {
-			this.btn = cc.createComponent('wocsingle.Button', {'label': '+'});
+			this.btn = cc.createComponent('Unit.Button', {'label': '+'});
 			this.$bloc = $(cc.getTemplate('.todos-list', {
 				'addBtn': this.btn.getElement()
 			}));

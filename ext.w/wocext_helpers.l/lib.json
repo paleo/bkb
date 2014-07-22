@@ -1,5 +1,0 @@
-{
-	"woc": "0.6",
-	"script": ["helpers.js"],
-	"name": "wocext.helpers"
-}

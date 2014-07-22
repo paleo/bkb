@@ -96,6 +96,10 @@ module woc {
 		baseUrl: string;
 	}
 
+	export interface AppConfig extends AppProperties {
+		firstRelUrl: string;
+	}
+
 	export interface ApplicationContext {
 		getService(serviceName): any;
 		createComponent(componentName: string, props: {}, st: LiveState): any;
@@ -109,8 +113,7 @@ module woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		appProperties: AppProperties;
-		getFirstRelUrl(): string;
+		appConfig: AppConfig;
 		/**
 		 * Available options:
 		 * <pre>{
@@ -126,6 +129,7 @@ module woc {
 		 */
 		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
 		getDebugTree(): {};
+		appProperties: AppProperties;
 	}
 
 	export interface ServiceContext {
@@ -141,10 +145,24 @@ module woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		appProperties: AppProperties;
+		appConfig: AppConfig;
+		/**
+		 * Available options:
+		 * <pre>{
+		 * 	'autoLoadCss': boolean,
+		 * 	'version': string,
+		 * 	'w': boolean,
+		 * 	'start': -DOM-element-,
+		 * 	'done': Function,
+		 * 	'fail': Function
+		 * }</pre>
+		 * @param bundlePath
+		 * @param opt
+		 */
+		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
+		getDebugTree(): {};
 		getOwnName(): string;
 		getOwnBaseUrl(): string;
-		getApplicationContext(): ApplicationContext;
 	}
 
 	export interface ComponentTypeContext {

@@ -2,7 +2,7 @@
 'use strict';
 
 var argv: any = require('optimist').argv;
-import WocMake = require('./index');
+import WocMaker = require('./woc-maker/index');
 
 if (argv['h'] || argv['help'] || argv['_'].length === 0) {
 	console.log('Syntax: node _woctools/woc-make.js OPTIONS bundle1 bundle2...\n' +
@@ -25,7 +25,7 @@ var toBool = function (v: any, def: boolean): boolean {
 	return v === undefined ?  def : v;
 };
 
-var tool = new WocMake({
+var tool = new WocMaker({
 	'inProjectPath': inPath,
 	'outProjectPath': argv['o'] || argv['out-project-path'] || inPath,
 	'defaultEncoding': argv['e'] || argv['default-encoding'] || 'utf8',

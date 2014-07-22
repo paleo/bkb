@@ -14,7 +14,7 @@ module woc {
 
 		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components, private bundles: Bundles) {
-			this.appUrl = ac.appProperties.appUrl;
+			this.appUrl = ac.appProperties.url;
 			this.ajax = this.services.get('woc.Ajax');
 		}
 

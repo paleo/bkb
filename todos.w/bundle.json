@@ -4,7 +4,7 @@
 	"version": "0.5",
 	"preload": ["ext"],
 	"embed": ["todos_List.c", "todos_Item.c"],
-	"useLibrary": ["jQuery", "wocext.helpers"],
+	"useLibrary": ["jQuery", "FirstExt.Helpers"],
 	"script": ["Main.js"],
 	"main": "todos.Main"
 }

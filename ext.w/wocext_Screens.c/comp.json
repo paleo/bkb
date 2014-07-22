@@ -1,9 +1,0 @@
-{
-	"woc": "0.6",
-	"encoding": "utf8",
-	"templateEngine": ["wocext.FirstTemplateEngine"],
-	"useLibrary": ["jQuery", "wocext.helpers"],
-	"script": ["Screens.js"],
-	"templates": ["t.html"],
-	"name": "wocext.Screens"
-}

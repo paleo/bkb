@@ -1,0 +1,4 @@
+{
+	"woc": "0.6",
+	"embed": ["FirstExt_Dialogs.s", "FirstExt_DialogsComp.c", "FirstExt_Helpers.l", "FirstExt_Screens.c", "FirstExt_FirstTemplateEngine.s"]
+}

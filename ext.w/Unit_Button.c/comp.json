@@ -3,8 +3,8 @@
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
 	"useLibrary": ["jQuery"],
-	"script": "List.js",
+	"script": "Button.js",
 	"templates": "t.html",
 	"css": "p.css",
-	"name": "todos.List"
+	"name": "Unit.Button"
 }
