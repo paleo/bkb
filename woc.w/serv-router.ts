@@ -18,7 +18,7 @@ module woc {
 
 		private curUrlProps: UrlProps;
 
-		constructor(private sc: woc.ServiceContext) {
+		constructor(private ac: woc.ApplicationContext, private sc: woc.ServiceContext) {
 			this.log = <woc.Log>sc.getService('woc.Log');
 		}
 

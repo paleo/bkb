@@ -3,9 +3,9 @@
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
 	"useLibrary": "jQuery",
-	"useComponent": ["Unit.Button", "todos.Item"],
+	"useComponent": ["Unit.Button", "Todos.Item"],
 	"script": "List.js",
 	"templates": "t.html",
 	"css": "p.css",
-	"name": "todos.List"
+	"name": "Todos.List"
 }

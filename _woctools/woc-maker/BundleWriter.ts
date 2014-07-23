@@ -44,12 +44,6 @@ class BundleWriter {
 		this.bundleProp[key] = val;
 	}
 
-	public setBundleScript(script: {}[]): Promise<void> {
-		return BundleWriter.concatFiles('Bundle ' + this.bundleName, script, this.jsMinifier, 'js').then((content: string): void => {
-			this.putBundleVal('script', content);
-		});
-	}
-
 	public setBundleCss(css: {}[]): Promise<void> {
 		return BundleWriter.concatFiles('Bundle ' + this.bundleName, css, this.cssMinifier, 'css').then((content: string): void => {
 			this.css.push(content);
@@ -83,14 +77,16 @@ class BundleWriter {
 		});
 	}
 
-	public addService(name: string, useLibrary: string[], useService: string[], useComponent: string[], script: {}[],
-										aliasStrOrArr: any): Promise<void> {
+	public addService(name: string, useApp: boolean, useLibrary: string[], useService: string[], useComponent: string[],
+										script: {}[], aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
 		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			var serv = {
 				'script': content
 			};
+			if (useApp)
+				serv['useApplication'] = true;
 			if (useLibrary !== null)
 				serv['useLibrary'] = useLibrary;
 			if (useService !== null)
@@ -103,11 +99,13 @@ class BundleWriter {
 		});
 	}
 
-	public addComponent(name: string, useLibrary: string[], useService: string[], useComponent: string[], script: {}[], css: {}[],
-											tpl: {}[], templateEngine: string): Promise<void> {
+	public addComponent(name: string, useApp: boolean, useLibrary: string[], useService: string[], useComponent: string[],
+											script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
+		if (useApp)
+			comp['useApplication'] = true;
 		if (useLibrary !== null)
 			comp['useLibrary'] = useLibrary;
 		if (useService !== null)

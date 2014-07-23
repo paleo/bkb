@@ -7,5 +7,5 @@
 	"script": ["Item.js"],
 	"templates": ["t.html"],
 	"css": ["p.css"],
-	"name": "todos.Item"
+	"name": "Todos.Item"
 }

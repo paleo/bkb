@@ -4,8 +4,8 @@ var woc;
 
 (function () {
 	// - Parameters
-	var scripts = ['utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'serv-log.js', 'serv-ajax.js',
-		'serv-router.js'];
+	var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'serv-log.js',
+		'serv-ajax.js', 'serv-router.js'];
 	function reportStartErr(err: any) {
 		var errStr, stack;
 		if (typeof err === 'object') {
@@ -29,15 +29,15 @@ var woc;
 	}
 	// - Check if ready then start
 	var waitedLoads = scripts.length, started = false;
-	var tryToStart = function (appUrl: string) {
+	var tryToStart = function (wocUrl: string) {
 		if (started || waitedLoads !== 0)
 			return;
 		started = true;
 		woc.CORE_W_READY = true;
-		start(appUrl);
+		start(wocUrl);
 	};
-	var start = function (appUrl: string) {
-		addScript(appUrl + '/woc.w/main.js');
+	var start = function (wocUrl: string) {
+		addScript(wocUrl + '/woc.w/main.js');
 	};
 	// - Add scripts in head
 	var addScript = function (url, cb: Function = null) {
@@ -66,8 +66,8 @@ var woc;
 	};
 	var loadCore = function () {
 		try {
-			var appUrl = document.documentElement.getAttribute('data-woc-app');
-			if (!appUrl) {
+			var wocUrl = document.documentElement.getAttribute('data-woc-url');
+			if (!wocUrl) {
 				var baseUrl = document.documentElement.getAttribute('data-woc-base');
 				if (!baseUrl) {
 					var bases = document.getElementsByTagName('base');
@@ -77,12 +77,12 @@ var woc;
 					if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
 						baseUrl = baseUrl.slice(0, baseUrl.length -1);
 				}
-				appUrl = baseUrl;
+				wocUrl = baseUrl;
 			}
 			for (var i = 0; i < scripts.length; ++i) {
-				addScript(appUrl + '/woc.w/' + scripts[i], function () {
+				addScript(wocUrl + '/woc.w/' + scripts[i], function () {
 					--waitedLoads;
-					tryToStart(appUrl);
+					tryToStart(wocUrl);
 				});
 			}
 		} catch (e) {

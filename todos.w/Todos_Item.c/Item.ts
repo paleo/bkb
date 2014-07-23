@@ -2,7 +2,7 @@
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
-module todos {
+module Todos {
 	'use strict';
 
 	export class Item implements woc.Component {

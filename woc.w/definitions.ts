@@ -6,15 +6,13 @@ module woc {
 	// ## These interfaces are implemented by the user classes
 	// ##
 
-	/**
-	 * constructor: function (ac: woc.ApplicationContext)
-	 */
-	export interface BundleMain {
-		start(element): void;
-	}
+	// Service:
+	// constructor: function (sc: woc.ServiceContext)
+	// constructor: function (ac: woc.ApplicationContext, sc: woc.ServiceContext)
 
 	/**
 	 * constructor: function (cc: woc.ComponentContext, props: any)
+	 * constructor: function (ac: woc.ApplicationContext, cc: woc.ComponentContext, props: any)
 	 */
 	export interface Component {
 		compose?(...props): Component;
@@ -34,6 +32,10 @@ module woc {
 	export interface LiveState {
 		isLive(): boolean;
 		addLiveListener(cb: (live: boolean) => void): Function;
+	}
+
+	export interface StartingPointService {
+		start(element: HTMLElement): void;
 	}
 
 	export interface TemplateEngineService {
@@ -92,44 +94,36 @@ module woc {
 	// ##
 
 	export interface AppProperties {
-		url: string;
+		/**
+		 * The root URL for the Woc application
+		 */
+		wocUrl: string;
+		/**
+		 * The base URL for links to pages or external resources
+		 */
 		baseUrl: string;
 	}
 
 	export interface AppConfig extends AppProperties {
+		/**
+		 * The relative URL of the application page to open first
+		 */
 		firstRelUrl: string;
 	}
 
+	export interface BundleLoadingOptions {
+		bundlePath: string;
+		autoLoadCss: boolean;
+		version: string;
+		w: boolean;
+	}
+
 	export interface ApplicationContext {
-		getService(serviceName: string): any;
-		createComponent(componentName: string, props: {}, st: LiveState): any;
-		removeComponent(c: Component, fromDOM?: boolean): void;
-		removeComponent(cList: Component[], fromDOM?: boolean): void;
-		hasLibrary(libName: string): boolean;
-		hasLibrary(libName: string[]): boolean;
-		evalLibrary(libName: string): void;
-		evalLibrary(libName: string[]): void;
-		evalService(serviceName: string): void;
-		evalService(serviceName: string[]): void;
-		evalComponent(componentName: string): void;
-		evalComponent(componentName: string[]): void;
 		appConfig: AppConfig;
-		/**
-		 * Available options:
-		 * <pre>{
-		 * 	'autoLoadCss': boolean,
-		 * 	'version': string,
-		 * 	'w': boolean,
-		 * 	'start': -DOM-element-,
-		 * 	'done': Function,
-		 * 	'fail': Function
-		 * }</pre>
-		 * @param bundlePath
-		 * @param opt
-		 */
-		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
-		getDebugTree(): {};
 		appProperties: AppProperties;
+		loadBundles(optList: BundleLoadingOptions[]): Promise<void>;
+		start(el: HTMLElement, startingPointName: string, preload?: BundleLoadingOptions[]): Promise<void>;
+		getDebugTree(): {};
 	}
 
 	export interface ServiceContext {
@@ -145,24 +139,9 @@ module woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		appConfig: AppConfig;
-		/**
-		 * Available options:
-		 * <pre>{
-		 * 	'autoLoadCss': boolean,
-		 * 	'version': string,
-		 * 	'w': boolean,
-		 * 	'start': -DOM-element-,
-		 * 	'done': Function,
-		 * 	'fail': Function
-		 * }</pre>
-		 * @param bundlePath
-		 * @param opt
-		 */
-		loadBundle(bundlePath: string, opt?: {}): Promise<void>;
-		getDebugTree(): {};
 		getOwnName(): string;
 		getOwnBaseUrl(): string;
+		appConfig: AppConfig;
 	}
 
 	export interface ComponentTypeContext {
@@ -175,7 +154,6 @@ module woc {
 		createComponent(componentName: string, props?: {}, st?: LiveState): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
-		removeOwnComponent(fromDOM?: boolean): void;
 		hasLibrary(libName: string): boolean;
 		hasLibrary(libName: string[]): boolean;
 		evalLibrary(libName: string): void;
@@ -184,9 +162,9 @@ module woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		appProperties: AppProperties;
 		getOwnName(): string;
 		getOwnBaseUrl(): string;
+		appProperties: AppProperties;
 		getLiveState(): LiveState;
 	}
 

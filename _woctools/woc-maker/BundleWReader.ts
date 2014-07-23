@@ -29,6 +29,7 @@ class BundleWReader {
 				throw Error('Cannot open bundle "' + bundleRelPath);
 			return project.readInputJsonFile(path.join(bundleRelPath, 'bundle.json'), project.getDefaultEncoding());
 		}).then((conf: {}) => {
+			BundleWReader.cleanConf(conf);
 			return new BundleWReader(project, bundleRelPath, conf);
 		});
 	}
@@ -51,15 +52,6 @@ class BundleWReader {
 		// - Bundle
 		if (!Project.isEmpty(this.conf['preload']))
 			writer.putBundleVal('preload', Project.cloneData(this.conf['preload']));
-		if (!Project.isEmpty(this.conf['useLibrary']))
-			writer.putBundleVal('useLibrary', Project.cloneData(this.conf['useLibrary']));
-		if (!Project.isEmpty(this.conf['script'])) {
-			p = p.then(() => {
-				return writer.setBundleScript(this.makeFileArr(this.bundleRelPath, this.conf['script']));
-			});
-			if (this.conf['main'])
-				writer.putBundleVal('main', this.conf['main']);
-		}
 		if (!Project.isEmpty(this.conf['css'])) {
 			p = p.then(() => {
 				return writer.setBundleCss(this.makeFileArr(this.bundleRelPath, this.conf['css']));
@@ -112,6 +104,7 @@ class BundleWReader {
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
 		var jsonPath = path.join(dirRelPath, 'lib.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
+			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
@@ -131,6 +124,7 @@ class BundleWReader {
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
 		var jsonPath = path.join(dirRelPath, 'serv.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
+			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
@@ -142,9 +136,10 @@ class BundleWReader {
 			var aliasStrOrArr: any = conf['alias'];
 			if (!aliasStrOrArr || (typeof aliasStrOrArr === 'object' && aliasStrOrArr.length === 0))
 				aliasStrOrArr = null;
+			var useApp = conf['useApplication'] === true;
 			// - Add into the writer
 			return Promise.all([
-				writer.addService(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']),
+				writer.addService(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibrary']),
 					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, aliasStrOrArr),
 				this.includeOtherFiles(writer, dirName, {'serv.json': true})
 			]);
@@ -156,6 +151,7 @@ class BundleWReader {
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
 		var jsonPath = path.join(dirRelPath, 'comp.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
+			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
@@ -165,9 +161,10 @@ class BundleWReader {
 			var script = this.makeFileArr(dirRelPath, conf['script']);
 			var templates = this.makeFileArr(dirRelPath, conf['templates']);
 			var css = this.makeFileArr(dirRelPath, conf['css']);
+			var useApp = conf['useApplication'] === true;
 			// - Add into the writer
 			return Promise.all([
-				writer.addComponent(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']),
+				writer.addComponent(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibrary']),
 					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, css, templates,
 					conf['templateEngine']),
 				this.includeOtherFiles(writer, dirName, {'comp.json': true})
@@ -175,10 +172,8 @@ class BundleWReader {
 		});
 	}
 
-	private makeFileArr(dirRelPath: string, fileList: any): {}[] {
-		if (typeof fileList === 'string')
-			fileList = [fileList];
-		else if (Project.isEmpty(fileList))
+	private makeFileArr(dirRelPath: string, fileList: string[]): {}[] {
+		if (Project.isEmpty(fileList))
 			return null;
 		var arr = [], name, fPath;
 		for (var i = 0, len = fileList.length; i < len; ++i) {
@@ -238,6 +233,24 @@ class BundleWReader {
 			default:
 				throw Error('Invalid embed "' + dir + '"');
 		}
+	}
+
+	private static cleanConf(conf: {}): void {
+		var cleanArr = (arrName: string) => {
+			if (conf[arrName] === undefined)
+				return;
+			if (conf[arrName] === null)
+				delete conf[arrName];
+			else if (typeof conf[arrName] === 'string')
+				conf[arrName] = [conf[arrName]];
+		};
+		cleanArr('preload');
+		cleanArr('useLibrary');
+		cleanArr('useService');
+		cleanArr('useComponent');
+		cleanArr('script');
+		cleanArr('css');
+		cleanArr('templates');
 	}
 }
 

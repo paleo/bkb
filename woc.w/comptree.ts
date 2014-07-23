@@ -10,8 +10,6 @@ module woc {
 
 		public newPlaceholder(cName: string, compTreeArg): number {
 			switch (compTreeArg['from']) {
-				case 'A':
-					return this.addFromRoot(cName, '/');
 				case 'S':
 					return this.addFromRoot(cName, compTreeArg['sc'].getOwnName());
 				case 'C':

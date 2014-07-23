@@ -8,41 +8,34 @@ module woc {
 	export class Loader {
 
 		private static W_SUFFIX = '.w';
-		private appUrl: string;
+		private wocUrl: string;
 		private ajax: woc.Ajax;
 		private bundlePromMap: {[index:string]: Promise<void>} = {};
 
-		constructor(private ac: ImplApplicationContext, private libraries: Libraries, private services: Services,
-				private components: Components, private bundles: Bundles) {
-			this.appUrl = ac.appProperties.url;
+		constructor(private ac: ApplicationContext, private libraries: Libraries, private services: Services,
+				private components: Components) {
+			this.wocUrl = ac.appConfig.wocUrl;
 			this.ajax = this.services.get('woc.Ajax');
 		}
 
-		public loadBundle(bundlePath: string, startOnElem, version: string, autoLoadCss: boolean, wMode: boolean): Promise<void> {
-			var retProm = (p: Promise<void>): Promise<void> => {
-				if (!startOnElem)
-					return p;
-				return p.then(() => {
-					this.bundles.start(bundlePath, startOnElem);
-				});
-			};
+		public loadBundle(opt: BundleLoadingOptions): Promise<void> {
 			// - Known bundle
-			var p = this.bundlePromMap[bundlePath];
+			var p = this.bundlePromMap[opt.bundlePath];
 			if (p !== undefined)
-				return retProm(p);
+				return p;
 			// - First call
-			var bundleUrl = this.appUrl + '/' + bundlePath;
-			if (wMode)
+			var bundleUrl = this.wocUrl + '/' + opt.bundlePath;
+			if (opt.w)
 				bundleUrl += Loader.W_SUFFIX;
-			else if (version)
-				bundleUrl += '-' + version;
-			if (wMode) {
-				var wLoader = new WLoader(this.libraries, this.services, this.components, this.bundles, this, bundlePath, bundleUrl, version);
+			else if (opt.version)
+				bundleUrl += '-' + opt.version;
+			if (opt.w) {
+				var wLoader = new WLoader(this.libraries, this.services, this.components, this, opt.bundlePath, bundleUrl, opt.version);
 				p = wLoader.loadWBundle();
 			} else
-				p = this.loadNormalBundle(bundlePath, bundleUrl, autoLoadCss);
-			this.bundlePromMap[bundlePath] = p;
-			return retProm(p);
+				p = this.loadNormalBundle(opt.bundlePath, bundleUrl, opt.autoLoadCss);
+			this.bundlePromMap[opt.bundlePath] = p;
+			return p;
 		}
 
 		// --
@@ -68,7 +61,12 @@ module woc {
 				var p;
 				if (bundleData['preload']) {
 					p = Promise.all(bundleData['preload'].map((bp) => {
-						return this.loadBundle(bp, null, null, false, false);
+						return this.loadBundle({
+							bundlePath: bp,
+							autoLoadCss: false,
+							version: null,
+							w: false
+						});
 					})).then(() => {
 						return this.registerNormalBundle(bundlePath, bundleUrl, bundleData);
 					});
@@ -102,8 +100,8 @@ module woc {
 					if (!servMap.hasOwnProperty(name))
 						continue;
 					data = servMap[name];
-					this.services.register(name, bundleUrl, data['alias'], data['useLibrary'], data['useService'], data['useComponent'],
-						data['script']);
+					this.services.register(name, bundleUrl, data['alias'], data['useApplication'], data['useLibrary'], data['useService'],
+						data['useComponent'], data['script']);
 				}
 			}
 			// - Register components
@@ -113,13 +111,12 @@ module woc {
 					if (!compMap.hasOwnProperty(name))
 						continue;
 					data = compMap[name];
-					this.components.register(name, bundleUrl, data['useLibrary'], data['useService'], data['useComponent'], data['script'],
-						data['templates'], data['templateEngine']);
+					this.components.register(name, bundleUrl, data['useApplication'], data['useLibrary'], data['useService'],
+						data['useComponent'], data['script'], data['templates'], data['templateEngine']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
 			}
-			this.bundles.register(bundlePath, bundleUrl, bundleData['useLibrary'], bundleData['script'], bundleData['main']);
 			return <any>Promise.all(promList);
 		}
 

@@ -11,13 +11,6 @@ module woc {
 	export class CoreAjax implements Ajax {
 
 		// --
-		// -- Initialisation
-		// --
-
-		constructor() {
-		}
-
-		// --
 		// -- Public
 		// --
 

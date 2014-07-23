@@ -3,8 +3,5 @@
 	"encoding": "utf8",
 	"version": "0.5",
 	"preload": ["ext"],
-	"embed": ["todos_List.c", "todos_Item.c"],
-	"useLibrary": ["jQuery", "FirstExt.Helpers"],
-	"script": ["Main.js"],
-	"main": "todos.Main"
+	"embed": ["Todos_Start.s", "Todos_List.c", "Todos_Item.c"]
 }

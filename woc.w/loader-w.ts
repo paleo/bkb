@@ -42,8 +42,8 @@ module woc {
 		private mergedBundleConf: {};
 		private preloads: Promise<void>[] = [];
 
-		constructor(private libraries: Libraries, private services: Services, private components: Components, private bundles: Bundles,
-								private loader: Loader, private bundlePath: string, private bundleUrl: string, private version: string) {
+		constructor(private libraries: Libraries, private services: Services, private components: Components, private loader: Loader,
+								private bundlePath: string, private bundleUrl: string, private version: string) {
 			this.ajax = this.services.get('woc.Ajax');
 		}
 
@@ -63,7 +63,6 @@ module woc {
 				var conf = this.mergedBundleConf;
 				if (conf['version'] && this.version && conf['version'] !== this.version)
 					throw Error('Conflict in bundle version, attempted "' + this.version + '" doesn\'nt match with current "' + conf['version'] + '"');
-				this.bundles.register(this.bundlePath, this.bundleUrl, null, null, conf['main']);
 			});
 		}
 
@@ -95,12 +94,17 @@ module woc {
 
 		private loadBundleConfRecursive(bundlePath, bundleEmbedPath, bundleUrl): Promise<void> {
 			return this.ajax.get(bundleUrl + '/bundle.json').then<void>((bundleConf) => {
+				WLoader.cleanConf(bundleConf);
 				if (bundleConf['preload']) {
 					Array.prototype.push.apply(this.preloads, bundleConf['preload'].map((bp) => {
-						return this.loader.loadBundle(bp, null, null, false, false);
+						return this.loader.loadBundle({
+							bundlePath: bp,
+							autoLoadCss: false,
+							version: null,
+							w: false
+						});
 					}));
 				}
-				WLoader.cleanConf(bundleConf);
 				this.embedBundleList.push({
 					path: bundlePath,
 					embedPath: bundleEmbedPath,
@@ -119,35 +123,20 @@ module woc {
 		}
 
 		private initMergedBundleConf() {
-			var i, len, j, lenJ, reqLib, bundleProp, reqLibSet = {}, scripts = [], cssList = [], encoding = null;
+			var i, len, bundleProp, cssList = [], encoding = null;
 			for (i = 0, len = this.embedBundleList.length; i < len; ++i) {
 				bundleProp = this.embedBundleList[i];
 				if (!encoding)
 					encoding = bundleProp.conf['encoding'];
 				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
 					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
-				reqLib = bundleProp.conf['useLibrary'];
-				if (reqLib !== undefined) {
-					for (j = 0, lenJ = reqLib.length; j < lenJ; ++j)
-						reqLibSet[reqLib[j]] = true;
-				}
-				if (bundleProp.conf['script'] !== undefined)
-					Array.prototype.push.apply(scripts, WLoaderLSC.toFileList(bundleProp.conf['script'], bundleProp.embedPath));
 				if (bundleProp.conf['css'] !== undefined)
 					Array.prototype.push.apply(cssList, WLoaderLSC.toFileList(bundleProp.conf['css'], bundleProp.embedPath));
-			}
-			var reqLibList = [];
-			for (var libName in reqLibSet) {
-				if (reqLibSet.hasOwnProperty(libName))
-					reqLibList.push(libName);
 			}
 			var mainConf = len > 0 ? this.embedBundleList[0].conf : null;
 			this.mergedBundleConf = {
 				'version': mainConf ? mainConf['version'] : undefined,
-				'main': mainConf ? mainConf['main'] : undefined,
 				'encoding': encoding,
-				'useLibrary': reqLibList,
-				'script': scripts,
 				'css': cssList
 			};
 		}
@@ -208,8 +197,6 @@ module woc {
 				}
 			}
 			// - Bundle
-			scriptLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['script']),
-				this.mergedBundleConf['useLibrary']);
 			cssLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['css']));
 			// - Promises
 			return Promise.all<any>([
@@ -276,14 +263,14 @@ module woc {
 			// - Services
 			for (var i = 0, len = servList.length; i < len; ++i) {
 				conf = servList[i].conf;
-				this.services.register(conf['name'], servList[i].url, servList[i].conf['alias'], null, conf['useService'],
+				this.services.register(conf['name'], servList[i].url, conf['alias'], conf['useApplication'], null, conf['useService'],
 					conf['useComponent'], null);
 			}
 			// - Components
 			for (var i = 0, len = compList.length; i < len; ++i) {
 				conf = compList[i].conf;
-				this.components.register(conf['name'], compList[i].url, null, conf['useService'], conf['useComponent'], null,
-					tplMap[conf['name']], conf['templateEngine']);
+				this.components.register(conf['name'], compList[i].url, null, conf['useApplication'], conf['useService'],
+					conf['useComponent'], null, tplMap[conf['name']], conf['templateEngine']);
 			}
 		}
 

@@ -3,7 +3,7 @@
 'use strict';
 
 (function () {
-	function reportStartErr(err: any) {
+	function reportStartingError(err: any) {
 		var errStr, stack;
 		if (typeof err === 'object') {
 			if (err.message !== undefined)
@@ -38,7 +38,7 @@
 		return true;
 	}
 
-	function startCore() {
+	function startCore(): Promise<void> {
 		// - Make the application context
 		var baseUrl = document.documentElement.getAttribute('data-woc-base');
 		if (!baseUrl) {
@@ -53,66 +53,65 @@
 				baseUrl = baseUrl.slice(prefix.length);
 		}
 		var ac = woc.makeApplicationContext({
-			'url': document.documentElement.getAttribute('data-woc-app') || baseUrl,
+			'wocUrl': document.documentElement.getAttribute('data-woc-url') || baseUrl,
 			'baseUrl': baseUrl,
 			'firstRelUrl': document.documentElement.getAttribute('data-woc-first') || null
 		});
 		// - Load bundles
 		var preload = document.documentElement.getAttribute('data-woc-preload');
-		if (preload)
-			preloadBundles(ac, preload);
-		else
-			autoStartBundles(ac);
+		var p = preload ? preloadBundles(ac, preload) : Promise.resolve<void>();
+		return p.then(() => startAll(ac));
 	}
 
 	// ext(w) shop-hep-2.3.5.w
-	function preloadBundles(ac: woc.ApplicationContext, preloadStr: string) {
-		var arr = preloadStr.split(' ');
-		var tokens, name, promises = [];
+	function preloadBundles(ac: woc.ApplicationContext, preloadStr: string): Promise<void> {
+		var arr = preloadStr.split(' '), tokens, name, optList: woc.BundleLoadingOptions[] = [];
 		for (var i = 0, len = arr.length; i < len; ++i) {
 			tokens = /(?:-([0-9]+(?:\.[0-9])*))?(\.w)?(?:\(([^\)]+)\))?$/.exec(arr[i]);
 			if (tokens === null) {
-				reportStartErr('Invalid preload "' + arr[i] + '"');
+				reportStartingError('Invalid preload "' + arr[i] + '"');
 				return;
 			}
 			name = arr[i].slice(0, arr[i].length - tokens[0].length);
-			promises.push(ac.loadBundle(name, {
-				'autoLoadCss': tokens[3] === 'css',
-				'w': tokens[2] !== undefined,
-				'version': tokens[1]
-			}));
-		}
-		Promise.all(promises).then(() => {
-			autoStartBundles(ac);
-		}).catch((e) => {
-			reportStartErr(e);
-		});
-	}
-
-	function autoStartBundles(ac: woc.ApplicationContext) {
-		var el, matches = document.querySelectorAll('[data-woc-exec]');
-		for (var i = 0, len = matches.length; i < len; ++i) {
-			el = matches[i];
-			ac.loadBundle(el.getAttribute('data-woc-exec'), {
-				'start': el
-			}).catch((e) => {
-				reportStartErr(e);
+			optList.push({
+				bundlePath: name,
+				autoLoadCss: tokens[3] === 'css',
+				version: tokens[1],
+				w: tokens[2] !== undefined
 			});
 		}
+		return ac.loadBundles(optList);
+	}
+
+	function startAll(ac: woc.ApplicationContext): Promise<void> {
+		function startCaller(el: HTMLElement) {
+			return () => ac.start(el, el.getAttribute('data-woc-start'));
+		}
+		var el, preload, p, matches = document.querySelectorAll('[data-woc-start]'), pList = [];
+		for (var i = 0, len = matches.length; i < len; ++i) {
+			el = matches[i];
+			preload = el.getAttribute('data-woc-preload');
+			p = preload ? preloadBundles(ac, preload) : Promise.resolve<void>();
+			pList.push(p.then(startCaller(el)));
+		}
+		return <any>Promise.all(pList);
 	}
 
 	// - Wait until the DOM is ready
 	function onReady() {
 		try {
-			startCore();
+			startCore().catch((e) => {
+				reportStartingError(e);
+			});
 		} catch (e) {
-			reportStartErr(e);
+			reportStartingError(e);
 		}
 	}
 
-	if (woc && woc['CORE_W_READY'])
+	if (woc && woc['CORE_W_READY']) {
+		delete woc['CORE_W_READY'];
 		onReady();
-	else {
+	} else {
 		if (document.addEventListener)
 			document.addEventListener('DOMContentLoaded', onReady);
 		else

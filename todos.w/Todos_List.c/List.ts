@@ -1,9 +1,9 @@
 /// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
-/// <reference path="../todos_Item.c/Item.ts" />
+/// <reference path="../Todos_Item.c/Item.ts" />
 /// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
-module todos {
+module Todos {
 	'use strict';
 
 	export class List implements woc.Component {
@@ -45,7 +45,7 @@ module todos {
 
 		private createItem() {
 			var id = this.items.length;
-			var item = <todos.Item>this.cc.createComponent('todos.Item', {
+			var item = <Todos.Item>this.cc.createComponent('Todos.Item', {
 				'cbRemove': () => {
 					this.removeItem(id);
 				},
