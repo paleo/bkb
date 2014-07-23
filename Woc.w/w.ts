@@ -1,6 +1,6 @@
 'use strict';
-var woc;
-(woc || {}).CORE_W_READY = false;
+var Woc;
+(Woc || {}).CORE_W_READY = false;
 
 (function () {
 	// - Parameters
@@ -33,11 +33,11 @@ var woc;
 		if (started || waitedLoads !== 0)
 			return;
 		started = true;
-		woc.CORE_W_READY = true;
+		Woc.CORE_W_READY = true;
 		start(wocUrl);
 	};
 	var start = function (wocUrl: string) {
-		addScript(wocUrl + '/woc.w/main.js');
+		addScript(wocUrl + '/Woc.w/main.js');
 	};
 	// - Add scripts in head
 	var addScript = function (url, cb: Function = null) {
@@ -80,7 +80,7 @@ var woc;
 				wocUrl = baseUrl;
 			}
 			for (var i = 0; i < scripts.length; ++i) {
-				addScript(wocUrl + '/woc.w/' + scripts[i], function () {
+				addScript(wocUrl + '/Woc.w/' + scripts[i], function () {
 					--waitedLoads;
 					tryToStart(wocUrl);
 				});

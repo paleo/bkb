@@ -1,16 +1,16 @@
-declare module woc {
+declare module Woc {
 
 	// ##
 	// ## These interfaces are implemented by the user classes
 	// ##
 
 	// Service:
-	// constructor: function (sc: woc.ServiceContext)
-	// constructor: function (ac: woc.ApplicationContext, sc: woc.ServiceContext)
+	// constructor: function (sc: Woc.ServiceContext)
+	// constructor: function (ac: Woc.ApplicationContext, sc: Woc.ServiceContext)
 
 	/**
-	 * constructor: function (cc: woc.ComponentContext, props: any)
-	 * constructor: function (ac: woc.ApplicationContext, cc: woc.ComponentContext, props: any)
+	 * constructor: function (cc: Woc.ComponentContext, props: any)
+	 * constructor: function (ac: Woc.ApplicationContext, cc: Woc.ComponentContext, props: any)
 	 */
 	interface Component {
 		compose?(...props): Component;
@@ -37,7 +37,7 @@ declare module woc {
 	}
 
 	interface TemplateEngineService {
-		makeProcessor(ctc: woc.ComponentTypeContext, tplStr: string): woc.TemplateProcessor;
+		makeProcessor(ctc: ComponentTypeContext, tplStr: string): TemplateProcessor;
 	}
 
 	/**
@@ -54,11 +54,11 @@ declare module woc {
 	}
 
 	/**
-	 * The services that implement this interface can be declared as an alias of woc.Dialogs
+	 * The services that implement this interface can be declared as an alias of Woc.Dialogs
 	 */
 	interface Dialogs {
 		/**
-		 * @param dialog woc.Dialog
+		 * @param dialog Woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
@@ -292,7 +292,7 @@ declare module woc {
 // ## Utils
 // ##
 
-declare module woc {
+declare module Woc {
 	function globalEval(script: string): void;
 	function toClass(s: string): any;
 }

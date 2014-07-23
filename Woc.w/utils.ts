@@ -1,7 +1,7 @@
 /// <reference path="definitions.ts" />
 'use strict';
 
-module woc {
+module Woc {
 	export function globalEval(script: string): void {
 		// - Check 'use strict'
 		var needle = ' use strict', len = needle.length;

@@ -52,7 +52,7 @@
 			if (strStartsWith(baseUrl, prefix))
 				baseUrl = baseUrl.slice(prefix.length);
 		}
-		var ac = woc.makeApplicationContext({
+		var ac = Woc.makeApplicationContext({
 			'wocUrl': document.documentElement.getAttribute('data-woc-url') || baseUrl,
 			'baseUrl': baseUrl,
 			'firstRelUrl': document.documentElement.getAttribute('data-woc-first') || null
@@ -64,8 +64,8 @@
 	}
 
 	// ext(w) shop-hep-2.3.5.w
-	function preloadBundles(ac: woc.ApplicationContext, preloadStr: string): Promise<void> {
-		var arr = preloadStr.split(' '), tokens, name, optList: woc.BundleLoadingOptions[] = [];
+	function preloadBundles(ac: Woc.ApplicationContext, preloadStr: string): Promise<void> {
+		var arr = preloadStr.split(' '), tokens, name, optList: Woc.BundleLoadingOptions[] = [];
 		for (var i = 0, len = arr.length; i < len; ++i) {
 			tokens = /(?:-([0-9]+(?:\.[0-9])*))?(\.w)?(?:\(([^\)]+)\))?$/.exec(arr[i]);
 			if (tokens === null) {
@@ -83,7 +83,7 @@
 		return ac.loadBundles(optList);
 	}
 
-	function startAll(ac: woc.ApplicationContext): Promise<void> {
+	function startAll(ac: Woc.ApplicationContext): Promise<void> {
 		function startCaller(el: HTMLElement) {
 			return () => ac.start(el, el.getAttribute('data-woc-start'));
 		}
@@ -108,8 +108,8 @@
 		}
 	}
 
-	if (woc && woc['CORE_W_READY']) {
-		delete woc['CORE_W_READY'];
+	if (Woc && Woc['CORE_W_READY']) {
+		delete Woc['CORE_W_READY'];
 		onReady();
 	} else {
 		if (document.addEventListener)

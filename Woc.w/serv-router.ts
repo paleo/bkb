@@ -1,14 +1,14 @@
 /// <reference path="definitions.ts" />
 'use strict';
 
-module woc {
+module Woc {
 	export class CoreRouter implements Router {
 
 		// --
 		// -- Fields & Initialisation
 		// --
 
-		private log: woc.Log;
+		private log: Woc.Log;
 		private listeners = {};
 		private selList = [];
 		private baseUrl: string;
@@ -18,8 +18,8 @@ module woc {
 
 		private curUrlProps: UrlProps;
 
-		constructor(private ac: woc.ApplicationContext, private sc: woc.ServiceContext) {
-			this.log = <woc.Log>sc.getService('woc.Log');
+		constructor(private ac: Woc.ApplicationContext, private sc: Woc.ServiceContext) {
+			this.log = <Woc.Log>sc.getService('Woc.Log');
 		}
 
 		/**

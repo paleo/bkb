@@ -1,15 +1,15 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/Woc.d.ts' />
 
 module FirstExt {
 	'use strict';
 
-	export class FirstTemplateEngine implements woc.TemplateEngineService {
-		public makeProcessor(ctc: woc.ComponentTypeContext, tplStr: string): woc.TemplateProcessor {
+	export class FirstTemplateEngine implements Woc.TemplateEngineService {
+		public makeProcessor(ctc: Woc.ComponentTypeContext, tplStr: string): Woc.TemplateProcessor {
 			return new Processor(ctc, tplStr);
 		}
 	}
 	
-	class Processor implements woc.TemplateProcessor {
+	class Processor implements Woc.TemplateProcessor {
 
 		private static DATA_PH = 'data-woc-mYr4-ph';
 		private templates: HTMLElement[];
@@ -19,7 +19,7 @@ module FirstExt {
 		private lblPrefix: string;
 		private lblCount: number;
 
-		constructor(private ctc: woc.ComponentTypeContext, tplStr: string) {
+		constructor(private ctc: Woc.ComponentTypeContext, tplStr: string) {
 			this.parse(tplStr);
 			// TODO Reference all labels in the l10n service
 			// labels: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is

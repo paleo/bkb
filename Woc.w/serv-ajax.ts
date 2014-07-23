@@ -2,7 +2,7 @@
 /// <reference path="utils.ts" />
 'use strict';
 
-module woc {
+module Woc {
 
 	// ##
 	// ## Ajax

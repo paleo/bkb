@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/Woc.d.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 
@@ -39,27 +39,27 @@ module FirstExt {
 		/**
 		 * @return Screen NULL when no screen
 		 */
-		getScreen(up: woc.UrlProps, seh: ScreenElHandler): Screen;
+		getScreen(up: Woc.UrlProps, seh: ScreenElHandler): Screen;
 	}
 
 	// ##
 	// ## Screens
 	// ##
 
-	export class Screens implements woc.Component, woc.UrlController, ScreenElHandler {
+	export class Screens implements Woc.Component, Woc.UrlController, ScreenElHandler {
 
 		// --
 		// -- Fields & Initialisation
 		// --
 
-		private router: woc.Router;
+		private router: Woc.Router;
 		private $container: JQuery;
 		private unregisteredSelList = [];
 		private uspBySel = {};
 		private elements: JQuery[] = [];
 		private $curScreenEl: JQuery = null;
 		private curScreen: Screen;
-		private lastUp: woc.UrlProps = null;
+		private lastUp: Woc.UrlProps = null;
 		private lastScreen: Screen = null;
 		private rmCbList: Function[] = [];
 
@@ -67,13 +67,13 @@ module FirstExt {
 		// -- Component
 		// --
 
-		constructor(private cc: woc.ComponentContext) {
+		constructor(private cc: Woc.ComponentContextWithFirstTemplate) {
 			this.$container = $(this.cc.getTemplate('.screens'));
-			this.router = this.cc.getService('woc.Router');
-			this.rmCbList.push(this.router.addBeforeListener((up: woc.UrlProps): boolean => {
+			this.router = this.cc.getService('Woc.Router');
+			this.rmCbList.push(this.router.addBeforeListener((up: Woc.UrlProps): boolean => {
 				return this.getScreen(up) !== null;
 			}));
-			this.rmCbList.push(this.router.addChangeListener((up: woc.UrlProps) => {
+			this.rmCbList.push(this.router.addChangeListener((up: Woc.UrlProps) => {
 				this.switchTo(up);
 			}));
 		}
@@ -122,10 +122,10 @@ module FirstExt {
 		}
 
 		// --
-		// -- woc.UrlController
+		// -- Woc.UrlController
 		// --
 
-		public fillUrlProps(up: woc.UrlProps): boolean {
+		public fillUrlProps(up: Woc.UrlProps): boolean {
 			var screen = this.getScreen(up);
 			if (screen === null)
 				return false;
@@ -137,7 +137,7 @@ module FirstExt {
 		// -- Private
 		// --
 
-		private switchTo(up: woc.UrlProps): boolean {
+		private switchTo(up: Woc.UrlProps): boolean {
 			var screen = this.getScreen(up);
 			if (screen === null)
 				return false;
@@ -168,7 +168,7 @@ module FirstExt {
 			return $el;
 		}
 
-		private getScreen(up: woc.UrlProps): Screen {
+		private getScreen(up: Woc.UrlProps): Screen {
 			if (up === this.lastUp)
 				return this.lastScreen;
 			var provider: ScreenProvider = this.uspBySel[up['sel']];
@@ -196,7 +196,7 @@ module FirstExt {
 //			this.screens.addScreenProvider(this, [route]);
 //		}
 //
-//		public getScreen(up: woc.UrlProps, seh: ScreenElHandler): Screen {
+//		public getScreen(up: Woc.UrlProps, seh: ScreenElHandler): Screen {
 //			var screen = this.map[up.sel];
 //			if (screen === undefined)
 //				throw Error('Unknown route "' + up.sel + '"');

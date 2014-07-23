@@ -3,7 +3,7 @@
 /// <reference path="loader.ts" />
 'use strict';
 
-module woc {
+module Woc {
 
 	// ##
 	// ## Functions
@@ -73,9 +73,9 @@ module woc {
 		constructor(ac: any) {
 			this.ac = ac;
 			this.ImplServiceContext = Services.mergeTraits(ac);
-			this.coreRegister('woc.Log', 'woc.CoreLog');
-			this.coreRegister('woc.Ajax', 'woc.CoreAjax');
-			this.coreRegister('woc.Router', 'woc.CoreRouter');
+			this.coreRegister('Woc.Log', 'Woc.CoreLog');
+			this.coreRegister('Woc.Ajax', 'Woc.CoreAjax');
+			this.coreRegister('Woc.Router', 'Woc.CoreRouter');
 		}
 
 		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useApp: boolean, useLibrary: string[],
@@ -164,7 +164,7 @@ module woc {
 
 		constructor(ac: any) {
 			this.ac = ac;
-			this.log = ac.getService('woc.Log');
+			this.log = ac.getService('Woc.Log');
 			this.compTree = new ComponentTree();
 		}
 

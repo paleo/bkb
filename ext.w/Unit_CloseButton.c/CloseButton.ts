@@ -1,10 +1,10 @@
-/// <reference path='../d.ts/wocbundle.d.ts' />
+/// <reference path='../d.ts/WocBundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module Unit {
 	'use strict';
 
-	export class CloseButton implements woc.Component {
+	export class CloseButton implements Woc.Component {
 
 		private disabled: boolean = false;
 		private $btn: JQuery;
@@ -13,7 +13,7 @@ module Unit {
 		// -- Component
 		// --
 
-		constructor(private cc: woc.ComponentContext, props: {}) {
+		constructor(private cc: Woc.ComponentContextWithFirstTemplate, props: {}) {
 			this.$btn = $(this.cc.getTemplate('.close-btn'));
 			if (props['cssClass'])
 				this.$btn.addClass(props['cssClass']);
@@ -63,7 +63,7 @@ module Unit {
 				try {
 					cb(e);
 				} catch (err) {
-					this.cc.getService('woc.Log').unexpectedErr(err);
+					this.cc.getService('Woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

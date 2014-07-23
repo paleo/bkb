@@ -4,18 +4,18 @@
 /// <reference path="loader-w.ts" />
 'use strict';
 
-module woc {
+module Woc {
 	export class Loader {
 
 		private static W_SUFFIX = '.w';
 		private wocUrl: string;
-		private ajax: woc.Ajax;
+		private ajax: Woc.Ajax;
 		private bundlePromMap: {[index:string]: Promise<void>} = {};
 
 		constructor(private ac: ApplicationContext, private libraries: Libraries, private services: Services,
 				private components: Components) {
 			this.wocUrl = ac.appConfig.wocUrl;
-			this.ajax = this.services.get('woc.Ajax');
+			this.ajax = this.services.get('Woc.Ajax');
 		}
 
 		public loadBundle(opt: BundleLoadingOptions): Promise<void> {

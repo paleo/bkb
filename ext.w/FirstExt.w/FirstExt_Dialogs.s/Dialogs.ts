@@ -1,11 +1,11 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/Woc.d.ts' />
 /// <reference path='../FirstExt_DialogsComp.c/DialogsComp.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 
 module FirstExt {
 	'use strict';
 
-	export class Dialogs implements woc.Dialogs {
+	export class Dialogs implements Woc.Dialogs {
 
 		// --
 		// -- Fields
@@ -17,10 +17,10 @@ module FirstExt {
 		// -- Initialisation
 		// --
 
-		constructor(sc: woc.ServiceContext) {
+		constructor(sc: Woc.ServiceContext) {
 			this.comp = <FirstExt.DialogsComp>sc.createComponent('FirstExt.DialogsComp', null, new FirstExt.Helpers.GenericLiveState(true));
 			$('body').append(this.comp.getElement());
-			var router = <woc.Router>sc.getService('woc.Router');
+			var router = <Woc.Router>sc.getService('Woc.Router');
 			router.addChangeListener(() => {
 				this.clearDialogs();
 			});
@@ -31,12 +31,12 @@ module FirstExt {
 		// --
 
 		/**
-		 * @param dialog woc.Dialog
+		 * @param dialog Woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
 		 */
-		public addDialog(dialog: woc.Dialog, forcedOpen = false, hideBelow = false): number {
+		public addDialog(dialog: Woc.Dialog, forcedOpen = false, hideBelow = false): number {
 			return this.comp.addDialog(dialog, forcedOpen, hideBelow);
 		}
 

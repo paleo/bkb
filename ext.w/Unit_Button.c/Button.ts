@@ -1,10 +1,10 @@
-/// <reference path='../d.ts/wocbundle.d.ts' />
+/// <reference path='../d.ts/WocBundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module Unit {
 	'use strict';
 
-	export class Button implements woc.Component {
+	export class Button implements Woc.Component {
 
 		private withAjax: boolean;
 		private manualDisabled: boolean = false;
@@ -17,7 +17,7 @@ module Unit {
 		// -- Component
 		// --
 
-		constructor(private cc: woc.ComponentContext, props: {}) {
+		constructor(private cc: Woc.ComponentContextWithFirstTemplate, props: {}) {
 			this.withAjax = props['ajax'] ? true : false;
 			this.autoDisableMode = this.withAjax || (props['autoDisable'] ? true : false);
 			if (this.withAjax) {
@@ -85,7 +85,7 @@ module Unit {
 						this.$ajaxFlag.show();
 					cb(e);
 				} catch (err) {
-					this.cc.getService('woc.Log').unexpectedErr(err);
+					this.cc.getService('Woc.Log').unexpectedErr(err);
 				}
 			});
 			return this;

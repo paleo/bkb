@@ -1,7 +1,7 @@
 /// <reference path="loader.ts" />
 'use strict';
 
-module woc {
+module Woc {
 
 	// ##
 	// ## Interfaces
@@ -37,14 +37,14 @@ module woc {
 		// -- Initialisation
 		// --
 
-		private ajax: woc.Ajax;
+		private ajax: Woc.Ajax;
 		private embedBundleList: WBundleProp[] = [];
 		private mergedBundleConf: {};
 		private preloads: Promise<void>[] = [];
 
 		constructor(private libraries: Libraries, private services: Services, private components: Components, private loader: Loader,
 								private bundlePath: string, private bundleUrl: string, private version: string) {
-			this.ajax = this.services.get('woc.Ajax');
+			this.ajax = this.services.get('Woc.Ajax');
 		}
 
 		// --
@@ -150,7 +150,7 @@ module woc {
 		
 		private thingList: WThingProp[];
 
-		constructor(private libraries: Libraries, private services: Services, private components: Components, private ajax: woc.Ajax,
+		constructor(private libraries: Libraries, private services: Services, private components: Components, private ajax: Woc.Ajax,
 								private bundlePath: string, private bundleUrl: string, private embedBundleList: WBundleProp[],
 								private mergedBundleConf: {}) {
 			this.initThingList();
@@ -482,7 +482,7 @@ module woc {
 		private compNames = [];
 		private promises = [];
 
-		constructor(private ajax: woc.Ajax) {
+		constructor(private ajax: Woc.Ajax) {
 		}
 
 		public add(compName: string, baseUrl: string, relUrls: string[]) {

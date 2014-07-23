@@ -1,7 +1,7 @@
 /// <reference path='definitions.ts' />
 'use strict';
 
-module woc {
+module Woc {
 	export class CoreLog implements Log {
 
 		// --

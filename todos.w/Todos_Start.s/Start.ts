@@ -1,4 +1,4 @@
-/// <reference path="../d.ts/wocbundle.d.ts" />
+/// <reference path="../d.ts/WocBundle.d.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path='../Todos_List.c/List.ts' />
 /// <reference path='../../ext.w/FirstExt.w/FirstExt_Helpers.l/Helpers.ts' />
@@ -6,8 +6,8 @@
 module Todos {
 	'use strict';
 
-	export class Start implements woc.StartingPointService {
-		constructor(private ac: woc.ApplicationContext, private sc: woc.ServiceContext) {
+	export class Start implements Woc.StartingPointService {
+		constructor(private ac: Woc.ApplicationContext, private sc: Woc.ServiceContext) {
 		}
 
 		public start(element: HTMLElement) {

@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/Woc.d.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../Unit_Button.c/Button.ts' />
@@ -6,7 +6,7 @@
 module FirstExt {
 	'use strict';
 
-	export class DialogsComp implements woc.Component {
+	export class DialogsComp implements Woc.Component {
 
 		// --
 		// -- Fields
@@ -26,7 +26,7 @@ module FirstExt {
 		// -- Component
 		// --
 
-		constructor(private cc: woc.ComponentContext) {
+		constructor(private cc: Woc.ComponentContextWithFirstTemplate) {
 			this.$areas = $(this.cc.getTemplate('.dialog-areas'));
 			this.$mainDialogArea = this.$areas.find('.main-dialog-area');
 			this.$shortDialogArea = this.$areas.find('.short-dialog-area');
@@ -50,12 +50,12 @@ module FirstExt {
 		// --
 
 		/**
-		 * @param dialog woc.Dialog
+		 * @param dialog Woc.Dialog
 		 * @param forcedOpen boolean
 		 * @param hideBelow boolean
 		 * @returns {number} The dialog ID
 		 */
-		public addDialog(dialog: woc.Dialog, forcedOpen = false, hideBelow = false): number {
+		public addDialog(dialog: Woc.Dialog, forcedOpen = false, hideBelow = false): number {
 			var id = this.dialogs.length;
 			this.dialogs[id] = {
 				'$elem': null,

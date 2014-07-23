@@ -3,5 +3,5 @@
 	"encoding": "utf8",
 	"script": ["Dialogs.js"],
 	"name": "FirstExt.Dialogs",
-	"alias": "woc.Dialogs"
+	"alias": "Woc.Dialogs"
 }

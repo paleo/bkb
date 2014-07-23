@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../d.ts/Woc.d.ts' />
 
 module FirstExt.Helpers {
 	'use strict';
@@ -37,7 +37,7 @@ module FirstExt.Helpers {
 	// ## GenericLiveState
 	// ##
 
-	export class GenericLiveState implements woc.LiveState {
+	export class GenericLiveState implements Woc.LiveState {
 		private listeners: Listeners = null;
 
 		constructor(private live: boolean) {
