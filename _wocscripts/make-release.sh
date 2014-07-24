@@ -49,6 +49,7 @@ cd $DIR/releases || exit 1;
 mkdir $RELEASE_DIRNAME || exit 1;
 
 cp -r -t $RELEASE_DIRNAME $SRC_DIR/LICENSE $SRC_DIR/todos.html $SRC_DIR/es5-shim.min.js $SRC_DIR/woc.min.js $SRC_DIR/ext.w $SRC_DIR/todos.w $SRC_DIR/_woctools || exit 1;
+rm -f -r $RELEASE_DIRNAME/_woctools/node_modules
 
 echo "Edit todos.html: switch to \".w\" mode and use \"woc.min.js\""
 read -p "Press [Enter] key to edit..."
@@ -63,7 +64,8 @@ tar -cz -f $RELEASE_FILENAME $RELEASE_DIRNAME || exit 1;
 
 ls -l
 echo "... Done. Test the release:"
-echo "> cd $DIR/releases/$RELEASE_DIRNAME/"
 echo "> http://localhost:8080/wocreleases/$RELEASE_DIRNAME/todos.html"
+echo "> cd $DIR/releases/$RELEASE_DIRNAME/"
+echo "> npm install --prefix _woctools/"
 echo "> node _woctools/woc-make.js -r true ext todos"
 

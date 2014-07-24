@@ -1,7 +1,7 @@
 /// <reference path="../d.ts/wocbundle.d.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path='../Todos_List.c/List.ts' />
-/// <reference path='../../ext.w/firstext.w/FirstExt_Helpers.l/Helpers.ts' />
+/// <reference path='../../ext.w/firstext.w/FirstExt_GenericLiveState.l/GenericLiveState.ts' />
 
 module Todos {
 	'use strict';
@@ -11,7 +11,7 @@ module Todos {
 		}
 
 		public start(element: HTMLElement) {
-			var st = new FirstExt.Helpers.GenericLiveState(true);
+			var st = new FirstExt.GenericLiveState(true);
 			var list = <Todos.List>this.sc.createComponent('Todos.List', {'title': 'My First List', 'count': 3}, st);
 			$(element).append(list.getElement());
 

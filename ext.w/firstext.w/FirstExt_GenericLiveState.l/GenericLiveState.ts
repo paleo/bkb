@@ -1,6 +1,6 @@
 /// <reference path='../d.ts/woc.d.ts' />
 
-module FirstExt.Helpers {
+module FirstExt {
 	'use strict';
 
 	// ##

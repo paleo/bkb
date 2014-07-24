@@ -138,17 +138,17 @@ module Woc {
 		}
 
 		private static mergeTraits(ac: ImplApplicationContext): any {
-			var NewCl = function (name: string, baseUrl: string, useLibraries: string[], useServices: string[],
+			var ServContext = function (name: string, baseUrl: string, useLibraries: string[], useServices: string[],
 														useComponents: string[], restrictedAccess: boolean) {
 				ThingContextTrait.call(this, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
 				ServiceContextTrait.call(this);
 			};
-			NewCl.prototype['ac'] = ac;
-			NewCl.prototype['appConfig'] = ac.appConfig;
-			ContextHelper.copyMembers(ThingContextTrait.prototype, NewCl.prototype);
-			ContextHelper.copyMembers(ServiceContextTrait.prototype, NewCl.prototype);
-			ContextHelper.freeze(NewCl.prototype);
-			return NewCl;
+			ServContext.prototype['ac'] = ac;
+			ServContext.prototype['appConfig'] = ac.appConfig;
+			ContextHelper.copyMembers(ThingContextTrait.prototype, ServContext.prototype);
+			ContextHelper.copyMembers(ServiceContextTrait.prototype, ServContext.prototype);
+			ContextHelper.freeze(ServContext.prototype);
+			return ServContext;
 		}
 	}
 
@@ -235,18 +235,18 @@ module Woc {
 
 		private static mergeTraits(ac: ImplApplicationContext, methods: {}, name: string, baseUrl: string, useLibraries: string[],
 															 useServices: string[], useComponents: string[], restrictedAccess: boolean): any {
-			var NewCl = function (st: LiveState, compId: number) {
+			var CompContext = function (st: LiveState, compId: number) {
 				ComponentContextTrait.call(this, st, compId);
 			};
-			ThingContextTrait.call(NewCl.prototype, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
-			NewCl.prototype['ac'] = ac;
-			NewCl.prototype['appProperties'] = ac.appProperties;
-			ContextHelper.copyMembers(ComponentContextTrait.prototype, NewCl.prototype);
-			ContextHelper.copyMembers(ThingContextTrait.prototype, NewCl.prototype);
+			ThingContextTrait.call(CompContext.prototype, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
+			CompContext.prototype['ac'] = ac;
+			CompContext.prototype['appProperties'] = ac.appProperties;
+			ContextHelper.copyMembers(ComponentContextTrait.prototype, CompContext.prototype);
+			ContextHelper.copyMembers(ThingContextTrait.prototype, CompContext.prototype);
 			if (methods)
-				ContextHelper.copyMembers(methods, NewCl.prototype);
-			ContextHelper.freeze(NewCl.prototype);
-			return NewCl;
+				ContextHelper.copyMembers(methods, CompContext.prototype);
+			ContextHelper.freeze(CompContext.prototype);
+			return CompContext;
 		}
 	}
 

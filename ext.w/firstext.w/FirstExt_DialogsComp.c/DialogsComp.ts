@@ -1,5 +1,5 @@
 /// <reference path='../d.ts/woc.d.ts' />
-/// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
+/// <reference path='../FirstExt_GenericLiveState.l/GenericLiveState.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../Unit_Button.c/Button.ts' />
 
@@ -12,7 +12,7 @@ module FirstExt {
 		// -- Fields
 		// --
 
-		private stConfirm = new FirstExt.Helpers.GenericLiveState(false);
+		private stConfirm = new FirstExt.GenericLiveState(false);
 		private $areas;
 		private $mainDialogArea: JQuery;
 		private dialogs = [];
