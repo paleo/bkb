@@ -1,5 +1,5 @@
 {
-	"woc": "0.6",
+	"woc": "0.7",
 	"script": ["Helpers.js"],
 	"name": "FirstExt.Helpers"
 }

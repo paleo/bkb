@@ -1,6 +1,6 @@
 {
-	"woc": "0.6",
+	"woc": "0.7",
 	"encoding": "utf8",
-	"version": "0.5",
+	"version": "0.7.0",
 	"embed": ["jQueryUI.l", "Modernizr.l", "jQuery.l", "underscore.l", "Tree14.l", "CookiesHelper.l", "firstext.w", "Unit_Button.c", "Unit_CloseButton.c"]
 }

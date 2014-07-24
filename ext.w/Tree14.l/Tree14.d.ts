@@ -111,9 +111,9 @@ declare module Tree14 {
 		rm(relPath?): boolean;
 		detach(): void;
 		put(relPath: string, data, recursCreate?): string;
-		reset(data): void;
-		orderedInsert(relPath: string, data, index?: number): void;
-		setChildIndices(indices: number[]): void;
+//		reset(data): void;
+//		orderedInsert(relPath: string, data, index?: number): void;
+//		setChildIndices(indices: number[]): void;
 		/**
 		 * Available only on map
 		 * @param id

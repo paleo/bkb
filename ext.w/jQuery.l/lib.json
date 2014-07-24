@@ -1,5 +1,5 @@
 {
-	"woc": "0.6",
+	"woc": "0.7",
 	"script": ["jquery-2.1.0.min.js"],
 	"name": "jQuery"
 }

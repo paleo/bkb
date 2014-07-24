@@ -5,7 +5,12 @@ node_modules
 *.css
 _wocscripts/releases
 
+/*-?.?.?
+/*.w
+!/woc.w
+!/ext.w
+!/todos.w
+
 !woc.w/lib/*
 
 ext.w/jQueryUI.l/images
-*-0.?

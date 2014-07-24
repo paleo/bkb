@@ -1,6 +1,6 @@
 {
   "name": "woctools",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Woc tools",
   "author": "Tarh",
   "engines": {
@@ -10,11 +10,11 @@
     "woc-make": "./woc-make.js"
   },
   "dependencies": {
-    "optimist": "~0.6.1",
-    "uglify-js": "~2.4.13",
-    "uglifycss": "~0.0.8",
-    "html-minifier": "~0.5.6",
-		"es6-promise": "~1.0.0"
+    "optimist": ">=0.6",
+    "uglify-js": ">=2.4",
+    "uglifycss": ">=0.0",
+    "html-minifier": ">=0.5",
+		"es6-promise": "*"
   },
   "private": true,
   "license": "CC0"

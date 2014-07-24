@@ -117,9 +117,9 @@ module Tree14 {
 		rm(relPath?): boolean;
 		detach(): void;
 		put(relPath: string, data, recursCreate?): string;
-		reset(data): void;
-		orderedInsert(relPath: string, data, index?: number): void;
-		setChildIndices(indices: number[]): void;
+//		reset(data): void;
+//		orderedInsert(relPath: string, data, index?: number): void;
+//		setChildIndices(indices: number[]): void;
 		/**
 		 * Available only on map
 		 * @param id
@@ -600,18 +600,18 @@ module Tree14 {
 			return this.doPut(this.formatRelPath(completedRelPath), data);
 		}
 
-		public reset(data) {
-			// TODO
-		}
-
-		// example: fruits.autres[0][1].nom[2]
-		public orderedInsert(relPath: string, data, index?: number) {
-			// TODO
-		}
-
-		public setChildIndices(indices: number[]) {
-			// TODO
-		}
+//		public reset(data) {
+//			// TODO
+//		}
+//
+//		// example: fruits.autres[0][1].nom[2]
+//		public orderedInsert(relPath: string, data, index?: number) {
+//			// TODO
+//		}
+//
+//		public setChildIndices(indices: number[]) {
+//			// TODO
+//		}
 
 		public putComputedProperty(id: string, cb: Function): void {
 			if (this.isArray)
