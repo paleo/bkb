@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/Woc.d.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
 /// <reference path='../FirstExt_DialogsComp.c/DialogsComp.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 

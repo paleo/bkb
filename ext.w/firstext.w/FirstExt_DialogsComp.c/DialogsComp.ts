@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/Woc.d.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../Unit_Button.c/Button.ts' />
@@ -26,7 +26,7 @@ module FirstExt {
 		// -- Component
 		// --
 
-		constructor(private cc: Woc.ComponentContextWithFirstTemplate) {
+		constructor(private cc: Woc.FirstComponentContext) {
 			this.$areas = $(this.cc.getTemplate('.dialog-areas'));
 			this.$mainDialogArea = this.$areas.find('.main-dialog-area');
 			this.$shortDialogArea = this.$areas.find('.short-dialog-area');

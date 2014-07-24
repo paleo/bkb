@@ -2,8 +2,8 @@
 	"woc": "0.6",
 	"encoding": "utf8",
 	"useApplication": true,
-	"useLibrary": ["jQuery", "FirstExt.Helpers"],
-	"useComponent": ["Todos.List", "Unit.Button"],
+	"useLibraries": ["jQuery", "FirstExt.Helpers"],
+	"useComponents": ["Todos.List", "Unit.Button"],
 	"script": "Start.js",
 	"name": "Todos.Start"
 }

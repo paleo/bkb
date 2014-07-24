@@ -50,12 +50,12 @@ class BundleWriter {
 		});
 	}
 
-	public addLibrary(name: string, useLibrary: string[], script: {}[], css: {}[]): Promise<void> {
+	public addLibrary(name: string, useLibraries: string[], script: {}[], css: {}[]): Promise<void> {
 		if (this.libraries[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several libraries "' + name + '"');
 		var lib = {};
-		if (useLibrary !== null)
-			lib['useLibrary'] = useLibrary;
+		if (useLibraries !== null)
+			lib['useLibraries'] = useLibraries;
 		var p = Promise.resolve<void>();
 		if (script) {
 			p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
@@ -77,7 +77,7 @@ class BundleWriter {
 		});
 	}
 
-	public addService(name: string, useApp: boolean, useLibrary: string[], useService: string[], useComponent: string[],
+	public addService(name: string, useApp: boolean, useLibraries: string[], useServices: string[], useComponents: string[],
 										script: {}[], aliasStrOrArr: any): Promise<void> {
 		if (this.services[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
@@ -87,31 +87,31 @@ class BundleWriter {
 			};
 			if (useApp)
 				serv['useApplication'] = true;
-			if (useLibrary !== null)
-				serv['useLibrary'] = useLibrary;
-			if (useService !== null)
-				serv['useService'] = useService;
-			if (useComponent !== null)
-				serv['useComponent'] = useComponent;
+			if (useLibraries !== null)
+				serv['useLibraries'] = useLibraries;
+			if (useServices !== null)
+				serv['useServices'] = useServices;
+			if (useComponents !== null)
+				serv['useComponents'] = useComponents;
 			if (aliasStrOrArr !== null)
 				serv['alias'] = aliasStrOrArr;
 			this.services[name] = serv;
 		});
 	}
 
-	public addComponent(name: string, useApp: boolean, useLibrary: string[], useService: string[], useComponent: string[],
+	public addComponent(name: string, useApp: boolean, useLibraries: string[], useServices: string[], useComponents: string[],
 											script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
 		if (this.components[name] !== undefined)
 			throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
 		var comp = {}, pList = [];
 		if (useApp)
 			comp['useApplication'] = true;
-		if (useLibrary !== null)
-			comp['useLibrary'] = useLibrary;
-		if (useService !== null)
-			comp['useService'] = useService;
-		if (useComponent !== null)
-			comp['useComponent'] = useComponent;
+		if (useLibraries !== null)
+			comp['useLibraries'] = useLibraries;
+		if (useServices !== null)
+			comp['useServices'] = useServices;
+		if (useComponents !== null)
+			comp['useComponents'] = useComponents;
 		if (templateEngine)
 			comp['templateEngine'] = templateEngine;
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {

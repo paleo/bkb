@@ -139,14 +139,14 @@ module Woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		getOwnName(): string;
-		getOwnBaseUrl(): string;
+		getName(): string;
+		getBaseUrl(): string;
 		appConfig: AppConfig;
 	}
 
 	export interface ComponentTypeContext {
-		getOwnName(): string;
-		getOwnBaseUrl(): string;
+		getName(): string;
+		getBaseUrl(): string;
 	}
 
 	export interface ComponentContext {
@@ -162,8 +162,8 @@ module Woc {
 		evalService(serviceName: string[]): void;
 		evalComponent(componentName: string): void;
 		evalComponent(componentName: string[]): void;
-		getOwnName(): string;
-		getOwnBaseUrl(): string;
+		getName(): string;
+		getBaseUrl(): string;
 		appProperties: AppProperties;
 		getLiveState(): LiveState;
 	}

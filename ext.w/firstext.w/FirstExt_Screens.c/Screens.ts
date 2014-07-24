@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/Woc.d.ts' />
+/// <reference path='../../d.ts/wocbundle.d.ts' />
 /// <reference path='../FirstExt_Helpers.l/Helpers.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 
@@ -67,7 +67,7 @@ module FirstExt {
 		// -- Component
 		// --
 
-		constructor(private cc: Woc.ComponentContextWithFirstTemplate) {
+		constructor(private cc: Woc.FirstComponentContext) {
 			this.$container = $(this.cc.getTemplate('.screens'));
 			this.router = this.cc.getService('Woc.Router');
 			this.rmCbList.push(this.router.addBeforeListener((up: Woc.UrlProps): boolean => {

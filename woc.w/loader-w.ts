@@ -80,9 +80,9 @@ module Woc {
 					conf[arrName] = [conf[arrName]];
 			};
 			cleanArr('preload');
-			cleanArr('useLibrary');
-			cleanArr('useService');
-			cleanArr('useComponent');
+			cleanArr('useLibraries');
+			cleanArr('useServices');
+			cleanArr('useComponents');
 			cleanArr('script');
 			cleanArr('css');
 			cleanArr('templates');
@@ -183,14 +183,14 @@ module Woc {
 				prop = this.thingList[i];
 				switch(prop.type) {
 					case WEmbedType.Library:
-						scriptLoader.addLib(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
+						scriptLoader.addLib(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
 						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
 						break;
 					case WEmbedType.Service:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
+						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
 						break;
 					case WEmbedType.Component:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibrary']);
+						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
 						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
 						tplLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['templates']));
 						break;
@@ -263,14 +263,14 @@ module Woc {
 			// - Services
 			for (var i = 0, len = servList.length; i < len; ++i) {
 				conf = servList[i].conf;
-				this.services.register(conf['name'], servList[i].url, conf['alias'], conf['useApplication'], null, conf['useService'],
-					conf['useComponent'], null);
+				this.services.register(conf['name'], servList[i].url, conf['alias'], conf['useApplication'], null, conf['useServices'],
+					conf['useComponents'], null);
 			}
 			// - Components
 			for (var i = 0, len = compList.length; i < len; ++i) {
 				conf = compList[i].conf;
-				this.components.register(conf['name'], compList[i].url, null, conf['useApplication'], conf['useService'],
-					conf['useComponent'], null, tplMap[conf['name']], conf['templateEngine']);
+				this.components.register(conf['name'], compList[i].url, null, conf['useApplication'], conf['useServices'],
+					conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
 			}
 		}
 
@@ -334,15 +334,15 @@ module Woc {
 		constructor(private libraries: Libraries) {
 		}
 
-		public add(thingName: string, baseUrl: string, relUrls: string[], useLibrary: string[] = []) {
-			this.doAdd(thingName, baseUrl, relUrls, useLibrary, null);
+		public add(thingName: string, baseUrl: string, relUrls: string[], useLibraries: string[] = []) {
+			this.doAdd(thingName, baseUrl, relUrls, useLibraries, null);
 		}
 
-		public addLib(libName: string, baseUrl: string, relUrls: string[], useLibrary: string[] = []) {
+		public addLib(libName: string, baseUrl: string, relUrls: string[], useLibraries: string[] = []) {
 			if (this.libMap[libName] === true || (this.libMap[libName] === undefined && this.libraries.load(name, false)))
 				throw Error('Library "' + libName + '" is already defined');
 			this.libMap[libName] = false;
-			this.doAdd(libName, baseUrl, relUrls, useLibrary, libName);
+			this.doAdd(libName, baseUrl, relUrls, useLibraries, libName);
 		}
 
 		public getPromise(): Promise<void> {
@@ -352,23 +352,23 @@ module Woc {
 			return <any>Promise.all(this.promises);
 		}
 
-		private doAdd(thingName: string, baseUrl: string, relUrls: string[], useLibrary: string[], libName: string) {
+		private doAdd(thingName: string, baseUrl: string, relUrls: string[], useLibraries: string[], libName: string) {
 			this.urlValidator.add(baseUrl, relUrls);
-			this.fillLibMap(useLibrary);
+			this.fillLibMap(useLibraries);
 			this.waitList.push({
 				'thingName': thingName,
 				'libName': libName,
 				'baseUrl': baseUrl,
 				'relUrls': relUrls,
-				'useLibrary': useLibrary
+				'useLibraries': useLibraries
 			});
 			this.runWaited();
 		}
 
-		private fillLibMap(useLibrary: string[]) {
+		private fillLibMap(useLibraries: string[]) {
 			var name: string;
-			for (var i = 0, len = useLibrary.length; i < len; ++i) {
-				name = useLibrary[i];
+			for (var i = 0, len = useLibraries.length; i < len; ++i) {
+				name = useLibraries[i];
 				if (this.libMap[name] === undefined)
 					this.libMap[name] = this.libraries.load(name, false);
 			}
@@ -380,7 +380,7 @@ module Woc {
 				if (!this.waitList.hasOwnProperty(k))
 					continue;
 				prop = this.waitList[k];
-				if (this.areLibReady(prop['useLibrary'])) {
+				if (this.areLibReady(prop['useLibraries'])) {
 					withStarted = true;
 					this.loadUrls(prop['baseUrl'], prop['relUrls'], prop['libName']);
 					delete this.waitList[k];
@@ -391,9 +391,9 @@ module Woc {
 				throw Error('Fail to load scripts for: ' + this.toDebugStringWait());
 		}
 
-		private areLibReady(useLibrary: string[]) {
-			for (var i = 0, len = useLibrary.length; i < len; ++i) {
-				if (!this.libMap[useLibrary[i]])
+		private areLibReady(useLibraries: string[]) {
+			for (var i = 0, len = useLibraries.length; i < len; ++i) {
+				if (!this.libMap[useLibraries[i]])
 					return false;
 			}
 			return true;

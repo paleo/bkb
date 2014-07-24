@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/WocBundle.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module Unit {
@@ -13,7 +13,7 @@ module Unit {
 		// -- Component
 		// --
 
-		constructor(private cc: Woc.ComponentContextWithFirstTemplate, props: {}) {
+		constructor(private cc: Woc.FirstComponentContext, props: {}) {
 			this.$btn = $(this.cc.getTemplate('.close-btn'));
 			if (props['cssClass'])
 				this.$btn.addClass(props['cssClass']);

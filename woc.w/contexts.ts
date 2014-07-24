@@ -25,11 +25,11 @@ module Woc {
 			this.ac = ac;
 		}
 
-		public register(libName: string, useLibrary: string[], script: string) {
+		public register(libName: string, useLibraries: string[], script: string) {
 			if (this.map[libName] !== undefined)
 				throw Error('The lib "' + libName + '" is already declared');
 			this.map[libName] = {
-				'useLibrary': useLibrary,
+				'useLibraries': useLibraries,
 				'script': script,
 				'loading': false
 			};
@@ -48,11 +48,11 @@ module Woc {
 			}
 			if (prop === true)
 				return true;
-			if (prop['useLibrary']) {
+			if (prop['useLibraries']) {
 				if (prop['loading'])
-					throw Error('A loop is detected in useLibrary for "' + libName + '"');
+					throw Error('A loop is detected in useLibraries for "' + libName + '"');
 				prop['loading'] = true;
-				this.ac.evalLibrary(prop['useLibrary']);
+				this.ac.evalLibrary(prop['useLibraries']);
 			}
 			if (prop['script'] !== null)
 				globalEval(prop['script']);
@@ -78,15 +78,15 @@ module Woc {
 			this.coreRegister('Woc.Router', 'Woc.CoreRouter');
 		}
 
-		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useApp: boolean, useLibrary: string[],
-										useService: string[], useComponent: string[], script: string) {
+		public register(serviceName: string, serviceBaseUrl: string, aliasStrOrList: any, useApp: boolean, useLibraries: string[],
+										useServices: string[], useComponents: string[], script: string) {
 			var prop = {
 				'name': serviceName,
 				'baseUrl': serviceBaseUrl,
 				'useApplication': useApp,
-				'useLibrary': useLibrary,
-				'useService': useService,
-				'useComponent': useComponent,
+				'useLibraries': useLibraries,
+				'useServices': useServices,
+				'useComponents': useComponents,
 				'script': script,
 				'sc': null,
 				's': null
@@ -122,13 +122,13 @@ module Woc {
 				throw Error('Unknown service "' + serviceName + '"');
 			if (prop['sc'] !== null)
 				return;
-			if (prop['useLibrary'])
-				this.ac.evalLibrary(prop['useLibrary']);
+			if (prop['useLibraries'])
+				this.ac.evalLibrary(prop['useLibraries']);
 			if (prop['script'] !== null)
 				globalEval(prop['script']);
 			var cl = toClass(prop['coreClass'] || prop['name']);
-			prop['sc'] = new this.ImplServiceContext(prop['name'], prop['baseUrl'], prop['useLibrary'], prop['useService'],
-				prop['useComponent'], prop['coreClass'] ? false : true);
+			prop['sc'] = new this.ImplServiceContext(prop['name'], prop['baseUrl'], prop['useLibraries'], prop['useServices'],
+				prop['useComponents'], prop['coreClass'] ? false : true);
 			prop['s'] = prop['useApplication'] ? new cl(this.ac, prop['sc']) : new cl(prop['sc']);
 		}
 
@@ -138,9 +138,9 @@ module Woc {
 		}
 
 		private static mergeTraits(ac: ImplApplicationContext): any {
-			var NewCl = function (ownName: string, ownBaseUrl: string, useLibrary: string[], useService: string[],
-														useComponent: string[], restrictedAccess: boolean) {
-				ThingContextTrait.call(this, ownName, ownBaseUrl, useLibrary, useService, useComponent, restrictedAccess);
+			var NewCl = function (name: string, baseUrl: string, useLibraries: string[], useServices: string[],
+														useComponents: string[], restrictedAccess: boolean) {
+				ThingContextTrait.call(this, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
 				ServiceContextTrait.call(this);
 			};
 			NewCl.prototype['ac'] = ac;
@@ -172,15 +172,15 @@ module Woc {
 			return this.compTree;
 		}
 
-		public register(componentName: string, componentBaseUrl: string, useApp: boolean, useLibrary: string[], useService: string[],
-										useComponent: string[], script: string, tplStr: string, templateEngine: string) {
+		public register(componentName: string, componentBaseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
+										useComponents: string[], script: string, tplStr: string, templateEngine: string) {
 			if (this.map[componentName] !== undefined)
 				throw Error('Conflict for component "' + componentName + '"');
 			this.map[componentName] = {
 				'useApplication': useApp,
-				'useLibrary': useLibrary,
-				'useService': useService,
-				'useComponent': useComponent,
+				'useLibraries': useLibraries,
+				'useServices': useServices,
+				'useComponents': useComponents,
 				'script': script,
 				'tplStr': tplStr,
 				'baseUrl': componentBaseUrl,
@@ -213,8 +213,8 @@ module Woc {
 
 		private makeTypeContextsReady(componentName: string, prop): void {
 			if (prop['ctc'] === null) {
-				if (prop['useLibrary'])
-					this.ac.evalLibrary(prop['useLibrary']);
+				if (prop['useLibraries'])
+					this.ac.evalLibrary(prop['useLibraries']);
 				if (prop['script'] !== null)
 					globalEval(prop['script']);
 				this.makeContexts(componentName, prop);
@@ -229,16 +229,16 @@ module Woc {
 				methods = tplEng.makeProcessor(prop['ctc'], prop['tplStr']).getContextMethods();
 			} else
 				methods = null;
-			prop['CC'] = Components.mergeTraits(this.ac, methods, componentName, prop['baseUrl'], prop['useLibrary'],
-				prop['useService'], prop['useComponent'], true);
+			prop['CC'] = Components.mergeTraits(this.ac, methods, componentName, prop['baseUrl'], prop['useLibraries'],
+				prop['useServices'], prop['useComponents'], true);
 		}
 
-		private static mergeTraits(ac: ImplApplicationContext, methods: {}, ownName: string, ownBaseUrl: string, useLibrary: string[],
-															 useService: string[], useComponent: string[], restrictedAccess: boolean): any {
+		private static mergeTraits(ac: ImplApplicationContext, methods: {}, name: string, baseUrl: string, useLibraries: string[],
+															 useServices: string[], useComponents: string[], restrictedAccess: boolean): any {
 			var NewCl = function (st: LiveState, compId: number) {
 				ComponentContextTrait.call(this, st, compId);
 			};
-			ThingContextTrait.call(NewCl.prototype, ownName, ownBaseUrl, useLibrary, useService, useComponent, restrictedAccess);
+			ThingContextTrait.call(NewCl.prototype, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
 			NewCl.prototype['ac'] = ac;
 			NewCl.prototype['appProperties'] = ac.appProperties;
 			ContextHelper.copyMembers(ComponentContextTrait.prototype, NewCl.prototype);
@@ -379,16 +379,16 @@ module Woc {
 		private authServices: {};
 		private authComponents: {};
 
-		constructor(private ownName: string, private ownBaseUrl: string, useLibrary: string[], useService: string[],
-								useComponent: string[], private restrictedAccess: boolean) {
-			this.authLibraries = ContextHelper.toSet(useLibrary);
-			this.authServices = ContextHelper.toSet(useService);
-			this.authComponents = ContextHelper.toSet(useComponent);
+		constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
+								useComponents: string[], private restrictedAccess: boolean) {
+			this.authLibraries = ContextHelper.toSet(useLibraries);
+			this.authServices = ContextHelper.toSet(useServices);
+			this.authComponents = ContextHelper.toSet(useComponents);
 		}
 
 		public getService(serviceName: string): any {
 			if (this.restrictedAccess && !this.authServices[serviceName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the service "' + serviceName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the service "' + serviceName + '"');
 			return this.ac.getService(serviceName);
 		}
 
@@ -398,34 +398,34 @@ module Woc {
 
 		public hasLibrary(libName: any): boolean {
 			if (this.restrictedAccess && !this.authLibraries[libName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the library "' + libName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the library "' + libName + '"');
 			return this.ac.hasLibrary(libName);
 		}
 
 		public evalLibrary(libName: any): void {
 			if (this.restrictedAccess && !this.authLibraries[libName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the library "' + libName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the library "' + libName + '"');
 			this.ac.evalLibrary(libName);
 		}
 
 		public evalService(serviceName: any): void {
 			if (this.restrictedAccess && !this.authServices[serviceName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the service "' + serviceName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the service "' + serviceName + '"');
 			this.ac.evalService(serviceName);
 		}
 
 		public evalComponent(componentName: any): void {
 			if (this.restrictedAccess && !this.authComponents[componentName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the component "' + componentName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
 			this.ac.evalComponent(componentName);
 		}
 
-		public getOwnName(): string {
-			return this.ownName;
+		public getName(): string {
+			return this.name;
 		}
 
-		public getOwnBaseUrl(): string {
-			return this.ownBaseUrl;
+		public getBaseUrl(): string {
+			return this.baseUrl;
 		}
 	}
 
@@ -435,13 +435,13 @@ module Woc {
 
 	class ServiceContextTrait {
 		private restrictedAccess: boolean;
-		private ownName: string;
+		private name: string;
 		private authComponents: {};
 		private ac: ImplApplicationContext;
 
 		public createComponent(componentName: string, props: {}, st: LiveState): any {
 			if (this.restrictedAccess && !this.authComponents[componentName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the component "' + componentName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
 			return this.ac.createComponentFromServ(componentName, props, st, <any>this);
 		}
 	}
@@ -451,15 +451,15 @@ module Woc {
 	// ##
 
 	class ImplComponentTypeContext implements ComponentTypeContext {
-		constructor(private ownName: string, private ownBaseUrl) {
+		constructor(private name: string, private baseUrl) {
 		}
 
-		public getOwnName(): string {
-			return this.ownName;
+		public getName(): string {
+			return this.name;
 		}
 
-		public getOwnBaseUrl(): string {
-			return this.ownBaseUrl;
+		public getBaseUrl(): string {
+			return this.baseUrl;
 		}
 	}
 
@@ -469,7 +469,7 @@ module Woc {
 
 	class ComponentContextTrait {
 		private restrictedAccess: boolean;
-		private ownName: string;
+		private name: string;
 		private authComponents: {};
 		private ac: ImplApplicationContext;
 
@@ -478,7 +478,7 @@ module Woc {
 
 		public createComponent(componentName: string, props: {} = null, st: LiveState = null): any {
 			if (this.restrictedAccess && !this.authComponents[componentName])
-				throw Error('In "' + this.ownName + '", unauthorized access to the component "' + componentName + '"');
+				throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
 			return this.ac.createComponentFromComp(componentName, props, st ? st : this.st, this.compId);
 		}
 

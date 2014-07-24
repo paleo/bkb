@@ -2,7 +2,7 @@
 	"woc": "0.6",
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
-	"useLibrary": ["jQuery", "FirstExt.Helpers"],
+	"useLibraries": ["jQuery", "FirstExt.Helpers"],
 	"script": ["Screens.js"],
 	"templates": ["t.html"],
 	"name": "FirstExt.Screens"

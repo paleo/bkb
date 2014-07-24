@@ -1,7 +1,7 @@
-/// <reference path="../d.ts/WocBundle.d.ts" />
+/// <reference path="../d.ts/wocbundle.d.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path='../Todos_List.c/List.ts' />
-/// <reference path='../../ext.w/FirstExt.w/FirstExt_Helpers.l/Helpers.ts' />
+/// <reference path='../../ext.w/firstext.w/FirstExt_Helpers.l/Helpers.ts' />
 
 module Todos {
 	'use strict';

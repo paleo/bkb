@@ -88,7 +88,7 @@ module Woc {
 					if (!libMap.hasOwnProperty(name))
 						continue;
 					data = libMap[name];
-					this.libraries.register(name, data['useLibrary'], data['script']);
+					this.libraries.register(name, data['useLibraries'], data['script']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
@@ -100,8 +100,8 @@ module Woc {
 					if (!servMap.hasOwnProperty(name))
 						continue;
 					data = servMap[name];
-					this.services.register(name, bundleUrl, data['alias'], data['useApplication'], data['useLibrary'], data['useService'],
-						data['useComponent'], data['script']);
+					this.services.register(name, bundleUrl, data['alias'], data['useApplication'], data['useLibraries'], data['useServices'],
+						data['useComponents'], data['script']);
 				}
 			}
 			// - Register components
@@ -111,8 +111,8 @@ module Woc {
 					if (!compMap.hasOwnProperty(name))
 						continue;
 					data = compMap[name];
-					this.components.register(name, bundleUrl, data['useApplication'], data['useLibrary'], data['useService'],
-						data['useComponent'], data['script'], data['templates'], data['templateEngine']);
+					this.components.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
+						data['useComponents'], data['script'], data['templates'], data['templateEngine']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}

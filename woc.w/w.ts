@@ -37,7 +37,7 @@ var Woc;
 		start(wocUrl);
 	};
 	var start = function (wocUrl: string) {
-		addScript(wocUrl + '/Woc.w/main.js');
+		addScript(wocUrl + '/woc.w/main.js');
 	};
 	// - Add scripts in head
 	var addScript = function (url, cb: Function = null) {
@@ -80,7 +80,7 @@ var Woc;
 				wocUrl = baseUrl;
 			}
 			for (var i = 0; i < scripts.length; ++i) {
-				addScript(wocUrl + '/Woc.w/' + scripts[i], function () {
+				addScript(wocUrl + '/woc.w/' + scripts[i], function () {
 					--waitedLoads;
 					tryToStart(wocUrl);
 				});

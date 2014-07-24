@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/Woc.d.ts' />
+/// <reference path='../d.ts/woc.d.ts' />
 
 module FirstExt.Helpers {
 	'use strict';

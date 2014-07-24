@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/WocBundle.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 /// <reference path='../../ext.w/Unit_Button.c/Button.ts' />
 
@@ -10,7 +10,7 @@ module Todos {
 		private btn: Unit.Button;
 		private cbRemove: () => void;
 
-		constructor(private cc: Woc.ComponentContextWithFirstTemplate, props: {}) {
+		constructor(private cc: Woc.FirstComponentContext, props: {}) {
 			this.btn = cc.createComponent('Unit.Button', {'label': '×'});
 			this.$bloc = $(cc.getTemplate('.todos-item', {'button': this.btn.getElement()}));
 			this.btn.click((e) => {

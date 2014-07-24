@@ -113,7 +113,7 @@ class BundleWReader {
 			var css = this.makeFileArr(dirRelPath, conf['css']);
 			// - Add into the writer
 			return Promise.all([
-				writer.addLibrary(conf['name'], BundleWReader.arrayOrNull(conf['useLibrary']), script, css),
+				writer.addLibrary(conf['name'], BundleWReader.arrayOrNull(conf['useLibraries']), script, css),
 				this.includeOtherFiles(writer, dirName, {'lib.json': true})
 			]);
 		});
@@ -139,8 +139,8 @@ class BundleWReader {
 			var useApp = conf['useApplication'] === true;
 			// - Add into the writer
 			return Promise.all([
-				writer.addService(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibrary']),
-					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, aliasStrOrArr),
+				writer.addService(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibraries']),
+					BundleWReader.arrayOrNull(conf['useServices']), BundleWReader.arrayOrNull(conf['useComponents']), script, aliasStrOrArr),
 				this.includeOtherFiles(writer, dirName, {'serv.json': true})
 			]);
 		});
@@ -164,8 +164,8 @@ class BundleWReader {
 			var useApp = conf['useApplication'] === true;
 			// - Add into the writer
 			return Promise.all([
-				writer.addComponent(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibrary']),
-					BundleWReader.arrayOrNull(conf['useService']), BundleWReader.arrayOrNull(conf['useComponent']), script, css, templates,
+				writer.addComponent(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibraries']),
+					BundleWReader.arrayOrNull(conf['useServices']), BundleWReader.arrayOrNull(conf['useComponents']), script, css, templates,
 					conf['templateEngine']),
 				this.includeOtherFiles(writer, dirName, {'comp.json': true})
 			]);
@@ -245,9 +245,9 @@ class BundleWReader {
 				conf[arrName] = [conf[arrName]];
 		};
 		cleanArr('preload');
-		cleanArr('useLibrary');
-		cleanArr('useService');
-		cleanArr('useComponent');
+		cleanArr('useLibraries');
+		cleanArr('useServices');
+		cleanArr('useComponents');
 		cleanArr('script');
 		cleanArr('css');
 		cleanArr('templates');

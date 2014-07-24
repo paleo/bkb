@@ -11,7 +11,7 @@ module Woc {
 		public newPlaceholder(cName: string, compTreeArg): number {
 			switch (compTreeArg['from']) {
 				case 'S':
-					return this.addFromRoot(cName, compTreeArg['sc'].getOwnName());
+					return this.addFromRoot(cName, compTreeArg['sc'].getName());
 				case 'C':
 					var parentId = compTreeArg['id'];
 					if (this.list[parentId] === undefined)

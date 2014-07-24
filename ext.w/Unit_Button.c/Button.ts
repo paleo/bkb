@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/WocBundle.d.ts' />
+/// <reference path='../d.ts/wocbundle.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module Unit {
@@ -17,13 +17,13 @@ module Unit {
 		// -- Component
 		// --
 
-		constructor(private cc: Woc.ComponentContextWithFirstTemplate, props: {}) {
+		constructor(private cc: Woc.FirstComponentContext, props: {}) {
 			this.withAjax = props['ajax'] ? true : false;
 			this.autoDisableMode = this.withAjax || (props['autoDisable'] ? true : false);
 			if (this.withAjax) {
 				this.$btn = $(cc.getTemplate('.ajax-btn'));
 				this.$ajaxFlag = $('<img class="ajax-flag" alt="">');
-				this.$ajaxFlag.attr('src', cc.getOwnBaseUrl() + '/ajax-loader.gif');
+				this.$ajaxFlag.attr('src', cc.getBaseUrl() + '/ajax-loader.gif');
 				this.$ajaxFlag.hide();
 				this.$ajaxFlag.appendTo(this.$btn);
 			} else
