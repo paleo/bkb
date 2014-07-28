@@ -6,6 +6,7 @@
 	"useComponents": ["Unit.Button", "Todos.Item"],
 	"script": "List.js",
 	"templates": "t.html",
+	"stylesheet": "p.css",
 	"css": "p.css",
 	"name": "Todos.List"
 }

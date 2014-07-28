@@ -3,5 +3,6 @@
 	"encoding": "utf8",
 	"version": "0.7.0",
 	"preload": ["ext"],
-	"embed": ["Todos_Start.s", "Todos_List.c", "Todos_Item.c"]
+	"embed": ["Todos_Start.s", "Todos_List.c", "Todos_Item.c"],
+	"theme": ["nicetodos", "th-a", "th-b"]
 }

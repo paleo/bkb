@@ -3,6 +3,9 @@
 /// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../Unit_Button.c/Button.ts' />
 
+// TODO use http://demo.agektmr.com/dialog/ and https://github.com/GoogleChrome/dialog-polyfill
+// see https://github.com/GoogleChrome/dialog-polyfill/pull/13/files for compatibility
+
 module FirstExt {
 	'use strict';
 

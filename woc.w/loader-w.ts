@@ -24,7 +24,7 @@ module Woc {
 	}
 
 	enum WEmbedType {
-		Component, Library, Service, Bundle
+		Component, Library, Service, Bundle, Theme
 	}
 
 	// ##
@@ -56,9 +56,9 @@ module Woc {
 				this.initMergedBundleConf();
 				return Promise.all(this.preloads);
 			}).then(() => {
-				var lsc = new WLoaderLSC(this.libraries, this.services, this.components, this.ajax, this.bundlePath, this.bundleUrl,
+				var thingLoader = new WThingLoader(this.libraries, this.services, this.components, this.ajax, this.bundlePath, this.bundleUrl,
 					this.embedBundleList, this.mergedBundleConf);
-				return lsc.loadAll();
+				return thingLoader.loadAll();
 			}).then(() => {
 				var conf = this.mergedBundleConf;
 				if (conf['version'] && this.version && conf['version'] !== this.version)
@@ -84,6 +84,7 @@ module Woc {
 			cleanArr('useServices');
 			cleanArr('useComponents');
 			cleanArr('script');
+			cleanArr('theme');
 			cleanArr('css');
 			cleanArr('templates');
 		}
@@ -113,7 +114,7 @@ module Woc {
 				});
 				if (bundleConf['embed'] !== undefined) {
 					return Promise.all(bundleConf['embed'].map((dir) => {
-						if (WLoaderLSC.getType(dir) !== WEmbedType.Bundle)
+						if (WThingLoader.getType(dir) !== WEmbedType.Bundle)
 							return null;
 						var childEmbedPath = bundleEmbedPath === null ? dir : bundleEmbedPath + '/' + bundleEmbedPath;
 						return this.loadBundleConfRecursive(bundlePath + '/' + dir, childEmbedPath, bundleUrl + '/' + dir);
@@ -123,30 +124,33 @@ module Woc {
 		}
 
 		private initMergedBundleConf() {
-			var i, len, bundleProp, cssList = [], encoding = null;
+			var i, len, bundleProp, themes = [], encoding = null;
 			for (i = 0, len = this.embedBundleList.length; i < len; ++i) {
 				bundleProp = this.embedBundleList[i];
 				if (!encoding)
 					encoding = bundleProp.conf['encoding'];
 				else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
 					throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
-				if (bundleProp.conf['css'] !== undefined)
-					Array.prototype.push.apply(cssList, WLoaderLSC.toFileList(bundleProp.conf['css'], bundleProp.embedPath));
+				if (bundleProp.conf['theme'] !== undefined)
+					themes.push(WThingLoader.toResList(bundleProp.conf['theme'], bundleProp.embedPath));
 			}
 			var mainConf = len > 0 ? this.embedBundleList[0].conf : null;
+			var flatThemeList = [];
+			for (var j = themes.length - 1; j >= 0; --j)
+				Array.prototype.push.apply(flatThemeList, themes[j]);
 			this.mergedBundleConf = {
 				'version': mainConf ? mainConf['version'] : undefined,
 				'encoding': encoding,
-				'css': cssList
+				'theme': flatThemeList
 			};
 		}
 	}
-	
+
 	// ##
-	// ## WLoaderLibServComp
+	// ## WThingLoader
 	// ##
 
-	class WLoaderLSC {
+	class WThingLoader {
 		
 		private thingList: WThingProp[];
 
@@ -166,7 +170,7 @@ module Woc {
 				}
 				return this.fillFileLoaders();
 			}).then((tplMap) => {
-				return this.registerAll(tplMap);
+				this.registerAll(tplMap);
 			});
 		}
 
@@ -175,36 +179,89 @@ module Woc {
 		 */
 		private fillFileLoaders(): Promise<{[index: string]: string}> {
 			var scriptLoader = new WScriptLoader(this.libraries);
-			var cssLoader = new WCssLoader();
 			var tplLoader = new WTplLoader(this.ajax);
+			var cssLoader = new WCssLoader();
+			var themePromises: Promise<void>[] = [];
 			// - Libraries, Services, Components
 			var prop: WThingProp;
 			for (var i = 0, len = this.thingList.length; i < len; ++i) {
 				prop = this.thingList[i];
 				switch(prop.type) {
 					case WEmbedType.Library:
-						scriptLoader.addLib(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
-						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
+						scriptLoader.addLib(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
+						themePromises.push(this.loadTheme(
+							cssLoader,
+							prop.conf['name'],
+							prop.url,
+							prop.conf['theme'],
+							WThingLoader.toResList(prop.conf['css'])
+						));
 						break;
 					case WEmbedType.Service:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
+						scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
 						break;
 					case WEmbedType.Component:
-						scriptLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['script']), prop.conf['useLibraries']);
-						cssLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['css']));
-						tplLoader.add(prop.conf['name'], prop.url, WLoaderLSC.toFileList(prop.conf['templates']));
+						scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
+						tplLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['templates']));
+						themePromises.push(this.loadTheme(
+							cssLoader,
+							prop.conf['name'],
+							prop.url,
+							prop.conf['theme'],
+							WThingLoader.toResList(prop.conf['css']))
+						);
 						break;
+					default:
+						throw Error('Bad thing type: ' + prop.type);
 				}
 			}
 			// - Bundle
-			cssLoader.add(this.bundlePath, this.bundleUrl, WLoaderLSC.toFileList(this.mergedBundleConf['css']));
+			var allThemesP = Promise.all(themePromises).then(() => this.loadTheme(
+				cssLoader, this.bundlePath, this.bundleUrl, this.mergedBundleConf['theme']
+			)).then(() => cssLoader.getPromise());
 			// - Promises
 			return Promise.all<any>([
 				scriptLoader.getPromise(),
-				cssLoader.getPromise(),
-				tplLoader.getPromise()
+				tplLoader.getPromise(),
+				allThemesP
 			]).then((arr) => {
-				return arr[2];
+				return arr[1];
+			});
+		}
+
+		private loadTheme(cssLoader: WCssLoader, thingName: string, baseUrl: string, themeVal: any, cssList: string[] = []): Promise<void> {
+			if (!themeVal) {
+				cssLoader.add(thingName, baseUrl, cssList);
+				return Promise.resolve<void>();
+			}
+			return this.loadThemeRecursive(thingName, baseUrl, null, themeVal).then((list: string[]) => {
+				Array.prototype.push.apply(list, cssList);
+				cssLoader.add(thingName, baseUrl, list);
+			});
+		}
+
+		private loadThemeRecursive(thingName: string, thingUrl: string, relThemeUrl: string, themeVal: any): Promise<string[]> {
+			if (!Array.isArray(themeVal))
+				themeVal = [themeVal];
+			return Promise.all(themeVal.map((dirOrObj: any): any => {
+				// - Case of short syntax
+				if (typeof dirOrObj === 'object')
+					return WThingLoader.toResList(dirOrObj['stylesheet'], dirOrObj['theme']);
+				// - Normal case
+				var dirUrl = relThemeUrl ? relThemeUrl + '/' + dirOrObj : dirOrObj;
+				return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
+					if (!conf['theme'])
+						return WThingLoader.toResList(conf['stylesheet'], dirUrl);
+					return this.loadThemeRecursive(thingName, thingUrl, dirUrl, conf['theme']).then((list: string[]) => {
+						Array.prototype.push.apply(list, WThingLoader.toResList(conf['stylesheet'], dirUrl));
+						return list;
+					});
+				});
+			})).then((arr) => {
+				var list = [];
+				for (var i = 0, len = arr.length; i < len; ++i)
+					Array.prototype.push.apply(list, arr[i]);
+				return list;
 			});
 		}
 
@@ -218,7 +275,7 @@ module Woc {
 					continue;
 				for (j = 0, lenJ = embed.length; j < lenJ; ++j) {
 					dir = embed[j];
-					type = WLoaderLSC.getType(dir);
+					type = WThingLoader.getType(dir);
 					if (type === WEmbedType.Bundle)
 						continue;
 					url = bundleProp.url + '/' + dir;
@@ -226,7 +283,7 @@ module Woc {
 						type: type,
 						path: dir,
 						url: url,
-						confUrl: url + '/' + WLoaderLSC.getConfFileName(type),
+						confUrl: url + '/' + WThingLoader.getConfFileName(type),
 						bundleProp: bundleProp,
 						conf: null
 					});
@@ -234,7 +291,7 @@ module Woc {
 			}
 		}
 
-		private registerAll(tplMap: {}) {
+		private registerAll(tplMap: {}): void {
 			// - Make lists
 			var libList: WThingProp[] = [],
 				servList: WThingProp[] = [],
@@ -309,13 +366,13 @@ module Woc {
 			}
 		}
 
-		public static toFileList(script: any, pathPrefix: string = null): string[] {
-			script = script ? (typeof script === 'string' ? [script] : script) : [];
+		public static toResList(nameOrArr: any, pathPrefix: string = null): string[] {
+			nameOrArr = nameOrArr ? (typeof nameOrArr === 'string' ? [nameOrArr] : nameOrArr) : [];
 			if (pathPrefix) {
-				for (var i = 0, len = script.length; i < len; ++i)
-					script[i] = pathPrefix + '/' + script[i];
+				for (var i = 0, len = nameOrArr.length; i < len; ++i)
+					nameOrArr[i] = pathPrefix + '/' + nameOrArr[i];
 			}
-			return script;
+			return nameOrArr;
 		}
 	}
 
