@@ -52,11 +52,10 @@ class BundleWReader {
 		// - Bundle
 		if (!Project.isEmpty(this.conf['preload']))
 			writer.putBundleVal('preload', Project.cloneData(this.conf['preload']));
-		if (!Project.isEmpty(this.conf['css'])) {
-			p = p.then(() => {
-				return writer.setBundleCss(this.makeFileArr(this.bundleRelPath, this.conf['css']));
-			});
-		}
+		p = p.then(() => this.readThemeConf(writer, this.bundleRelPath, this.bundleRelPath, this.conf['theme'], this.conf['css']).
+			then((cssList): any => {
+				return writer.setBundleCss(this.makeFileArr(this.bundleRelPath, cssList));
+			}));
 		// - Embed things
 		var dirList = this.conf['embed'];
 		if (dirList) {
@@ -67,15 +66,20 @@ class BundleWReader {
 			}, p);
 		}
 		// - Other files
-		var excludeSet = {'bundle.json': true};
+		var excludedSet: {[index: string]: boolean} = {'bundle.json': true};
 		if (this.conf['embed']) {
 			for (var i = 0, len = this.conf['embed'].length; i < len; ++i)
-				excludeSet[this.conf['embed'][i]] = true;
+				excludedSet[this.conf['embed'][i]] = true;
 		}
+		BundleWReader.appendThemeDirectoriesToSet(excludedSet, this.conf['theme']);
 		return p.then(() => {
-			return this.includeOtherFiles(writer, null, excludeSet);
+			return this.includeOtherFiles(writer, this.bundleRelPath, excludedSet);
 		});
 	}
+
+	// --
+	// -- Private - Process embed
+	// --
 
 	private processEmbedThing(writer: BundleWriter, dirName: string): Promise<void> {
 		switch (BundleWReader.toEmbedType(dirName)) {
@@ -108,14 +112,23 @@ class BundleWReader {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
-			// - Read files
-			var script = this.makeFileArr(dirRelPath, conf['script']);
-			var css = this.makeFileArr(dirRelPath, conf['css']);
-			// - Add into the writer
-			return Promise.all([
-				writer.addLibrary(conf['name'], BundleWReader.arrayOrNull(conf['useLibraries']), script, css),
-				this.includeOtherFiles(writer, dirName, {'lib.json': true})
-			]);
+			// - Read the theme configuration
+			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['css']).then((cssList) => {
+				// - Add into the writer
+				return Promise.all([
+					writer.addLibrary(
+						conf['name'],
+						BundleWReader.arrayOrNull(conf['useLibraries']),
+						this.makeFileArr(dirRelPath, conf['script']),
+						this.makeFileArr(dirRelPath, cssList)
+					),
+					this.includeOtherFiles(
+						writer,
+						dirRelPath,
+						BundleWReader.appendThemeDirectoriesToSet({'lib.json': true}, conf['theme'])
+					)
+				]);
+			});
 		});
 	}
 
@@ -128,20 +141,28 @@ class BundleWReader {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
-			// - Read files
 			if (Project.isEmpty(conf['script']))
 				throw Error('Missing "scripts" in ' + jsonPath);
-			var script = this.makeFileArr(dirRelPath, conf['script']);
 			// - alias
 			var aliasStrOrArr: any = conf['alias'];
 			if (!aliasStrOrArr || (typeof aliasStrOrArr === 'object' && aliasStrOrArr.length === 0))
 				aliasStrOrArr = null;
-			var useApp = conf['useApplication'] === true;
 			// - Add into the writer
 			return Promise.all([
-				writer.addService(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibraries']),
-					BundleWReader.arrayOrNull(conf['useServices']), BundleWReader.arrayOrNull(conf['useComponents']), script, aliasStrOrArr),
-				this.includeOtherFiles(writer, dirName, {'serv.json': true})
+				writer.addService(
+					conf['name'],
+					conf['useApplication'] === true,
+					BundleWReader.arrayOrNull(conf['useLibraries']),
+					BundleWReader.arrayOrNull(conf['useServices']),
+					BundleWReader.arrayOrNull(conf['useComponents']),
+					this.makeFileArr(dirRelPath, conf['script']),
+					aliasStrOrArr
+				),
+				this.includeOtherFiles(
+					writer,
+					dirRelPath,
+					{'serv.json': true}
+				)
 			]);
 		});
 	}
@@ -155,22 +176,106 @@ class BundleWReader {
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
-			// - Read files
 			if (Project.isEmpty(conf['script']))
 				throw Error('Missing "scripts" in ' + jsonPath);
-			var script = this.makeFileArr(dirRelPath, conf['script']);
-			var templates = this.makeFileArr(dirRelPath, conf['templates']);
-			var css = this.makeFileArr(dirRelPath, conf['css']);
-			var useApp = conf['useApplication'] === true;
-			// - Add into the writer
-			return Promise.all([
-				writer.addComponent(conf['name'], useApp, BundleWReader.arrayOrNull(conf['useLibraries']),
-					BundleWReader.arrayOrNull(conf['useServices']), BundleWReader.arrayOrNull(conf['useComponents']), script, css, templates,
-					conf['templateEngine']),
-				this.includeOtherFiles(writer, dirName, {'comp.json': true})
-			]);
+			// - Read the theme configuration
+			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['css']).then((cssList) => {
+				// - Add into the writer
+				return Promise.all([
+					writer.addComponent(
+						conf['name'],
+						conf['useApplication'] === true,
+						BundleWReader.arrayOrNull(conf['useLibraries']),
+						BundleWReader.arrayOrNull(conf['useServices']),
+						BundleWReader.arrayOrNull(conf['useComponents']),
+						this.makeFileArr(dirRelPath, conf['script']),
+						this.makeFileArr(dirRelPath, cssList),
+						this.makeFileArr(dirRelPath, conf['templates']),
+						conf['templateEngine']
+					),
+					this.includeOtherFiles(
+						writer,
+						dirRelPath,
+						BundleWReader.appendThemeDirectoriesToSet({'comp.json': true}, conf['theme'])
+					)
+				]);
+			});
 		});
 	}
+
+	// --
+	// -- Private - Read theme configuration
+	// --
+
+	private readThemeConf(writer: BundleWriter, thingName: string, thingRelPath: string, themeVal: any[], cssList: string[] = []): Promise<string[]> {
+		if (!themeVal) {
+			return Promise.resolve<string[]>(cssList);
+		}
+		return this.readThemeConfRecursive(writer, thingRelPath, null, themeVal).then((list: string[]) => {
+			Array.prototype.push.apply(list, cssList);
+			return list;
+		});
+	}
+
+	private readThemeConfRecursive(writer: BundleWriter, thingRelPath: string, relPath: string, themeVal: any[]): Promise<string[]> {
+		var makeCopyPromise = (completePath, themeVal) => {
+			var excludeNames = themeVal ? BundleWReader.appendThemeDirectoriesToSet({'theme.json': true}, themeVal) : {};
+			return this.includeOtherFiles(writer, completePath, excludeNames);
+		};
+		return Promise.all(themeVal.map((dirOrObj: any): any => {
+			// - Case of short syntax
+			if (typeof dirOrObj === 'object') {
+				var subDirPath = relPath ? path.join(thingRelPath, relPath, dirOrObj['theme']) : path.join(thingRelPath, dirOrObj['theme']);
+				return makeCopyPromise(subDirPath, null).then(() =>
+					BundleWReader.prependPathToFileList(dirOrObj['stylesheet'], dirOrObj['theme']));
+			}
+			// - Normal case
+			var itemRelPath = relPath ? path.join(relPath, dirOrObj) : dirOrObj;
+			var completePath = path.join(thingRelPath, itemRelPath);
+			return this.project.readInputJsonFile(path.join(completePath, 'theme.json'), this.encoding).then((conf): any => {
+				BundleWReader.cleanConf(conf);
+				return makeCopyPromise(completePath, conf['theme']).then((): any => {
+					if (!conf['theme'])
+						return BundleWReader.prependPathToFileList(conf['stylesheet'], itemRelPath);
+					return this.readThemeConfRecursive(writer, thingRelPath, itemRelPath, conf['theme']).then((list: string[]) => {
+						Array.prototype.push.apply(list, BundleWReader.prependPathToFileList(conf['stylesheet'], itemRelPath));
+						return list;
+					});
+				});
+			});
+		})).then((arr) => {
+			var list = [];
+			for (var i = 0, len = arr.length; i < len; ++i)
+				Array.prototype.push.apply(list, arr[i]);
+			return list;
+		});
+	}
+
+	private static prependPathToFileList(nameOrArr: any, pathPrefix: string): string[] {
+		if (!nameOrArr)
+			return [];
+		for (var i = 0, len = nameOrArr.length; i < len; ++i)
+			nameOrArr[i] = path.join(pathPrefix, nameOrArr[i]);
+		return nameOrArr;
+	}
+
+	private static appendThemeDirectoriesToSet(fileSet: {[index: string]: boolean}, themeVal: any[]): {[index: string]: boolean} {
+		if (!themeVal)
+			return fileSet;
+		var item: any;
+		for (var i = 0, len = themeVal.length; i < len; ++i) {
+			item = themeVal[i];
+			if (typeof item === 'string')
+				fileSet[item] = true;
+			else
+				fileSet[item['theme']] = true;
+		}
+		return fileSet;
+	}
+
+	// --
+	// -- Private - Common
+	// --
 
 	private makeFileArr(dirRelPath: string, fileList: string[]): {}[] {
 		if (Project.isEmpty(fileList))
@@ -189,19 +294,19 @@ class BundleWReader {
 		return arr;
 	}
 
-	private includeOtherFiles(writer: BundleWriter, dirName: string, excludeFileNames: {}): Promise<void> {
-		var relPathDir = dirName ? path.join(this.bundleRelPath, dirName) : this.bundleRelPath;
-		var dir = this.project.makeInputFsPath(relPathDir);
+	private includeOtherFiles(writer: BundleWriter, dirRelPath: string, excludeNames: {}): Promise<void> {
+		var dir = this.project.makeInputFsPath(dirRelPath);
 		return fsp.readdir(dir).then<void>((list) => {
 			return list.reduce((sequence: Promise<void>, childName: string) => {
-				if (childName === '.' || childName === '..' || excludeFileNames[childName])
+				if (childName === '.' || childName === '..' || excludeNames[childName])
 					return sequence;
 				return sequence.then(() => {
 					var fullPath = path.join(dir, childName),
-						relPath = path.join(relPathDir, childName);
+						relPath = path.join(dirRelPath, childName);
 					return fsp.stat(fullPath).then<void>((st: fs.Stats): void => {
-						if (st.isDirectory() || (st.isFile() && this.project.canIncludeOtherFile(childName)))
+						if (st.isDirectory() || (st.isFile() && this.project.canIncludeOtherFile(childName))) {
 							writer.addOtherFileOrDir(childName, relPath, fullPath, st);
+						}
 					});
 				});
 			}, Promise.resolve());
@@ -212,6 +317,10 @@ class BundleWReader {
 		if (encoding && encoding !== this.encoding)
 			throw Error('Encoding conflict in bundle "' + this.bundleRelPath + '" (' + this.encoding + '): ' + name + ' has "' + encoding + '"');
 	}
+
+	// --
+	// -- Private tools
+	// --
 
 	private static arrayOrNull(arr: string[]): string[] {
 		return !arr || arr.length === 0 ? null : arr;
@@ -241,7 +350,7 @@ class BundleWReader {
 				return;
 			if (conf[arrName] === null)
 				delete conf[arrName];
-			else if (typeof conf[arrName] === 'string')
+			else if (!Array.isArray(conf[arrName]))
 				conf[arrName] = [conf[arrName]];
 		};
 		cleanArr('preload');
@@ -249,6 +358,8 @@ class BundleWReader {
 		cleanArr('useServices');
 		cleanArr('useComponents');
 		cleanArr('script');
+		cleanArr('theme');
+		cleanArr('stylesheet');
 		cleanArr('css');
 		cleanArr('templates');
 	}

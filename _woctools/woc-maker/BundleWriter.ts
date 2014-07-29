@@ -28,8 +28,8 @@ class BundleWriter {
 	private libraries = {};
 	private services = {};
 	private components = {};
+	private bundleCss: string = null;
 	private css: string[] = [];
-	private subDirCssMap = {};
 	private otherFiles = {};
 
 	constructor(private project: Project, private bundleName: string, bundleVersion: string) {
@@ -45,8 +45,10 @@ class BundleWriter {
 	}
 
 	public setBundleCss(css: {}[]): Promise<void> {
+		if (!css)
+			return Promise.resolve<void>();
 		return BundleWriter.concatFiles('Bundle ' + this.bundleName, css, this.cssMinifier, 'css').then((content: string): void => {
-			this.css.push(content);
+			this.bundleCss = content;
 		});
 	}
 
@@ -63,7 +65,6 @@ class BundleWriter {
 			});
 		}
 		if (css !== null) {
-			css = this.keepSubdirCss(css, lib);
 			if (css.length > 0) {
 				p = p.then(() => {
 					return BundleWriter.concatFiles('Library ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
@@ -125,7 +126,6 @@ class BundleWriter {
 			}));
 		}
 		if (css !== null) {
-			css = this.keepSubdirCss(css, comp);
 			if (css.length > 0) {
 				pList.push(BundleWriter.concatFiles('Component ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
 					this.css.push(content);
@@ -162,29 +162,17 @@ class BundleWriter {
 			if (!ready)
 				return false;
 			var p: Promise<any> = this.writeFile(this.bundleName + '.json', JSON.stringify(this.makeData()));
-			if (this.hasCss())
-				p = Promise.all([p, this.writeFile(this.bundleName + '.css', this.css.join('\n'))]);
+			if (this.hasCss()) {
+				var cssMeta = '@charset "' + this.project.getDefaultEncoding() + '";\n';
+				var bundleCss = this.bundleCss ? '\n' + this.bundleCss : '';
+				p = Promise.all([p, this.writeFile(this.bundleName + '.css', cssMeta + this.css.join('\n') + bundleCss)]);
+			}
 			return p.then(() => {
 				return this.copyOtherFiles();
 			}).then(() => {
 				return true;
 			});
 		});
-	}
-
-	private keepSubdirCss(css: {}[], prop: {}): {}[] {
-		var newCss = [], kept = [];
-		for (var i = 0, len = css.length; i < len; ++i) {
-			if (css[i]['name'].indexOf(path.sep) === -1)
-				newCss.push(css[i]);
-			else {
-				kept.push(css[i]['name']);
-				this.subDirCssMap[css[i]['path']] = css[i];
-			}
-		}
-		if (kept.length > 0)
-			prop['css'] = kept;
-		return newCss;
 	}
 
 	private cleanOutputDir(rmDestination: boolean): Promise<boolean> {
@@ -290,8 +278,6 @@ class BundleWriter {
 			return (st: fs.Stats): any => {
 				if (st.isDirectory())
 					return this.copyOrMergeOtherDir(inRelChildPath, inChildPath, outChildPath, project);
-				else if (this.isSubDirCss(inRelChildPath))
-					return fsl.copyFile(inChildPath, outChildPath);
 				else if (project.canIncludeOtherFile(childName))
 					return fsl.copyFile(inChildPath, outChildPath);
 			};
@@ -318,18 +304,12 @@ class BundleWriter {
 					return fsp.stat(inChildPath).then<boolean>((st: fs.Stats): any => {
 						if (st.isDirectory())
 							return this.otherDirContainsSomething(inRelChildPath, inChildPath, project);
-						else if (this.isSubDirCss(inRelChildPath))
-							return true;
 						else
 							return project.canIncludeOtherFile(childName);
 					});
 				});
 			}, Promise.resolve(false));
 		});
-	}
-
-	private isSubDirCss(relPath: string): boolean {
-		return this.subDirCssMap[relPath] !== undefined;
 	}
 
 	private static concatFiles(title: string, files: {}[], minifier: minifiers.StringMinifier, syntax: string): Promise<string> {
@@ -344,7 +324,8 @@ class BundleWriter {
 				});
 			if (syntax === 'css') {
 				p = p.then((content: string) => {
-					if (index < 0)
+					content = BundleWriter.cleanCssMeta(content);
+					if (index > 0)
 						return content;
 					return BundleWriter.makeFilePrefix(index === 0 ? title : title + ' - ' + fileProp['name'], syntax) + '\n' + content;
 				});
@@ -359,6 +340,10 @@ class BundleWriter {
 		}, Promise.resolve()).then(() => {
 			return arr.join('\n');
 		});
+	}
+
+	private static cleanCssMeta(s: string): string {
+		return s.replace(/@charset\s+"[a-zA-Z0-9\-]+"\s*;?\s*/, '');
 	}
 
 	private static makeFilePrefix(title: string, syntax: string): string {

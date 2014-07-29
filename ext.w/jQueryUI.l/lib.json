@@ -2,7 +2,6 @@
 	"woc": "0.7",
 	"useLibraries": ["jQuery"],
 	"script": ["jquery-ui-1.10.4.custom.min.js", "datepicker-fr.js"],
-	"theme": [{"theme": "uilightness", "stylesheet": ["jquery-ui-1.10.4.custom.min.css"]}],
-	"css": ["jquery-ui-1.10.4.custom.min.css"],
+	"theme": [{"theme": "smoothness", "stylesheet": ["jquery-ui-1.10.4.custom.min.css"]}],
 	"name": "jQueryUI"
 }

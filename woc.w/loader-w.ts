@@ -76,7 +76,7 @@ module Woc {
 					return;
 				if (conf[arrName] === null)
 					delete conf[arrName];
-				else if (typeof conf[arrName] === 'string')
+				else if (!Array.isArray(conf[arrName]))
 					conf[arrName] = [conf[arrName]];
 			};
 			cleanArr('preload');
@@ -85,6 +85,7 @@ module Woc {
 			cleanArr('useComponents');
 			cleanArr('script');
 			cleanArr('theme');
+			cleanArr('stylesheet');
 			cleanArr('css');
 			cleanArr('templates');
 		}
@@ -234,15 +235,13 @@ module Woc {
 				cssLoader.add(thingName, baseUrl, cssList);
 				return Promise.resolve<void>();
 			}
-			return this.loadThemeRecursive(thingName, baseUrl, null, themeVal).then((list: string[]) => {
+			return this.loadThemeRecursive(baseUrl, null, themeVal).then((list: string[]) => {
 				Array.prototype.push.apply(list, cssList);
 				cssLoader.add(thingName, baseUrl, list);
 			});
 		}
 
-		private loadThemeRecursive(thingName: string, thingUrl: string, relThemeUrl: string, themeVal: any): Promise<string[]> {
-			if (!Array.isArray(themeVal))
-				themeVal = [themeVal];
+		private loadThemeRecursive(thingUrl: string, relThemeUrl: string, themeVal: any[]): Promise<string[]> {
 			return Promise.all(themeVal.map((dirOrObj: any): any => {
 				// - Case of short syntax
 				if (typeof dirOrObj === 'object')
@@ -250,9 +249,10 @@ module Woc {
 				// - Normal case
 				var dirUrl = relThemeUrl ? relThemeUrl + '/' + dirOrObj : dirOrObj;
 				return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
+					WLoader.cleanConf(conf);
 					if (!conf['theme'])
 						return WThingLoader.toResList(conf['stylesheet'], dirUrl);
-					return this.loadThemeRecursive(thingName, thingUrl, dirUrl, conf['theme']).then((list: string[]) => {
+					return this.loadThemeRecursive(thingUrl, dirUrl, conf['theme']).then((list: string[]) => {
 						Array.prototype.push.apply(list, WThingLoader.toResList(conf['stylesheet'], dirUrl));
 						return list;
 					});
