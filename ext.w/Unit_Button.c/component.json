@@ -5,6 +5,6 @@
 	"useLibraries": ["jQuery"],
 	"script": "Button.js",
 	"templates": "t.html",
-	"css": "p.css",
+	"stylesheet": "p.css",
 	"name": "Unit.Button"
 }

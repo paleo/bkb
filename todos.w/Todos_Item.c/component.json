@@ -6,6 +6,6 @@
 	"useComponents": ["Unit.Button"],
 	"script": ["Item.js"],
 	"templates": ["t.html"],
-	"css": ["p.css"],
+	"stylesheet": ["p.css"],
 	"name": "Todos.Item"
 }

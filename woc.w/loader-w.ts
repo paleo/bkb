@@ -86,7 +86,6 @@ module Woc {
 			cleanArr('script');
 			cleanArr('theme');
 			cleanArr('stylesheet');
-			cleanArr('css');
 			cleanArr('templates');
 		}
 
@@ -195,7 +194,7 @@ module Woc {
 							prop.conf['name'],
 							prop.url,
 							prop.conf['theme'],
-							WThingLoader.toResList(prop.conf['css'])
+							WThingLoader.toResList(prop.conf['stylesheet'])
 						));
 						break;
 					case WEmbedType.Service:
@@ -209,7 +208,7 @@ module Woc {
 							prop.conf['name'],
 							prop.url,
 							prop.conf['theme'],
-							WThingLoader.toResList(prop.conf['css']))
+							WThingLoader.toResList(prop.conf['stylesheet']))
 						);
 						break;
 					default:
@@ -356,11 +355,11 @@ module Woc {
 		private static getConfFileName(type: WEmbedType) {
 			switch(type) {
 				case WEmbedType.Service:
-					return 'serv.json';
+					return 'service.json';
 				case WEmbedType.Component:
-					return 'comp.json';
+					return 'component.json';
 				case WEmbedType.Library:
-					return 'lib.json';
+					return 'library.json';
 				default:
 					throw Error('Invalid conf file type "' + type + '"');
 			}

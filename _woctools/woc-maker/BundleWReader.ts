@@ -52,7 +52,7 @@ class BundleWReader {
 		// - Bundle
 		if (!Project.isEmpty(this.conf['preload']))
 			writer.putBundleVal('preload', Project.cloneData(this.conf['preload']));
-		p = p.then(() => this.readThemeConf(writer, this.bundleRelPath, this.bundleRelPath, this.conf['theme'], this.conf['css']).
+		p = p.then(() => this.readThemeConf(writer, this.bundleRelPath, this.bundleRelPath, this.conf['theme'], this.conf['stylesheet']).
 			then((cssList): any => {
 				return writer.setBundleCss(this.makeFileArr(this.bundleRelPath, cssList));
 			}));
@@ -106,14 +106,14 @@ class BundleWReader {
 	private processLibrary(writer: BundleWriter, dirName: string): Promise<void> {
 		// - Read the configuration
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
-		var jsonPath = path.join(dirRelPath, 'lib.json');
+		var jsonPath = path.join(dirRelPath, 'library.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
 			if (conf['name'] === undefined)
 				throw Error('Missing "name" in ' + jsonPath);
 			// - Read the theme configuration
-			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['css']).then((cssList) => {
+			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['stylesheet']).then((cssList) => {
 				// - Add into the writer
 				return Promise.all([
 					writer.addLibrary(
@@ -125,7 +125,7 @@ class BundleWReader {
 					this.includeOtherFiles(
 						writer,
 						dirRelPath,
-						BundleWReader.appendThemeDirectoriesToSet({'lib.json': true}, conf['theme'])
+						BundleWReader.appendThemeDirectoriesToSet({'library.json': true}, conf['theme'])
 					)
 				]);
 			});
@@ -135,7 +135,7 @@ class BundleWReader {
 	private processService(writer: BundleWriter, dirName: string): Promise<void> {
 		// - Read the configuration
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
-		var jsonPath = path.join(dirRelPath, 'serv.json');
+		var jsonPath = path.join(dirRelPath, 'service.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
@@ -161,7 +161,7 @@ class BundleWReader {
 				this.includeOtherFiles(
 					writer,
 					dirRelPath,
-					{'serv.json': true}
+					{'service.json': true}
 				)
 			]);
 		});
@@ -170,7 +170,7 @@ class BundleWReader {
 	private processComponent(writer: BundleWriter, dirName: string): Promise<void> {
 		// - Read the configuration
 		var dirRelPath = path.join(this.bundleRelPath, dirName);
-		var jsonPath = path.join(dirRelPath, 'comp.json');
+		var jsonPath = path.join(dirRelPath, 'component.json');
 		return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
 			BundleWReader.cleanConf(conf);
 			this.checkEncoding(dirName, conf['encoding']);
@@ -179,7 +179,7 @@ class BundleWReader {
 			if (Project.isEmpty(conf['script']))
 				throw Error('Missing "scripts" in ' + jsonPath);
 			// - Read the theme configuration
-			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['css']).then((cssList) => {
+			return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['stylesheet']).then((cssList) => {
 				// - Add into the writer
 				return Promise.all([
 					writer.addComponent(
@@ -196,7 +196,7 @@ class BundleWReader {
 					this.includeOtherFiles(
 						writer,
 						dirRelPath,
-						BundleWReader.appendThemeDirectoriesToSet({'comp.json': true}, conf['theme'])
+						BundleWReader.appendThemeDirectoriesToSet({'component.json': true}, conf['theme'])
 					)
 				]);
 			});
@@ -219,7 +219,7 @@ class BundleWReader {
 
 	private readThemeConfRecursive(writer: BundleWriter, thingRelPath: string, relPath: string, themeVal: any[]): Promise<string[]> {
 		var makeCopyPromise = (completePath, themeVal) => {
-			var excludeNames = themeVal ? BundleWReader.appendThemeDirectoriesToSet({'theme.json': true}, themeVal) : {};
+      var excludeNames = themeVal ? BundleWReader.appendThemeDirectoriesToSet({'theme.json': true}, themeVal) : {};
 			return this.includeOtherFiles(writer, completePath, excludeNames);
 		};
 		return Promise.all(themeVal.map((dirOrObj: any): any => {
@@ -360,7 +360,6 @@ class BundleWReader {
 		cleanArr('script');
 		cleanArr('theme');
 		cleanArr('stylesheet');
-		cleanArr('css');
 		cleanArr('templates');
 	}
 }

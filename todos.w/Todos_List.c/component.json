@@ -7,6 +7,6 @@
 	"script": "List.js",
 	"templates": "t.html",
 	"stylesheet": "p.css",
-	"css": "p.css",
+	"stylesheet": "p.css",
 	"name": "Todos.List"
 }

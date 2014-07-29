@@ -61,7 +61,7 @@ class BundleWriter {
 		var p = Promise.resolve<void>();
 		if (script) {
 			p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
-				lib['script'] = content;
+				lib['js'] = content;
 			});
 		}
 		if (css !== null) {
@@ -84,7 +84,7 @@ class BundleWriter {
 			throw Error('Conflict in bundle "' + this.bundleName + '": several services "' + name + '"');
 		return BundleWriter.concatFiles('Service ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
 			var serv = {
-				'script': content
+				'js': content
 			};
 			if (useApp)
 				serv['useApplication'] = true;
@@ -116,7 +116,7 @@ class BundleWriter {
 		if (templateEngine)
 			comp['templateEngine'] = templateEngine;
 		pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
-			comp['script'] = content;
+			comp['js'] = content;
 		}));
 		if (tpl !== null) {
 			if (!templateEngine)

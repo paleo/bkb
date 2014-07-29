@@ -3,8 +3,8 @@
 	"encoding": "utf8",
 	"templateEngine": ["FirstExt.FirstTemplateEngine"],
 	"useLibraries": ["jQuery"],
-	"script": ["DialogsComp.js"],
-	"templates": ["t.html"],
-	"css": ["p.css"],
-	"name": "FirstExt.DialogsComp"
+	"script": "CloseButton.js",
+	"templates": "t.html",
+	"stylesheet": "p.css",
+	"name": "Unit.CloseButton"
 }

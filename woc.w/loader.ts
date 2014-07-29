@@ -88,7 +88,7 @@ module Woc {
 					if (!libMap.hasOwnProperty(name))
 						continue;
 					data = libMap[name];
-					this.libraries.register(name, data['useLibraries'], data['script']);
+					this.libraries.register(name, data['useLibraries'], data['js']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
@@ -101,7 +101,7 @@ module Woc {
 						continue;
 					data = servMap[name];
 					this.services.register(name, bundleUrl, data['alias'], data['useApplication'], data['useLibraries'], data['useServices'],
-						data['useComponents'], data['script']);
+						data['useComponents'], data['js']);
 				}
 			}
 			// - Register components
@@ -112,7 +112,7 @@ module Woc {
 						continue;
 					data = compMap[name];
 					this.components.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
-						data['useComponents'], data['script'], data['templates'], data['templateEngine']);
+						data['useComponents'], data['js'], data['templates'], data['templateEngine']);
 					if (data['css'])
 						promList.push(Loader.addCssLinks(data['css'], bundleUrl));
 				}
