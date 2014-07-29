@@ -1,7 +1,7 @@
 {
-	"woc": "0.7",
+	"woc": "0.8",
 	"encoding": "utf8",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"preload": ["ext"],
 	"embed": ["Todos_Start.s", "Todos_List.c", "Todos_Item.c"],
 	"theme": "nicetodos"

@@ -1,5 +1,5 @@
 {
-	"woc": "0.7",
+	"woc": "0.8",
 	"script": ["GenericLiveState.js"],
 	"name": "FirstExt.GenericLiveState"
 }

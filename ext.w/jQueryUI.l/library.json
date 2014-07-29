@@ -1,5 +1,5 @@
 {
-	"woc": "0.7",
+	"woc": "0.8",
 	"useLibraries": ["jQuery"],
 	"script": ["jquery-ui-1.10.4.custom.min.js", "datepicker-fr.js"],
 	"theme": [{"theme": "smoothness", "stylesheet": ["jquery-ui-1.10.4.custom.min.css"]}],

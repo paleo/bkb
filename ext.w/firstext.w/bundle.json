@@ -1,4 +1,4 @@
 {
-	"woc": "0.7",
+	"woc": "0.8",
 	"embed": ["FirstExt_Dialogs.s", "FirstExt_DialogsComp.c", "FirstExt_GenericLiveState.l", "FirstExt_Screens.c", "FirstExt_FirstTemplateEngine.s"]
 }

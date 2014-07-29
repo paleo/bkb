@@ -12,7 +12,7 @@ var fsl = fsext.fsl;
 import minifiers = require('./minifiers');
 
 class Project {
-	private static WOC_VERSION = '0.7';
+	private static WOC_VERSION = '0.8';
 	private jsMinifier: minifiers.JsMinifier;
 	private cssMinifier: minifiers.CssMinifier;
 	private htmlMinifier: minifiers.HtmlMinifier;
