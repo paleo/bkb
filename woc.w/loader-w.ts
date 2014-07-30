@@ -383,8 +383,11 @@ module Woc {
 		private urlValidator = new WUniqueUrlValidator();
 		private libMap = {};
 		private waitList = [];
+    private mainError: Error;
+    private mainResolve: Function;
+    private mainReject: Function;
 		private promises = [];
-		private mustLoadAll = false;
+		private withMainPromise = false;
 		private runCount = 0;
 
 		constructor(private libraries: Libraries) {
@@ -402,10 +405,20 @@ module Woc {
 		}
 
 		public getPromise(): Promise<void> {
-			if (this.promises.length === 0 && this.waitList.length > 0)
-				return Promise.reject(Error('Fail to load scripts for: ' + this.toDebugStringWait()));
-			this.mustLoadAll = true;
-			return <any>Promise.all(this.promises);
+			this.withMainPromise = true;
+      return new Promise<void>((resolve, reject) => {
+        if (this.mainError)
+          reject(this.mainError);
+        else if (this.runCount === 0) {
+          if (this.waitList.length === 0)
+            resolve();
+          else
+            reject(Error('Fail to load scripts for: ' + this.toDebugStringWait()));
+        } else {
+          this.mainResolve = resolve;
+          this.mainReject = reject;
+        }
+      });
 		}
 
 		private doAdd(thingName: string, baseUrl: string, relUrls: string[], useLibraries: string[], libName: string) {
@@ -431,6 +444,8 @@ module Woc {
 		}
 
 		private runWaited() {
+      if (this.mainError)
+        return;
 			var prop, withStarted = false, hasWaited = false;
 			for (var k in this.waitList) {
 				if (!this.waitList.hasOwnProperty(k))
@@ -443,8 +458,12 @@ module Woc {
 				} else
 					hasWaited = true;
 			}
-			if (this.mustLoadAll && !withStarted && hasWaited && this.runCount === 0)
-				throw Error('Fail to load scripts for: ' + this.toDebugStringWait());
+      if (this.withMainPromise && this.runCount === 0 && !withStarted) {
+        if (hasWaited)
+          throw Error('Fail to load scripts for: ' + this.toDebugStringWait());
+        if (this.mainResolve)
+          this.mainResolve();
+      }
 		}
 
 		private areLibReady(useLibraries: string[]) {
@@ -466,7 +485,13 @@ module Woc {
 					this.libMap[libName] = true;
 				--this.runCount;
 				this.runWaited();
-			}));
+			}).catch((err) => {
+        this.mainError = err;
+        if (this.mainReject)
+          this.mainReject(err);
+        else
+          throw err;
+      }));
 		}
 
 		private toDebugStringWait() {
