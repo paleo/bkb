@@ -461,7 +461,7 @@ module Woc {
     private authComponents: {};
     private ac: ImplApplicationContext;
 
-    public createComponent(componentName: string, props: {}, st: LiveState): any {
+    public createComponent(st: LiveState, componentName: string, props?: {}): any {
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
       return this.ac.createComponentFromServ(componentName, props, st, <any>this);
@@ -498,7 +498,23 @@ module Woc {
     constructor(private st: LiveState, private compId: number) {
     }
 
-    public createComponent(componentName: string, props: {} = null, st: LiveState = null): any {
+    /**
+     * componentName: string, props: {} = null<br>
+     * st: LiveState, componentName: string, props: {} = null<br>
+     */
+    public createComponent(p1: any, p2: any, p3: any = null): any {
+      var st: LiveState,
+        componentName: string,
+        props: {};
+      if (typeof p1 === 'string') {
+        st = null;
+        componentName = p1;
+        props = p2 || null;
+      } else {
+        st = p1;
+        componentName = p2;
+        props = p3 || null;
+      }
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
       return this.ac.createComponentFromComp(componentName, props, st ? st : this.st, this.compId);

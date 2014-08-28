@@ -1,6 +1,6 @@
 {
 	"woc": "0.8",
 	"encoding": "utf8",
-	"script": ["HBTemplateEngine.js"],
+	"script": ["handlebars-v1.3.0.js", "HBTemplateEngine.js"],
 	"name": "FirstExt.HBTemplateEngine"
 }

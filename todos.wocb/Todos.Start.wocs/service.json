@@ -2,6 +2,7 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"useLibraries": ["jQuery", "FirstExt.GenericLiveState"],
+	"useComponents": ["Test.Label"],
 	"script": "Start.js",
 	"name": "Todos.Start"
 }

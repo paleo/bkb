@@ -1,0 +1,10 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"templateEngine": ["FirstExt.HBTemplateEngine"],
+	"useLibraries": ["jQuery"],
+	"script": "Label.js",
+	"templates": "t.html",
+	"stylesheet": "p.css",
+	"name": "Test.Label"
+}

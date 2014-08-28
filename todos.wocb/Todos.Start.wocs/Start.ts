@@ -1,5 +1,6 @@
 /// <reference path="../d.ts/woc-firstext.d.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
+/// <reference path="../Test.Label.wocc/Label.ts" />
 
 module Todos {
 	'use strict';
@@ -9,7 +10,9 @@ module Todos {
 		}
 
 		public start(element: HTMLElement) {
-      $(element).append('Hello World!');
+      $(element).append('<p>Hello World!</p>');
+      var l: Test.Label = this.sc.createComponent(new FirstExt.GenericLiveState(true), 'Test.Label', {'label': 'Hello!'});
+      l.attachTo(element)
     }
 	}
 }
