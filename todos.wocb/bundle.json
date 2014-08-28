@@ -1,0 +1,11 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"version": "0.8.0",
+	"bundles": ["firstext(w)"],
+	"libraries": ["jQuery"],
+	"initializers": ["Todos.Conf"],
+	"services": ["Todos.Start"],
+	"components": ["Unit.Button"],
+	"theme": "todos-violet"
+}

@@ -1,0 +1,62 @@
+@charset "UTF-8";
+
+.dialog-area {
+	bottom: 0;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+}
+
+.main-dialog-area {
+	background-color: rgba(152, 152, 152, 0.56);
+}
+
+.short-dialog-area {
+	.dialog {
+		background-color: #fffed6;
+		box-shadow: 0 0 10px #aaa;
+		margin: 60px auto auto;
+		padding: 30px;
+		width: 600px;
+
+		p {
+			max-height: 340px;
+			overflow: auto;
+		}
+	}
+
+	.info-dialog {
+		background-color: #666;
+		color: #fff;
+	}
+
+	.warn-dialog {
+		background-color: #a36d14;
+		color: #fff;
+	}
+
+	.err-dialog {
+		background-color: #ddd;
+		color: #ff0000;
+	}
+
+	.message {
+		font-weight: bold;
+		text-align: center;
+	}
+
+	.action-bar {
+		margin-top: 20px;
+		text-align: center;
+	}
+
+	.info-dialog,
+	.warn-dialog,
+	.err-dialog {
+		.simple-btn {
+			border: 1px solid #f38484;
+			padding: 4px 10px;
+		}
+	}
+}

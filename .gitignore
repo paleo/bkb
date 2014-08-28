@@ -6,11 +6,11 @@ node_modules
 _wocscripts/releases
 
 /*-?.?.?
-/*.w
-!/woc.w
-!/ext.w
-!/todos.w
+/*.wocb
+!/woc
+!/ext.wocb
+!/todos.wocb
 
-!woc.w/lib/*
+!woc/lib/*
 
 ext.w/jQueryUI.l/smoothness

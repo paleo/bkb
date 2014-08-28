@@ -1,0 +1,6 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"script": ["HBTemplateEngine.js"],
+	"name": "FirstExt.HBTemplateEngine"
+}

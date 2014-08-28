@@ -1,0 +1,9 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"templateEngine": ["FirstExt.FirstTemplateEngine"],
+	"useLibraries": ["jQuery", "FirstExt.GenericLiveState"],
+	"script": ["Screens.js"],
+	"templates": ["t.html"],
+	"name": "FirstExt.Screens"
+}
