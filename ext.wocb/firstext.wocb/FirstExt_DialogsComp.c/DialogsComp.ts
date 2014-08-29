@@ -1,5 +1,4 @@
 /// <reference path='../d.ts/woc.d.ts' />
-/// <reference path='../FirstExt_GenericLiveState.l/GenericLiveState.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 /// <reference path='../../Unit_Button.c/Button.ts' />
 
@@ -15,7 +14,6 @@ module FirstExt {
 		// -- Fields
 		// --
 
-		private stConfirm = new FirstExt.GenericLiveState(false);
 		private $areas;
 		private $mainDialogArea: JQuery;
 		private dialogs = [];
@@ -45,7 +43,6 @@ module FirstExt {
 
 		public destruct() {
 			this.briefMsgQueue = [];
-			this.stConfirm.reset();
 		}
 
 		// --
@@ -273,15 +270,12 @@ module FirstExt {
 			$dialog.appendTo(this.$shortDialogArea);
 			this.$shortDialogArea.show();
 			if (props['type'] === 'confirm')
-				this.stConfirm.setLive(true);
 			if (delayInMs !== undefined) {
 				window.setTimeout(() => {
 					this.$shortDialogArea.fadeOut(200, () => {
 						$dialog.remove();
 						this.isBriefBoxProcessing = false;
 						if (props['type'] === 'confirm') {
-							this.stConfirm.setLive(false);
-							this.stConfirm.reset();
 						}
 						this.pleaseProcessShortDialogs();
 					});
@@ -323,7 +317,7 @@ module FirstExt {
 			for (var i = 0, len = btnList.length; i < len; ++i) {
 				props = btnList[i];
 				withAjax = props['ajax'] ? true : false;
-				var btn = <Unit.Button>this.cc.createComponent('Unit.Button', {'ajax': withAjax, 'label': props['label']}, this.stConfirm);
+				var btn = <Unit.Button>this.cc.createComponent('Unit.Button', {'ajax': withAjax, 'label': props['label']});
 				btn.click(withAjax ? clickAjaxMaker(props['callback']) : clickNormalMaker(props['callback']));
 				$actionBar.append(btn.getElement());
 			}

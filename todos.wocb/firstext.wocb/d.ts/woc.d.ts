@@ -22,14 +22,6 @@ declare module Woc {
 		destruct?(): void;
 	}
 
-	/**
-	 * constructor: function (live: boolean)
-	 */
-	interface LiveState {
-		isLive(): boolean;
-		addLiveListener(cb: (live: boolean) => void): Function;
-	}
-
   interface Initializer {
     init(): void;
   }
@@ -128,7 +120,7 @@ declare module Woc {
 
   interface SingletonContext {
     getService(serviceName: string): any;
-    createComponent(st: LiveState, componentName: string, props?: {}): any;
+    createComponent(componentName: string, props?: {}): any;
     removeComponent(c: Component, fromDOM?: boolean): void;
     removeComponent(cList: Component[], fromDOM?: boolean): void;
     hasLibrary(libName: string): boolean;
@@ -158,7 +150,6 @@ declare module Woc {
 	interface ComponentContext {
 		getService(serviceName: string): any;
 		createComponent(componentName: string, props?: {}): any;
-		createComponent(st: LiveState, componentName: string, props?: {}): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
 		hasLibrary(libName: string): boolean;
@@ -172,7 +163,6 @@ declare module Woc {
 		getName(): string;
 		getBaseUrl(): string;
 		appProperties: AppProperties;
-		getLiveState(): LiveState;
 	}
 
 	// ##

@@ -11,7 +11,7 @@ module Todos {
 
 		public start(element: HTMLElement) {
       $(element).append('<p>Hello World!</p>');
-      var l: Test.Label = this.sc.createComponent(new FirstExt.GenericLiveState(true), 'Test.Label', {'label': 'Hello!'});
+      var l: Test.Label = this.sc.createComponent('Test.Label', {'label': 'Hello!'});
       l.attachTo(element)
     }
 	}

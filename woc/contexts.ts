@@ -210,13 +210,13 @@ module Woc {
       };
     }
 
-    public create(componentName: string, props: {}, st: LiveState, compTreeArg: {}): Component {
+    public create(componentName: string, props: {}, compTreeArg: {}): Component {
       var prop = this.map[componentName];
       if (prop === undefined)
         throw Error('Unknown component "' + componentName + '"');
       var id = this.compTree.newPlaceholder(componentName, compTreeArg);
       this.makeTypeContextsReady(componentName, prop);
-      var cc = new prop['CC'](st, id);
+      var cc = new prop['CC'](id);
       var Cl = toClass(componentName);
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
       this.compTree.setComp(id, c);
@@ -255,8 +255,8 @@ module Woc {
 
     private static mergeTraits(ac: ImplApplicationContext, methods: {}, name: string, baseUrl: string, useLibraries: string[],
                                useServices: string[], useComponents: string[], restrictedAccess: boolean): any {
-      var CompContext = function (st: LiveState, compId: number) {
-        ComponentContextTrait.call(this, st, compId);
+      var CompContext = function (compId: number) {
+        ComponentContextTrait.call(this, compId);
       };
       ThingContextTrait.call(CompContext.prototype, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
       CompContext.prototype['ac'] = ac;
@@ -332,12 +332,12 @@ module Woc {
       return this.services.get(serviceName);
     }
 
-    public createComponentFromServ(componentName: string, props: {}, st: LiveState, sc: ServiceContext): any {
-      return this.components.create(componentName, props, st, {'from': 'S', 'sc': sc});
+    public createComponentFromServ(componentName: string, props: {}, sc: ServiceContext): any {
+      return this.components.create(componentName, props, {'from': 'S', 'sc': sc});
     }
 
-    public createComponentFromComp(componentName: string, props: {}, st: LiveState, compId: number): any {
-      return this.components.create(componentName, props, st, {'from': 'C', 'id': compId});
+    public createComponentFromComp(componentName: string, props: {}, compId: number): any {
+      return this.components.create(componentName, props, {'from': 'C', 'id': compId});
     }
 
     public removeComponentFromId(compId: number, fromDOM = false): void {
@@ -374,10 +374,10 @@ module Woc {
 
     public evalService(serviceName: any): void {
       if (typeof serviceName === 'string')
-        this.services.getContext(serviceName);
+        this.services.getContext<ServiceContext>(serviceName);
       else {
         for (var i = 0, len = serviceName.length; i < len; ++i)
-          this.services.getContext(serviceName[i]);
+          this.services.getContext<ServiceContext>(serviceName[i]);
       }
     }
 
@@ -461,10 +461,10 @@ module Woc {
     private authComponents: {};
     private ac: ImplApplicationContext;
 
-    public createComponent(st: LiveState, componentName: string, props?: {}): any {
+    public createComponent(componentName: string, props?: {}): any {
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
-      return this.ac.createComponentFromServ(componentName, props, st, <any>this);
+      return this.ac.createComponentFromServ(componentName, props, <any>this);
     }
   }
 
@@ -495,33 +495,13 @@ module Woc {
     private authComponents: {};
     private ac: ImplApplicationContext;
 
-    constructor(private st: LiveState, private compId: number) {
+    constructor(private compId: number) {
     }
 
-    /**
-     * componentName: string, props: {} = null<br>
-     * st: LiveState, componentName: string, props: {} = null<br>
-     */
-    public createComponent(p1: any, p2: any, p3: any = null): any {
-      var st: LiveState,
-        componentName: string,
-        props: {};
-      if (typeof p1 === 'string') {
-        st = null;
-        componentName = p1;
-        props = p2 || null;
-      } else {
-        st = p1;
-        componentName = p2;
-        props = p3 || null;
-      }
+    public createComponent(componentName: string, props: {} = null): any {
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
-      return this.ac.createComponentFromComp(componentName, props, st ? st : this.st, this.compId);
-    }
-
-    public getLiveState(): LiveState {
-      return this.st;
+      return this.ac.createComponentFromComp(componentName, props, this.compId);
     }
   }
 

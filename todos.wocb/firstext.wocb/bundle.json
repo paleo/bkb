@@ -1,6 +1,5 @@
 {
 	"woc": "0.8",
-	"libraries": ["FirstExt.GenericLiveState"],
 	"services": ["FirstExt.Dialogs", "FirstExt.FirstTemplateEngine", "FirstExt.HBTemplateEngine"],
 	"components": ["FirstExt.DialogsComp", "FirstExt.Screens"]
 }

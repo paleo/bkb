@@ -1,5 +1,4 @@
 /// <reference path='../../d.ts/wocbundle.d.ts' />
-/// <reference path='../FirstExt_GenericLiveState.l/GenericLiveState.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 
 module FirstExt {

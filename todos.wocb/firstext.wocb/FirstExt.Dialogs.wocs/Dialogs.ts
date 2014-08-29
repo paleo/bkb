@@ -1,6 +1,5 @@
 /// <reference path='../d.ts/woc.d.ts' />
-/// <reference path='../FirstExt_DialogsComp.c/DialogsComp.ts' />
-/// <reference path='../FirstExt_GenericLiveState.l/GenericLiveState.ts' />
+/// <reference path='../FirstExt.DialogsComp.wocc/DialogsComp.ts' />
 
 module FirstExt {
 	'use strict';
@@ -18,7 +17,7 @@ module FirstExt {
 		// --
 
 		constructor(sc: Woc.ServiceContext) {
-			this.comp = <FirstExt.DialogsComp>sc.createComponent('FirstExt.DialogsComp', null, new FirstExt.GenericLiveState(true));
+			this.comp = <FirstExt.DialogsComp>sc.createComponent('FirstExt.DialogsComp', null);
 			$('body').append(this.comp.getElement());
 			var router = <Woc.Router>sc.getService('Woc.Router');
 			router.addChangeListener(() => {
