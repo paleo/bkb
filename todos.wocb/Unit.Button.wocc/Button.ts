@@ -86,7 +86,7 @@ module Unit {
             this.$ajaxFlag.show();
           cb(e);
         } catch (err) {
-          this.cc.getService('Woc.Log').error(err);
+          this.cc.getService<Woc.Log>('Woc.Log').error(err);
         }
       });
       return this;

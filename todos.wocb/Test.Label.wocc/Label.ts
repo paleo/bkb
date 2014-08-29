@@ -10,6 +10,10 @@ module Test {
 
     constructor(private cc: Woc.HBComponentContext, props: {}) {
       this.$lbl = $(cc.render('MyLabelI', {label: props['label']}));
+
+      cc.getService<Woc.Log>('Woc.Log').wrap(() => {
+        throw Error('Hep!');
+      });
     }
 
     public attachTo(el: HTMLElement): Label {

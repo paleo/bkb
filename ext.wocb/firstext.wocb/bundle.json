@@ -1,4 +1,0 @@
-{
-	"woc": "0.8",
-	"embed": ["WocGeneric_Dialogs.s", "WocGeneric_DialogsComp.c", "WocGeneric_Screens.c", "WocGeneric_FirstTemplateEngine.s"]
-}

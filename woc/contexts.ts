@@ -400,7 +400,7 @@ module Woc {
     constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
       this.authLibraries = ContextHelper.toSet(useLibraries);
-      this.authServices = ContextHelper.toSet(useServices);
+      this.authServices = ContextHelper.toSet(useServices, 'Woc.Log', 'Woc.Ajax');
       this.authComponents = ContextHelper.toSet(useComponents);
     }
 
@@ -506,11 +506,15 @@ module Woc {
   // ##
 
   class ContextHelper {
-    public static toSet(names: string[]): {[index: string]: boolean} {
+    public static toSet(names: string[], ...sup: string[]): {[index: string]: boolean} {
       var s: any = {};
       if (names) {
         for (var i = 0, len = names.length; i < len; ++i)
           s[names[i]] = true;
+      }
+      if (sup) {
+        for (var i = 0, len = sup.length; i < len; ++i)
+          s[sup[i]] = true;
       }
       return s;
     }

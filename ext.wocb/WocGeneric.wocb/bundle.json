@@ -1,0 +1,4 @@
+{
+	"woc": "0.8",
+	"embed": ["WocGeneric.Dialogs.s", "WocGeneric.DialogsComp.c", "WocGeneric.Screens.c", "WocGeneric.FirstTemplateEngine.s"]
+}
