@@ -78,10 +78,6 @@ class Project {
 	// -- Work in progress (input) files
 	// --
 
-	public static makeDirW(dirName: string): string {
-		return dirName + '.w';
-	}
-
 	public makeInputFsPath(relPath: string): string {
 		return path.join(this.opt['inProjectPath'], relPath);
 	}

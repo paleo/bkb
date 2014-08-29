@@ -35,7 +35,7 @@ class WocMaker {
 	public processBundles(bundleNames: string[], rmDestination: boolean): Promise<void> {
 		return Project.makeInstance(this.opt).then<void>((prj: Project) => {
 			return bundleNames.map((bundleName) => {
-				return BundleWReader.makeInstance(prj, Project.makeDirW(bundleName)).then((reader: BundleWReader) => {
+				return BundleWReader.makeInstance(prj, bundleName).then((reader: BundleWReader) => {
 					var writer = new BundleWriter(prj, bundleName, reader.getBundleVersion());
 					return reader.process(writer).then(() => {
 						return writer.write(rmDestination);
