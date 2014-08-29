@@ -4,16 +4,16 @@
 module WocGeneric {
   'use strict';
 
-	export interface UrlProps {
-		relUrl: string;
-		args: {string: string};
-		sel: string;
-		title?: string;
-	}
+  export interface UrlProps {
+    relUrl: string;
+    args: {string: string};
+    sel: string;
+    title?: string;
+  }
 
-	export interface UrlController {
-		fillUrlProps(props: UrlProps): boolean;
-	}
+  export interface UrlController {
+    fillUrlProps(props: UrlProps): boolean;
+  }
 
   export class FirstRouter {
 
