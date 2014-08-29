@@ -1,7 +1,7 @@
 {
 	"woc": "0.8",
 	"encoding": "utf8",
-	"templateEngine": ["FirstExt.FirstTemplateEngine"],
+	"templateEngine": ["WocGeneric.FirstTemplateEngine"],
 	"useLibraries": ["jQuery"],
 	"script": "Button.js",
 	"templates": "t.html",

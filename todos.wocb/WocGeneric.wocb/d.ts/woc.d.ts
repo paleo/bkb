@@ -81,6 +81,17 @@ declare module Woc {
 		showConfirm(msgHtml: string, buttonList: any[]): void;
 	}
 
+  /**
+   * The services that implement this interface can be declared as an alias of Woc.Log
+   */
+  interface Log {
+    error(msg: any): void;
+    info(msg: any): void;
+    warning(msg: any): void;
+    trace(msg: any): void;
+    wrap(cb: () => void): void;
+  }
+
 	// ##
 	// ## Contexts
 	// ##
@@ -119,7 +130,9 @@ declare module Woc {
 	}
 
   interface SingletonContext {
+    getService<S>(serviceName: string): S;
     getService(serviceName: string): any;
+    createComponent<C>(componentName: string, props?: {}): C;
     createComponent(componentName: string, props?: {}): any;
     removeComponent(c: Component, fromDOM?: boolean): void;
     removeComponent(cList: Component[], fromDOM?: boolean): void;
@@ -148,8 +161,10 @@ declare module Woc {
 	}
 
 	interface ComponentContext {
-		getService(serviceName: string): any;
-		createComponent(componentName: string, props?: {}): any;
+    getService<S>(serviceName: string): S;
+    getService(serviceName: string): any;
+    createComponent<C>(componentName: string, props?: {}): C;
+    createComponent(componentName: string, props?: {}): any;
 		removeComponent(c: Component, fromDOM?: boolean): void;
 		removeComponent(cList: Component[], fromDOM?: boolean): void;
 		hasLibrary(libName: string): boolean;
@@ -230,60 +245,6 @@ declare module Woc {
 					rDataType?: string;
 					sAsJson?: string;
 				}): Promise<any>;
-	}
-
-	// ##
-	// ## Log service
-	// ##
-
-	interface Log {
-		/**
-		*
-		* @param cb This function must return TRUE if the message is successfully logged
-		*/
-		addListener(cb: Function): void;
-		error(msg: string, stack?: any): void;
-		info(msg: any): void;
-		warning(msg: any): void;
-		trace(msg: string): void;
-		unexpectedErr(err: any): void;
-	}
-
-	// ##
-	// ## Router service
-	// ##
-
-	interface UrlProps {
-		relUrl: string;
-		args: {string: string};
-		sel: string;
-		title?: string;
-	}
-
-	interface UrlController {
-		fillUrlProps(props: UrlProps): boolean;
-	}
-
-	interface Router {
-		/**
-		* @param selList
-		* @param urlController
-		* @returns Function A callback that deletes the added selectors
-		*/
-		addSelectors(selList: string[], urlController: UrlController): Function;
-		start(opt?: {}): void;
-		/**
-		* @param cb The listener
-		* @returns Function a callback for removing the listener
-		*/
-		addChangeListener(cb: Function): Function;
-		/**
-		* @param cb The listener
-		* @returns Function a callback for removing the listener
-		*/
-		addBeforeListener(cb: Function): Function;
-		goTo(relUrl: string): boolean;
-		getCurrentUrlProps(): UrlProps;
 	}
 }
 

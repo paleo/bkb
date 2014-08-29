@@ -1,1 +1,1 @@
-/// <reference path='../firstext.wocb/d.ts/woc.d.ts' />
+/// <reference path='../WocGeneric.wocb/d.ts/woc.d.ts' />

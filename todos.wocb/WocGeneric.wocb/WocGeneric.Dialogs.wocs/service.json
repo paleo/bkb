@@ -2,6 +2,6 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"script": ["Dialogs.js"],
-	"name": "FirstExt.Dialogs",
+	"name": "WocGeneric.Dialogs",
 	"alias": "Woc.Dialogs"
 }

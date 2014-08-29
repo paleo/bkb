@@ -2,16 +2,16 @@
 
 declare var Handlebars;
 
-module FirstExt {
-	'use strict';
+module WocGeneric {
+  'use strict';
 
-	export class HBTemplateEngine implements Woc.TemplateEngineService {
-		public makeProcessor(ctc: Woc.ComponentTypeContext, tplStr: string): Woc.TemplateProcessor {
-			return new Processor(ctc, tplStr);
-		}
-	}
-	
-	class Processor implements Woc.TemplateProcessor {
+  export class HBTemplateEngine implements Woc.TemplateEngineService {
+    public makeProcessor(ctc: Woc.ComponentTypeContext, tplStr: string): Woc.TemplateProcessor {
+      return new Processor(ctc, tplStr);
+    }
+  }
+  
+  class Processor implements Woc.TemplateProcessor {
     private map = {};
 
     constructor(private ctc: Woc.ComponentTypeContext, tplStr: string) {

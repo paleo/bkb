@@ -5,7 +5,7 @@
 // TODO use http://demo.agektmr.com/dialog/ and https://github.com/GoogleChrome/dialog-polyfill
 // see https://github.com/GoogleChrome/dialog-polyfill/pull/13/files for compatibility
 
-module FirstExt {
+module WocGeneric {
 	'use strict';
 
 	export class DialogsComp implements Woc.Component {

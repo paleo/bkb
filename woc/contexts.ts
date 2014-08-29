@@ -74,9 +74,7 @@ module Woc {
     constructor(ac: any, private label: string) {
       this.ac = ac;
       this.ImplContext = Singletons.mergeTraits(ac);
-      this.coreRegister('Woc.Log', 'Woc.CoreLog');
       this.coreRegister('Woc.Ajax', 'Woc.CoreAjax');
-      this.coreRegister('Woc.Router', 'Woc.CoreRouter');
     }
 
     public register(name: string, baseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
@@ -177,14 +175,12 @@ module Woc {
   // ##
 
   export class Components {
-    private log;
     private compTree: ComponentTree;
     private map = {};
     private ac: ImplApplicationContext;
 
     constructor(ac: any) {
       this.ac = ac;
-      this.log = ac.getService('Woc.Log');
       this.compTree = new ComponentTree();
     }
 

@@ -1,6 +1,6 @@
 /// <reference path='../d.ts/woc.d.ts' />
 
-module FirstExt {
+module WocGeneric {
 	'use strict';
 
 	export class FirstTemplateEngine implements Woc.TemplateEngineService {

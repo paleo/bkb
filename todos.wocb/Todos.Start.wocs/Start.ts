@@ -1,4 +1,4 @@
-/// <reference path="../d.ts/woc-firstext.d.ts" />
+/// <reference path="../d.ts/WocGeneric.d.ts" />
 /// <reference path="../d.ts/jquery.d.ts" />
 /// <reference path="../Test.Label.wocc/Label.ts" />
 

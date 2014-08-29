@@ -1,11 +1,11 @@
-/// <reference path='../d.ts/woc-firstext.d.ts' />
+/// <reference path='../d.ts/WocGeneric.d.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
-/// <reference path='../../Unit_Button.c/Button.ts' />
+/// <reference path='../../Unit.Button.wocc/Button.ts' />
 
 // TODO use http://demo.agektmr.com/dialog/ and https://github.com/GoogleChrome/dialog-polyfill
 // see https://github.com/GoogleChrome/dialog-polyfill/pull/13/files for compatibility
 
-module FirstExt {
+module WocGeneric {
 	'use strict';
 
 	export class DialogsComp implements Woc.Component {

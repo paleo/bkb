@@ -1,7 +1,7 @@
-/// <reference path='../../d.ts/woc-firstext.d.ts' />
+/// <reference path='../../d.ts/WocGeneric.d.ts' />
 /// <reference path='../../d.ts/jquery.d.ts' />
 
-module FirstExt {
+module WocGeneric {
 	'use strict';
 
 	// ##
@@ -51,7 +51,7 @@ module FirstExt {
 		// -- Fields & Initialisation
 		// --
 
-		private router: Woc.Router;
+		private router: WocGeneric.FirstRouter;
 		private $container: JQuery;
 		private unregisteredSelList = [];
 		private uspBySel = {};
@@ -68,7 +68,7 @@ module FirstExt {
 
 		constructor(private cc: Woc.FirstComponentContext) {
 			this.$container = $(this.cc.getTemplate('.screens'));
-			this.router = this.cc.getService('Woc.Router');
+			this.router = this.cc.getService('WocGeneric.FirstRouter');
 			this.rmCbList.push(this.router.addBeforeListener((up: Woc.UrlProps): boolean => {
 				return this.getScreen(up) !== null;
 			}));

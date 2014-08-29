@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc-firstext.d.ts' />
+/// <reference path='../d.ts/WocGeneric.d.ts' />
 /// <reference path='../d.ts/jquery.d.ts' />
 
 module Unit {
@@ -86,7 +86,7 @@ module Unit {
 						this.$ajaxFlag.show();
 					cb(e);
 				} catch (err) {
-					this.cc.getService('Woc.Log').unexpectedErr(err);
+					this.cc.getService('Woc.Log').error(err);
 				}
 			});
 			return this;

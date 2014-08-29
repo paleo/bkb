@@ -1,10 +1,10 @@
 {
 	"woc": "0.8",
 	"encoding": "utf8",
-	"templateEngine": ["FirstExt.FirstTemplateEngine"],
+	"templateEngine": ["WocGeneric.FirstTemplateEngine"],
 	"useLibraries": ["jQuery"],
 	"script": ["DialogsComp.js"],
 	"templates": ["t.html"],
 	"stylesheet": ["p.css"],
-	"name": "FirstExt.DialogsComp"
+	"name": "WocGeneric.DialogsComp"
 }

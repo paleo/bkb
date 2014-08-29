@@ -2,5 +2,5 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"version": "0.8.0",
-	"embed": ["jQueryUI.l", "Modernizr.l", "jQuery.l", "underscore.l", "Tree14.l", "CookiesHelper.l", "firstext.wocb", "Unit_Button.c", "Unit_CloseButton.c"]
+	"embed": ["jQueryUI.l", "Modernizr.l", "jQuery.l", "underscore.l", "Tree14.l", "CookiesHelper.l", "WocGeneric.wocb", "Unit_Button.c", "Unit_CloseButton.c"]
 }

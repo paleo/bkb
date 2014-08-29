@@ -63,7 +63,7 @@ module Unit {
 				try {
 					cb(e);
 				} catch (err) {
-					this.cc.getService('Woc.Log').unexpectedErr(err);
+					this.cc.getService('Woc.Log').error(err);
 				}
 			});
 			return this;

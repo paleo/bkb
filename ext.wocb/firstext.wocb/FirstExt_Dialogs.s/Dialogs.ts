@@ -1,7 +1,7 @@
 /// <reference path='../d.ts/woc.d.ts' />
-/// <reference path='../FirstExt_DialogsComp.c/DialogsComp.ts' />
+/// <reference path='../WocGeneric_DialogsComp.c/DialogsComp.ts' />
 
-module FirstExt {
+module WocGeneric {
 	'use strict';
 
 	export class Dialogs implements Woc.Dialogs {
@@ -10,16 +10,16 @@ module FirstExt {
 		// -- Fields
 		// --
 
-		private comp: FirstExt.DialogsComp;
+		private comp: WocGeneric.DialogsComp;
 
 		// --
 		// -- Initialisation
 		// --
 
 		constructor(sc: Woc.ServiceContext) {
-			this.comp = <FirstExt.DialogsComp>sc.createComponent('FirstExt.DialogsComp');
+			this.comp = <WocGeneric.DialogsComp>sc.createComponent('WocGeneric.DialogsComp');
 			$('body').append(this.comp.getElement());
-			var router = <Woc.Router>sc.getService('Woc.Router');
+			var router = <WocGeneric.FirstRouter>sc.getService('WocGeneric.FirstRouter');
 			router.addChangeListener(() => {
 				this.clearDialogs();
 			});
