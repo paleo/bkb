@@ -135,7 +135,7 @@ module Woc {
             continue;
           data = servMap[name];
           this.services.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
-            data['useComponents'], data['js'], data['alias']);
+            data['useComponents'], data['js'], data['templates'], data['templateEngine'], data['alias']);
         }
       }
       // - Register initializers
@@ -146,7 +146,7 @@ module Woc {
             continue;
           data = initMap[name];
           this.initializers.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
-            data['useComponents'], data['js']);
+            data['useComponents'], data['js'], data['templates'], data['templateEngine']);
         }
       }
       // - Register components

@@ -31,7 +31,12 @@ declare module Woc {
   }
 
   interface TemplateEngineService {
-    makeProcessor(ctc: ComponentTypeContext, tplStr: string): TemplateProcessor;
+    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
+  }
+
+  interface EmbedProperties {
+    name: string;
+    baseUrl: string;
   }
 
   /**
@@ -153,11 +158,6 @@ declare module Woc {
   }
 
   interface InitializerContext extends SingletonContext {
-  }
-
-  interface ComponentTypeContext {
-    getName(): string;
-    getBaseUrl(): string;
   }
 
   interface ComponentContext {

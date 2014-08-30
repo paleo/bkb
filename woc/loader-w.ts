@@ -96,6 +96,7 @@ module Woc {
       cleanArr('theme');
       cleanArr('stylesheet');
       cleanArr('templates');
+      cleanArr('alias');
     }
 
     // --
@@ -212,8 +213,6 @@ module Woc {
             break;
           case WEmbedType.Service:
           case WEmbedType.Initializer:
-            scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
-            break;
           case WEmbedType.Component:
             scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
             tplLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['templates']));
@@ -360,13 +359,13 @@ module Woc {
       for (var i = 0, len = servList.length; i < len; ++i) {
         conf = servList[i].conf;
         this.services.register(conf['name'], servList[i].url, conf['useApplication'], null, conf['useServices'],
-          conf['useComponents'], null, conf['alias']);
+          conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine'], conf['alias']);
       }
       // - Initializers
       for (var i = 0, len = initList.length; i < len; ++i) {
         conf = initList[i].conf;
         this.initializers.register(conf['name'], initList[i].url, conf['useApplication'], null, conf['useServices'],
-          conf['useComponents'], null);
+          conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
         this.initializers.addForInit(this.mergedBundleName, conf['name']);
       }
       // - Components

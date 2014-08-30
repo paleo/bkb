@@ -28,12 +28,17 @@ module Woc {
     init(): void;
   }
 
+  export interface EmbedProperties {
+    name: string;
+    baseUrl: string;
+  }
+
   export interface StartingPointService {
     start(element: HTMLElement): void;
   }
 
   export interface TemplateEngineService {
-    makeProcessor(ctc: ComponentTypeContext, tplStr: string): TemplateProcessor;
+    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
   }
 
   /**
@@ -155,11 +160,6 @@ module Woc {
   }
 
   export interface InitializerContext extends SingletonContext {
-  }
-
-  export interface ComponentTypeContext {
-    getName(): string;
-    getBaseUrl(): string;
   }
 
   export interface ComponentContext {

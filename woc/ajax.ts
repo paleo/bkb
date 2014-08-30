@@ -3,11 +3,6 @@
 'use strict';
 
 module Woc {
-
-  // ##
-  // ## Ajax
-  // ##
-
   export class CoreAjax implements Ajax {
 
     // --
@@ -145,103 +140,4 @@ module Woc {
       });
     }
   }
-
-//  // ##
-//  // ## AjaxBundle
-//  // ##
-//
-//  class AjaxBundle {
-//
-//    // --
-//    // -- Fields
-//    // --
-//
-//    private static S_NONE = 1;
-//    private static S_LOADING = 2;
-//    private static S_DONE = 3;
-//    private static S_FAIL = 4;
-//
-//    private propMap = {};
-//    private rDataMap;
-//    private waitedLoads: number;
-//    private hasError = false;
-//
-//    // --
-//    // -- Initialisation
-//    // --
-//
-//    /**
-//     * <pre><code>bundleOpt = {
-//     *   'urls': [opt],
-//     *   'done'?: Function,
-//     *   'fail'?: Function
-//     * }</code></pre>
-//     */
-//    constructor(private cn: Ajax, private bundleOpt) {
-//      var arr = bundleOpt['urls'], getOpt;
-//      this.waitedLoads = arr.length;
-//      for (var i = 0; i < this.waitedLoads; ++i) {
-//        getOpt = arr[i];
-//        this.propMap[getOpt['url']] = {'opt': getOpt, 'status': AjaxBundle.S_NONE};
-//      }
-//    }
-//
-//    // --
-//    // -- Public
-//    // --
-//
-//    public start() {
-//      var doneCallbackMaker = (url, prop) => {
-//        return (rData) => {
-//          this.endItem(url, prop, true, rData);
-//        };
-//      };
-//      var failCallbackMaker = (url, prop) => {
-//        return () => {
-//          this.endItem(url, prop, false, null);
-//        };
-//      };
-//      this.rDataMap = {};
-//      var prop, origOpt, opt;
-//      for (var url in this.propMap) {
-//        if (!this.propMap.hasOwnProperty(url))
-//          continue;
-//        prop = this.propMap[url];
-//        // - Make opt
-//        origOpt = prop['opt'];
-//        opt = {
-//          'url': url,
-//          'done': doneCallbackMaker(url, prop),
-//          'fail': failCallbackMaker(url, prop)
-//        };
-//        if (origOpt['sData'] !== undefined)
-//          opt['sData'] = origOpt['sData'];
-//        if (origOpt['rDataType'] !== undefined)
-//          opt['rDataType'] = origOpt['rDataType'];
-//        if (origOpt['attempts'] !== undefined)
-//          opt['attempts'] = origOpt['attempts'];
-//
-//        prop['status'] = AjaxBundle.S_LOADING;
-//        // - HTTP get
-//        this.cn.get(opt);
-//      }
-//    }
-//
-//    private endItem(url, prop, done: boolean, rData) {
-//      if (this.hasError)
-//        return;
-//      if (done) {
-//        prop['status'] = AjaxBundle.S_DONE;
-//        this.rDataMap[url] = rData;
-//        --this.waitedLoads;
-//        if (this.waitedLoads === 0 && this.bundleOpt['done'])
-//          this.bundleOpt['done'](this.rDataMap);
-//      } else {
-//        prop['status'] = AjaxBundle.S_FAIL;
-//        this.hasError = true;
-//        if (this.bundleOpt['fail'])
-//          this.bundleOpt['fail']('Fail to load url "' + url + '"');
-//      }
-//    }
-//  }
 }

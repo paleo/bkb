@@ -4,7 +4,7 @@ var Woc;
 
 (function () {
   // - Parameters
-  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'serv-ajax.js'];
+  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'ajax.js'];
   function reportStartErr(err: any) {
     var errStr, stack;
     if (typeof err === 'object') {

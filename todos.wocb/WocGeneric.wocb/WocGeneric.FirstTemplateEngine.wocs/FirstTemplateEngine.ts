@@ -4,8 +4,8 @@ module WocGeneric {
   'use strict';
 
   export class FirstTemplateEngine implements Woc.TemplateEngineService {
-    public makeProcessor(ctc: Woc.ComponentTypeContext, tplStr: string): Woc.TemplateProcessor {
-      return new Processor(ctc, tplStr);
+    public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
+      return new Processor(tplStr, prop);
     }
   }
 
@@ -19,7 +19,7 @@ module WocGeneric {
     private lblPrefix: string;
     private lblCount: number;
 
-    constructor(private ctc: Woc.ComponentTypeContext, tplStr: string) {
+    constructor(tplStr: string, private prop: Woc.EmbedProperties) {
       this.parse(tplStr);
       // TODO Reference all labels in the l10n service
       // labels: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is
@@ -30,7 +30,7 @@ module WocGeneric {
       return {
         getTemplate: (sel: string, elMap = {}): HTMLElement => {
           if (this.bySelMap[sel] === undefined)
-            throw Error('Unknown template "' + sel + '" in component "' + this.ctc.getName() + '"');
+            throw Error('Unknown template "' + sel + '" in component "' + this.prop.name + '"');
           var el = <HTMLElement>this.templates[this.bySelMap[sel]].cloneNode(true);
           this.fillPlaceholders(el, elMap);
           this.fillLabels(el);
@@ -46,7 +46,7 @@ module WocGeneric {
         name = marker.getAttribute(Processor.DATA_PH);
         if (name) {
           if (elMap[name] === undefined)
-            throw Error('In component "' + this.ctc.getName() + '", missing element for placeholder "' + name + '"');
+            throw Error('In component "' + this.prop.name + '", missing element for placeholder "' + name + '"');
           if (elMap[name] !== null && elMap[name]['tagName'] === undefined)
             throw Error('Elements to put in placeholders must be DOM elements');
           list.push([marker, elMap[name]]);
@@ -102,7 +102,7 @@ module WocGeneric {
       }
 //      for (var k in this.placeholders) {
 //        if (this.placeholders.hasOwnProperty(k))
-//          throw Error('In templates of component "' + this.ctc.getName() + '": placeholder "' + k + '" should be replaced here');
+//          throw Error('In templates of component "' + this.prop.name + '": placeholder "' + k + '" should be replaced here');
 //      }
     }
 
@@ -160,7 +160,7 @@ module WocGeneric {
     private addPlaceholder(pieces: string[], name: string) {
       var name = Processor.trim(name);
       if (this.placeholders[name])
-        throw Error('Conflict in templates of component "' + this.ctc.getName() + '": several placeholders "' + name + '"');
+        throw Error('Conflict in templates of component "' + this.prop.name + '": several placeholders "' + name + '"');
       pieces.push('<span ' + Processor.DATA_PH + '="' + name + '"></span>');
       this.placeholders[name] = true;
     }
@@ -179,12 +179,12 @@ module WocGeneric {
         cssClass = Processor.trim(cmd.slice(classIndex + 1)) + ' ';
       }
       if (tagName === '')
-        throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getName() + '"');
+        throw Error('Invalid label "' + cmd + '" in templates of component "' + this.prop.name + '"');
       var lblId = this.makeLblId();
       this.labels[lblId] = Processor.formatLabelStr(lblStr);
       if (tagName === 'class') {
         if (cssClass)
-          throw Error('Invalid label "' + cmd + '" in templates of component "' + this.ctc.getName() + '"');
+          throw Error('Invalid label "' + cmd + '" in templates of component "' + this.prop.name + '"');
         pieces.push(lblId);
       } else
         pieces.push('<' + tagName + ' class="' + cssClass + lblId + '"></' + tagName + '>');
@@ -193,7 +193,7 @@ module WocGeneric {
 
     private makeLblId(): string {
       if (this.lblPrefix === null)
-        this.lblPrefix = 'wocl10n~' + this.ctc.getName().replace(/\./g, '~') + '~';
+        this.lblPrefix = 'wocl10n~' + this.prop.name.replace(/\./g, '~') + '~';
       return this.lblPrefix + (this.lblCount++);
     }
 

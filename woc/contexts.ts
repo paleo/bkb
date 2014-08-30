@@ -67,18 +67,16 @@ module Woc {
 
   export class Singletons {
     private ac: ImplApplicationContext;
-    private ImplContext: any;
     private map = {};
     private byBundle: {};
 
     constructor(ac: any, private label: string) {
       this.ac = ac;
-      this.ImplContext = Singletons.mergeTraits(ac);
       this.coreRegister('Woc.Ajax', 'Woc.CoreAjax');
     }
 
     public register(name: string, baseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
-                    useComponents: string[], script: string, aliasStrOrList: any = null) {
+                    useComponents: string[], script: string, tplStr: string, templateEngine: string, alias: string[] = null) {
       if (this.map[name] !== undefined)
         throw Error('The ' + this.label + ' "' + name + '" is already declared');
       var prop = {
@@ -89,17 +87,16 @@ module Woc {
         'useServices': useServices,
         'useComponents': useComponents,
         'script': script,
+        'tplStr': tplStr,
+        'templateEngine': templateEngine,
         'context': null,
-        's': null
+        'inst': null
       };
-      if (aliasStrOrList) {
-        var aliasList = typeof aliasStrOrList === 'string' ? [aliasStrOrList] : aliasStrOrList;
-        var alias;
-        for (var i = 0, len = aliasList.length; i < len; ++i) {
-          alias = aliasList[i];
-          if (this.map[alias] !== undefined)
-            throw Error('The ' + this.label + ' "' + name + '" cannot declare the alias "' + alias + '": already used');
-          this.map[alias] = prop;
+      if (alias) {
+        for (var i = 0, len = alias.length; i < len; ++i) {
+          if (this.map[alias[i]] !== undefined)
+            throw Error('The ' + this.label + ' "' + name + '" cannot declare the alias "' + alias[i] + '": already used');
+          this.map[alias[i]] = prop;
         }
       }
       this.map[name] = prop;
@@ -126,7 +123,7 @@ module Woc {
 
     public get(name: string): any {
       this.makeReady(name);
-      return this.map[name]['s'];
+      return this.map[name]['inst'];
     }
 
     public getContext<U>(name: string): U {
@@ -145,28 +142,42 @@ module Woc {
       if (prop['script'] !== null)
         globalEval(prop['script']);
       var cl = toClass(prop['coreClass'] || prop['name']);
-      prop['context'] = new this.ImplContext(prop['name'], prop['baseUrl'], prop['useLibraries'], prop['useServices'],
+      // - Template methods
+      var methods;
+      if (prop['templateEngine']) {
+        var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
+        methods = tplEng.makeProcessor(prop['tplStr'], {
+          'name': name,
+          'baseUrl': prop['baseUrl']
+        }).getContextMethods();
+      } else
+        methods = null;
+      // - Make the context instance
+      var ImplContext = Singletons.mergeTraits(this.ac, methods);
+      prop['context'] = new ImplContext(prop['name'], prop['baseUrl'], prop['useLibraries'], prop['useServices'],
         prop['useComponents'], prop['coreClass'] ? false : true);
-      prop['s'] = prop['useApplication'] ? new cl(this.ac, prop['context']) : new cl(prop['context']);
+      prop['inst'] = prop['useApplication'] ? new cl(this.ac, prop['context']) : new cl(prop['context']);
     }
 
     private coreRegister(name: string, coreClass: string) {
-      this.register(name, null, true, null, null, null, null, null);
+      this.register(name, null, true, null, null, null, null, null, null);
       this.map[name]['coreClass'] = coreClass;
     }
 
-    private static mergeTraits(ac: ImplApplicationContext): any {
-      var ServContext = function (name: string, baseUrl: string, useLibraries: string[], useServices: string[],
+    private static mergeTraits(ac: ImplApplicationContext, methods: {}): any {
+      var SingletonContext = function (name: string, baseUrl: string, useLibraries: string[], useServices: string[],
                             useComponents: string[], restrictedAccess: boolean) {
         ThingContextTrait.call(this, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
         SingletonContextTrait.call(this);
       };
-      ServContext.prototype['ac'] = ac;
-      ServContext.prototype['appConfig'] = ac.appConfig;
-      ContextHelper.copyMembers(ThingContextTrait.prototype, ServContext.prototype);
-      ContextHelper.copyMembers(SingletonContextTrait.prototype, ServContext.prototype);
-      ContextHelper.freeze(ServContext.prototype);
-      return ServContext;
+      SingletonContext.prototype['ac'] = ac;
+      SingletonContext.prototype['appConfig'] = ac.appConfig;
+      ContextHelper.copyMembers(ThingContextTrait.prototype, SingletonContext.prototype);
+      ContextHelper.copyMembers(SingletonContextTrait.prototype, SingletonContext.prototype);
+      if (methods)
+        ContextHelper.copyMembers(methods, SingletonContext.prototype);
+      ContextHelper.freeze(SingletonContext.prototype);
+      return SingletonContext;
     }
   }
 
@@ -188,64 +199,62 @@ module Woc {
       return this.compTree;
     }
 
-    public register(componentName: string, componentBaseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
+    public register(name: string, componentBaseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
                     useComponents: string[], script: string, tplStr: string, templateEngine: string) {
-      if (this.map[componentName] !== undefined)
-        throw Error('Conflict for component "' + componentName + '"');
-      this.map[componentName] = {
+      if (this.map[name] !== undefined)
+        throw Error('Conflict for component "' + name + '"');
+      this.map[name] = {
+        'baseUrl': componentBaseUrl,
         'useApplication': useApp,
         'useLibraries': useLibraries,
         'useServices': useServices,
         'useComponents': useComponents,
         'script': script,
         'tplStr': tplStr,
-        'baseUrl': componentBaseUrl,
         'templateEngine': templateEngine,
-        'ctc': null,
+        'eval': false,
         'CC': null
       };
     }
 
-    public create(componentName: string, props: {}, compTreeArg: {}): Component {
-      var prop = this.map[componentName];
+    public create(name: string, props: {}, compTreeArg: {}): Component {
+      var prop = this.map[name];
       if (prop === undefined)
-        throw Error('Unknown component "' + componentName + '"');
-      var id = this.compTree.newPlaceholder(componentName, compTreeArg);
-      this.makeTypeContextsReady(componentName, prop);
+        throw Error('Unknown component "' + name + '"');
+      var id = this.compTree.newPlaceholder(name, compTreeArg);
+      this.makeReady(name, prop);
       var cc = new prop['CC'](id);
-      var Cl = toClass(componentName);
+      var Cl = toClass(name);
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
       this.compTree.setComp(id, c);
       return c;
     }
 
-    public getComponentTypeContext(componentName: string): ComponentTypeContext {
-      var prop = this.map[componentName];
+    public evalComponent(name: string): void {
+      var prop = this.map[name];
       if (prop === undefined)
-        throw Error('Unknown component "' + componentName + '"');
-      this.makeTypeContextsReady(componentName, prop);
-      return prop['ctc'];
+        throw Error('Unknown component "' + name + '"');
+      this.makeReady(name, prop);
     }
 
-    private makeTypeContextsReady(componentName: string, prop): void {
-      if (prop['ctc'] === null) {
-        if (prop['useLibraries'])
-          this.ac.evalLibrary(prop['useLibraries']);
-        if (prop['script'] !== null)
-          globalEval(prop['script']);
-        this.makeContexts(componentName, prop);
-      }
-    }
-
-    private makeContexts(componentName: string, prop) {
-      prop['ctc'] = new ImplComponentTypeContext(componentName, prop['baseUrl']);
+    private makeReady(name: string, prop): void {
+      if (prop['eval'])
+        return;
+      prop['eval'] = true;
+      if (prop['useLibraries'])
+        this.ac.evalLibrary(prop['useLibraries']);
+      if (prop['script'] !== null)
+        globalEval(prop['script']);
       var methods;
       if (prop['templateEngine']) {
         var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
-        methods = tplEng.makeProcessor(prop['ctc'], prop['tplStr']).getContextMethods();
+        methods = tplEng.makeProcessor(prop['tplStr'], {
+          'name': name,
+          'baseUrl': prop['baseUrl']
+        }).getContextMethods();
       } else
         methods = null;
-      prop['CC'] = Components.mergeTraits(this.ac, methods, componentName, prop['baseUrl'], prop['useLibraries'],
+      prop['CC'] = Components.mergeTraits(this.ac, methods, name, prop['baseUrl'], prop['useLibraries'],
         prop['useServices'], prop['useComponents'], true);
     }
 
@@ -379,10 +388,10 @@ module Woc {
 
     public evalComponent(componentName: any): void {
       if (typeof componentName === 'string')
-        this.components.getComponentTypeContext(componentName);
+        this.components.evalComponent(componentName);
       else {
         for (var i = 0, len = componentName.length; i < len; ++i)
-          this.components.getComponentTypeContext(componentName[i]);
+          this.components.evalComponent(componentName[i]);
       }
     }
   }
@@ -461,23 +470,6 @@ module Woc {
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
       return this.ac.createComponentFromServ(componentName, props, <any>this);
-    }
-  }
-
-  // ##
-  // ## ImplComponentTypeContext
-  // ##
-
-  class ImplComponentTypeContext implements ComponentTypeContext {
-    constructor(private name: string, private baseUrl) {
-    }
-
-    public getName(): string {
-      return this.name;
-    }
-
-    public getBaseUrl(): string {
-      return this.baseUrl;
     }
   }
 

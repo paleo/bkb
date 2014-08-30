@@ -27,8 +27,7 @@ class BundleWriter {
   private htmlMinifier: minifiers.HtmlMinifier;
   private bundleProp = {};
   private libraries = {};
-  private singletons;
-  private components = {};
+  private contextThings;
   private bundleCss: string = null;
   private css: string[] = [];
   private otherFiles = {};
@@ -39,9 +38,10 @@ class BundleWriter {
     this.jsMinifier = project.getJsMinifier();
     this.cssMinifier = project.getCssMinifier();
     this.htmlMinifier = project.getHtmlMinifier();
-    this.singletons = {};
-    this.singletons[Common.EmbedType.Service] = {};
-    this.singletons[Common.EmbedType.Initializer] = {};
+    this.contextThings = {};
+    this.contextThings[Common.EmbedType.Service] = {};
+    this.contextThings[Common.EmbedType.Initializer] = {};
+    this.contextThings[Common.EmbedType.Component] = {};
   }
 
   public putBundleVal(key: string, val: any) {
@@ -82,63 +82,45 @@ class BundleWriter {
     });
   }
 
-  public addSingleton(type: Common.EmbedType, name: string, useApp: boolean, useLibraries: string[], useServices: string[],
-                      useComponents: string[], script: {}[], aliasStrOrArr: any): Promise<void> {
-    if (this.singletons[type][name] !== undefined)
+  public addContextThing(type: Common.EmbedType, name: string, useApp: boolean, useLibraries: string[], useServices: string[],
+                         useComponents: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string, alias: string[]): Promise<void> {
+    if (this.contextThings[type][name] !== undefined)
       throw Error('Conflict in bundle "' + this.bundleName + '": several ' + Common.toPluralLabel(type) + ' "' + name + '"');
-    var title = Common.EmbedType[type] +  ' ' + name;
-    return BundleWriter.concatFiles(title, script, this.jsMinifier, 'js').then((content: string): void => {
-      var serv = {
-        'js': content
-      };
-      if (useApp)
-        serv['useApplication'] = true;
-      if (useLibraries !== null)
-        serv['useLibraries'] = useLibraries;
-      if (useServices !== null)
-        serv['useServices'] = useServices;
-      if (useComponents !== null)
-        serv['useComponents'] = useComponents;
-      if (aliasStrOrArr !== null)
-        serv['alias'] = aliasStrOrArr;
-      this.singletons[type][name] = serv;
-    });
-  }
-
-  public addComponent(name: string, useApp: boolean, useLibraries: string[], useServices: string[], useComponents: string[],
-                      script: {}[], css: {}[], tpl: {}[], templateEngine: string): Promise<void> {
-    if (this.components[name] !== undefined)
-      throw Error('Conflict in bundle "' + this.bundleName + '": several components "' + name + '"');
-    var comp = {}, pList = [];
+    var prop = {},
+      pList = [];
+    //return BundleWriter.concatFiles(title, script, this.jsMinifier, 'js').then((content: string): void => {
     if (useApp)
-      comp['useApplication'] = true;
+      prop['useApplication'] = true;
     if (useLibraries !== null)
-      comp['useLibraries'] = useLibraries;
+      prop['useLibraries'] = useLibraries;
     if (useServices !== null)
-      comp['useServices'] = useServices;
+      prop['useServices'] = useServices;
     if (useComponents !== null)
-      comp['useComponents'] = useComponents;
+      prop['useComponents'] = useComponents;
     if (templateEngine)
-      comp['templateEngine'] = templateEngine;
-    pList.push(BundleWriter.concatFiles('Component ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
-      comp['js'] = content;
+      prop['templateEngine'] = templateEngine;
+    if (alias)
+      prop['alias'] = alias;
+    var title = Common.EmbedType[type] +  ' ' + name;
+    pList.push(BundleWriter.concatFiles(title, script, this.jsMinifier, 'js').then((content: string): void => {
+      prop['js'] = content;
     }));
     if (tpl !== null) {
       if (!templateEngine)
-        console.log('[Warning] Component "' + name + '" has templates without template engine');
-      pList.push(BundleWriter.concatFiles('Component ' + name, tpl, this.htmlMinifier, 'html').then((content: string): void => {
-        comp['templates'] = content;
+        console.log('[Warning] ' + title + ' has templates without template engine');
+      pList.push(BundleWriter.concatFiles(title, tpl, this.htmlMinifier, 'html').then((content: string): void => {
+        prop['templates'] = content;
       }));
     }
     if (css !== null) {
       if (css.length > 0) {
-        pList.push(BundleWriter.concatFiles('Component ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
+        pList.push(BundleWriter.concatFiles(title, css, this.cssMinifier, 'css').then((content: string): void => {
           this.css.push(content);
         }));
       }
     }
     return Promise.all(pList).then(() => {
-      this.components[name] = comp;
+      this.contextThings[type][name] = prop;
     });
   }
 
@@ -212,12 +194,12 @@ class BundleWriter {
     }
     if (!Project.isEmpty(this.libraries))
       data['libraries'] = this.libraries;
-    if (!Project.isEmpty(this.singletons[Common.EmbedType.Service]))
-      data['services'] = this.singletons[Common.EmbedType.Service];
-    if (!Project.isEmpty(this.singletons[Common.EmbedType.Initializer]))
-      data['initializers'] = this.singletons[Common.EmbedType.Initializer];
-    if (!Project.isEmpty(this.components))
-      data['components'] = this.components;
+    if (!Project.isEmpty(this.contextThings[Common.EmbedType.Service]))
+      data['services'] = this.contextThings[Common.EmbedType.Service];
+    if (!Project.isEmpty(this.contextThings[Common.EmbedType.Initializer]))
+      data['initializers'] = this.contextThings[Common.EmbedType.Initializer];
+    if (!Project.isEmpty(this.contextThings[Common.EmbedType.Component]))
+      data['components'] = this.contextThings[Common.EmbedType.Component];
     if (this.hasCss())
       data['css'] = true;
     return data;

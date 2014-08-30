@@ -1,5 +1,5 @@
 /// <reference path='../d.ts/woc.d.ts' />
-/// <reference path='../WocGeneric_DialogsComp.c/DialogsComp.ts' />
+/// <reference path='../WocGeneric.DialogsComp.c/DialogsComp.ts' />
 
 module WocGeneric {
   'use strict';

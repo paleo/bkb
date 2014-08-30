@@ -132,13 +132,13 @@ class BundleWReader {
         return this.processLibrary(writer, dirName);
         break;
       case Common.EmbedType.Service:
-        return this.processSingleton(writer, type, dirName, 'service.json');
+        return this.processContextThing(writer, type, dirName, 'service.json');
         break;
       case Common.EmbedType.Initializer:
-        return this.processSingleton(writer, type, dirName, 'initializer.json');
+        return this.processContextThing(writer, type, dirName, 'initializer.json');
         break;
       case Common.EmbedType.Component:
-        return this.processComponent(writer, dirName);
+        return this.processContextThing(writer, type, dirName, 'component.json');
         break;
       default:
         throw Error('Unknown embed type of "' + dirName + '"');
@@ -174,7 +174,7 @@ class BundleWReader {
     });
   }
 
-  private processSingleton(writer: BundleWriter, type: Common.EmbedType, dirName: string, confFileName: string): Promise<void> {
+  private processContextThing(writer: BundleWriter, type: Common.EmbedType, dirName: string, confFileName: string): Promise<void> {
     // - Read the configuration
     var dirRelPath = path.join(this.bundleRelPath, dirName);
     var jsonPath = path.join(dirRelPath, confFileName);
@@ -184,48 +184,13 @@ class BundleWReader {
       if (conf['name'] === undefined)
         throw Error('Missing "name" in ' + jsonPath);
       if (Project.isEmpty(conf['script']))
-        throw Error('Missing "scripts" in ' + jsonPath);
-      // - alias
-      var aliasStrOrArr: any = conf['alias'];
-      if (!aliasStrOrArr || (typeof aliasStrOrArr === 'object' && aliasStrOrArr.length === 0))
-        aliasStrOrArr = null;
-      // - Add into the writer
-      return Promise.all([
-        writer.addSingleton(
-          type,
-          conf['name'],
-          conf['useApplication'] === true,
-          BundleWReader.arrayOrNull(conf['useLibraries']),
-          BundleWReader.arrayOrNull(conf['useServices']),
-          BundleWReader.arrayOrNull(conf['useComponents']),
-          this.makeFileArr(dirRelPath, conf['script']),
-          aliasStrOrArr
-        ),
-        this.includeOtherFiles(
-          writer,
-          dirRelPath,
-          {confFileName: true}
-        )
-      ]);
-    });
-  }
-
-  private processComponent(writer: BundleWriter, dirName: string): Promise<void> {
-    // - Read the configuration
-    var dirRelPath = path.join(this.bundleRelPath, dirName);
-    var jsonPath = path.join(dirRelPath, 'component.json');
-    return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
-      BundleWReader.cleanConf(conf);
-      this.checkEncoding(dirName, conf['encoding']);
-      if (conf['name'] === undefined)
-        throw Error('Missing "name" in ' + jsonPath);
-      if (Project.isEmpty(conf['script']))
-        throw Error('Missing "scripts" in ' + jsonPath);
+        throw Error('Missing "script" in ' + jsonPath);
       // - Read the theme configuration
       return this.readThemeConf(writer, conf['name'], dirRelPath, conf['theme'], conf['stylesheet']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
-          writer.addComponent(
+          writer.addContextThing(
+            type,
             conf['name'],
             conf['useApplication'] === true,
             BundleWReader.arrayOrNull(conf['useLibraries']),
@@ -234,12 +199,13 @@ class BundleWReader {
             this.makeFileArr(dirRelPath, conf['script']),
             this.makeFileArr(dirRelPath, cssList),
             this.makeFileArr(dirRelPath, conf['templates']),
-            conf['templateEngine']
+            conf['templateEngine'],
+            type === Common.EmbedType.Service ? conf['alias'] : null
           ),
           this.includeOtherFiles(
             writer,
             dirRelPath,
-            BundleWReader.appendThemeDirectoriesToSet({'component.json': true}, conf['theme'])
+            BundleWReader.appendThemeDirectoriesToSet({confFileName: true}, conf['theme'])
           )
         ]);
       });
@@ -447,7 +413,7 @@ class BundleWReader {
     var cleanArr = (arrName: string) => {
       if (conf[arrName] === undefined)
         return;
-      if (conf[arrName] === null)
+      if (conf[arrName] === null || (Array.isArray(conf[arrName]) && conf[arrName].length === 0))
         delete conf[arrName];
       else if (!Array.isArray(conf[arrName]))
         conf[arrName] = [conf[arrName]];
@@ -460,6 +426,7 @@ class BundleWReader {
     cleanArr('theme');
     cleanArr('stylesheet');
     cleanArr('templates');
+    cleanArr('alias');
   }
 }
 
