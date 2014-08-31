@@ -145,7 +145,7 @@ module Woc {
       // - Template methods
       var methods;
       if (prop['templateEngine']) {
-        var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
+        var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);
         methods = tplEng.makeProcessor(prop['tplStr'], {
           'name': name,
           'baseUrl': prop['baseUrl']
@@ -247,7 +247,7 @@ module Woc {
         globalEval(prop['script']);
       var methods;
       if (prop['templateEngine']) {
-        var tplEng: TemplateEngineService = this.ac.getService(prop['templateEngine']);
+        var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);
         methods = tplEng.makeProcessor(prop['tplStr'], {
           'name': name,
           'baseUrl': prop['baseUrl']
@@ -318,9 +318,9 @@ module Woc {
     public start(el: HTMLElement, startingPointName: string, preload?: BundleLoadingOptions[]): Promise<void> {
       var p: Promise<void> = preload ? this.loadBundles(preload) : Promise.resolve<void>();
       return p.then(() => {
-        var serv: StartingPointService = this.services.get(startingPointName);
+        var serv: StartingPoint = this.services.get(startingPointName);
         if (serv.start === undefined)
-          throw Error('Cannot use the starting point service "' + startingPointName + '", it should implement Woc.StartingPointService');
+          throw Error('Cannot use the starting point service "' + startingPointName + '", it should implement Woc.StartingPoint');
         serv.start(el);
       });
     }

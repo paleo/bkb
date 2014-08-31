@@ -26,64 +26,8 @@ declare module Woc {
     init(): void;
   }
 
-  interface StartingPointService {
+  interface StartingPoint {
     start(element: HTMLElement): void;
-  }
-
-  interface TemplateEngineService {
-    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
-  }
-
-  interface EmbedProperties {
-    name: string;
-    baseUrl: string;
-  }
-
-  /**
-   * constructor: function (ctc: ComponentTypeContext, tplStr: string)
-   */
-  interface TemplateProcessor {
-    getContextMethods(): {[index: string]: Function};
-  }
-
-  interface Dialog {
-    getDialogElement(): any;
-    setDialogOpened(): void;
-    setDialogClosed(): void;
-  }
-
-  /**
-   * The services that implement this interface can be declared as an alias of Woc.Dialogs
-   */
-  interface Dialogs {
-    /**
-     * @param dialog Woc.Dialog
-     * @param forcedOpen boolean
-     * @param hideBelow boolean
-     * @returns {number} The dialog ID
-     */
-    addDialog(dialog: Dialog, forcedOpen?, hideBelow?): number;
-    openDialog(dialogId: number): void;
-    closeDialog(dialogId: number): boolean;
-    removeDialog(dialogId: number): void;
-    /**
-     *
-     * @param dialogElem
-     * @param setClosedCallback
-     * @param forcedOpen boolean
-     * @param hideBelow boolean
-     * @returns Function A callback for closing the dialog (the callback returns TRUE when dialog is closed, FALSE when the dialog remains)
-     */
-    openDisposableDialog(dialogElem, setClosedCallback?: Function, forcedOpen?, hideBelow?): Function;
-    clearDialogs(): boolean;
-    showInfo(msgHtml: string): void;
-    showWarning(msgHtml: string): void;
-    reportError(e): void;
-    /**
-     * @param msgHtml
-     * @param buttonList [{'label': string, 'callback': Function, 'ajax'?: boolean}]
-     */
-    showConfirm(msgHtml: string, buttonList: any[]): void;
   }
 
   /**
@@ -95,6 +39,17 @@ declare module Woc {
     warning(msg: any): void;
     trace(msg: any): void;
     wrap(cb: () => void): void;
+  }
+
+  interface TemplateEngine {
+    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
+  }
+
+  /**
+   * constructor: function (ctc: ComponentTypeContext, tplStr: string)
+   */
+  interface TemplateProcessor {
+    getContextMethods(): {[index: string]: Function};
   }
 
   // ##
@@ -134,7 +89,12 @@ declare module Woc {
     getDebugTree(): {};
   }
 
-  interface SingletonContext {
+  interface EmbedProperties {
+    name: string;
+    baseUrl: string;
+  }
+
+  interface EmbedContext {
     getService<S>(serviceName: string): S;
     getService(serviceName: string): any;
     createComponent<C>(componentName: string, props?: {}): C;
@@ -151,32 +111,17 @@ declare module Woc {
     evalComponent(componentName: string[]): void;
     getName(): string;
     getBaseUrl(): string;
+  }
+
+  interface ServiceContext extends EmbedContext {
     appConfig: AppConfig;
   }
 
-  interface ServiceContext extends SingletonContext {
+  interface InitializerContext extends EmbedContext {
+    appConfig: AppConfig;
   }
 
-  interface InitializerContext extends SingletonContext {
-  }
-
-  interface ComponentContext {
-    getService<S>(serviceName: string): S;
-    getService(serviceName: string): any;
-    createComponent<C>(componentName: string, props?: {}): C;
-    createComponent(componentName: string, props?: {}): any;
-    removeComponent(c: Component, fromDOM?: boolean): void;
-    removeComponent(cList: Component[], fromDOM?: boolean): void;
-    hasLibrary(libName: string): boolean;
-    hasLibrary(libName: string[]): boolean;
-    evalLibrary(libName: string): void;
-    evalLibrary(libName: string[]): void;
-    evalService(serviceName: string): void;
-    evalService(serviceName: string[]): void;
-    evalComponent(componentName: string): void;
-    evalComponent(componentName: string[]): void;
-    getName(): string;
-    getBaseUrl(): string;
+  interface ComponentContext extends EmbedContext {
     appProperties: AppProperties;
   }
 

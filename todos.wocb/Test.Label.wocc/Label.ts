@@ -6,14 +6,18 @@ module Test {
 
   export class Label implements Woc.Component {
 
+    public static staticInit(cc: Woc.HBComponentContext) {
+
+    }
+
     private $lbl: JQuery;
 
     constructor(private cc: Woc.HBComponentContext, props: {}) {
       this.$lbl = $(cc.render('MyLabelI', {label: props['label']}));
 
-      cc.getService<Woc.Log>('Woc.Log').wrap(() => {
-        throw Error('Hep!');
-      });
+      //cc.getService<Woc.Log>('Woc.Log').wrap(() => {
+      //  throw Error('Hep!');
+      //});
     }
 
     public attachTo(el: HTMLElement): Label {

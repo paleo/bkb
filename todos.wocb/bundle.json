@@ -6,6 +6,6 @@
 	"libraries": ["jQuery"],
 	"initializers": ["Todos.Conf"],
 	"services": ["Todos.Start"],
-	"components": ["Unit.Button", "Test.Label"],
+	"components": ["Test.Label"],
 	"theme": "todos-violet"
 }

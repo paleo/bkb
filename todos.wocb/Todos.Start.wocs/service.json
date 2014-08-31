@@ -2,6 +2,7 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"useLibraries": ["jQuery"],
+	"useServices": ["WocGeneric.Dialogs"],
 	"useComponents": ["Test.Label"],
 	"script": "Start.js",
 	"name": "Todos.Start"

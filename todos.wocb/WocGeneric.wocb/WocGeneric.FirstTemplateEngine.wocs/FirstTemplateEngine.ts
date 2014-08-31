@@ -3,7 +3,7 @@
 module WocGeneric {
   'use strict';
 
-  export class FirstTemplateEngine implements Woc.TemplateEngineService {
+  export class FirstTemplateEngine implements Woc.TemplateEngine {
     public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
       return new Processor(tplStr, prop);
     }

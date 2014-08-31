@@ -4,20 +4,22 @@
 module WocGeneric {
   'use strict';
 
-  export class Dialogs implements Woc.Dialogs {
+  export class Dialogs {
 
     // --
     // -- Fields
     // --
 
-    private comp: WocGeneric.DialogsComp;
-
     // --
     // -- Initialisation
     // --
 
+
     constructor(sc: Woc.ServiceContext) {
-      this.comp = <WocGeneric.DialogsComp>sc.createComponent('WocGeneric.DialogsComp');
+      var dialog = document.createElement('dialog');
+      dialog.createAttribute('')
+
+      document.body.appendChild()
       $('body').append(this.comp.getElement());
       var router = <WocGeneric.FirstRouter>sc.getService('WocGeneric.FirstRouter');
       router.addChangeListener(() => {
@@ -26,8 +28,38 @@ module WocGeneric {
     }
 
     // --
-    // -- Public - Dialogs
+    // -- Public
     // --
+
+    public showInfo(msgHtml: string): void {
+
+    }
+
+    public showWarning(msgHtml: string): void {
+
+    }
+
+    public confirm(msgHtml: string, buttons: {
+      label: string;
+      arg: any;
+      isDefault?: boolean;
+    }[], cb: (buttonArg: any) => void): void {
+
+    }
+
+    public register(handle: string, makeDialog: () => HTMLElement): void {
+
+    }
+
+    public showModal(handle: string, onClose?: (event) => void): void {
+
+    }
+
+    public showModal(dialog: HTMLElement, onClose?: (event) => void): void {
+
+    }
+
+
 
     /**
      * @param dialog Woc.Dialog

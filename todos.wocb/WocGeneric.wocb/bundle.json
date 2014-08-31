@@ -1,5 +1,5 @@
 {
 	"woc": "0.8",
 	"services": ["WocGeneric.Log", "WocGeneric.FirstRouter", "WocGeneric.Dialogs", "WocGeneric.FirstTemplateEngine", "WocGeneric.HBTemplateEngine"],
-	"components": ["WocGeneric.DialogsComp", "WocGeneric.Screens"]
+	"components": ["WocGeneric.Screens"]
 }

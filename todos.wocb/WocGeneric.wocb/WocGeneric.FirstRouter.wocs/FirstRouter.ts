@@ -4,7 +4,7 @@
 module WocGeneric {
   'use strict';
 
-  export interface UrlProps {
+  export interface UrlProperties {
     relUrl: string;
     args: {string: string};
     sel: string;
@@ -12,7 +12,7 @@ module WocGeneric {
   }
 
   export interface UrlController {
-    fillUrlProps(props: UrlProps): boolean;
+    fillUrlProperties(props: UrlProperties): boolean;
   }
 
   export class FirstRouter {
@@ -29,7 +29,7 @@ module WocGeneric {
     private withHistory: boolean;
     private withHashBang: boolean;
 
-    private curUrlProps: UrlProps;
+    private curUrlProperties: UrlProperties;
 
     constructor(private sc: Woc.ServiceContext) {
       this.log = <Woc.Log>sc.getService('Woc.Log');
@@ -109,8 +109,8 @@ module WocGeneric {
       return this.doGoTo(relUrl, true);
     }
 
-    public getCurrentUrlProps(): UrlProps {
-      return this.curUrlProps;
+    public getCurrentUrlProperties(): UrlProperties {
+      return this.curUrlProperties;
     }
 
     // --
@@ -121,10 +121,10 @@ module WocGeneric {
       if (!relUrl)
         relUrl = '/';
       else if (relUrl.charAt(0) !== '/')
-        relUrl = FirstRouter.appendUrl(this.curUrlProps ? this.curUrlProps['relUrl'] : '/', relUrl);
-      if (this.curUrlProps && this.curUrlProps['relUrl'] === relUrl)
+        relUrl = FirstRouter.appendUrl(this.curUrlProperties ? this.curUrlProperties['relUrl'] : '/', relUrl);
+      if (this.curUrlProperties && this.curUrlProperties['relUrl'] === relUrl)
         return true;
-      var selProp, args, up: UrlProps = null;
+      var selProp, args, up: UrlProperties = null;
       for (var k in this.selList) {
         if (!this.selList.hasOwnProperty(k))
           continue;
@@ -136,7 +136,7 @@ module WocGeneric {
             'args': args,
             'sel': selProp['sel']
           };
-          if (!selProp['urlController'].fillUrlProps(up))
+          if (!selProp['urlController'].fillUrlProperties(up))
             return false;
           if (Object.freeze) {
             Object.freeze(args);
@@ -149,7 +149,7 @@ module WocGeneric {
         return false;
       if (!this.fireListeners('before', up, true))
         return false;
-      this.curUrlProps = up;
+      this.curUrlProperties = up;
       this.fireListeners('change', up);
       if (changeHist && this.withHistory)
         window.history.pushState({'relUrl': relUrl}, up['title'], this.baseUrl + relUrl);
@@ -168,7 +168,7 @@ module WocGeneric {
       };
     }
 
-    private fireListeners(type: string, up: UrlProps, stopOnFalse = false) {
+    private fireListeners(type: string, up: UrlProperties, stopOnFalse = false) {
       var listeners = this.listeners[type];
       if (listeners === undefined)
         return true;

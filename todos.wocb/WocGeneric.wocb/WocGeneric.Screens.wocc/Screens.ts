@@ -38,7 +38,7 @@ module WocGeneric {
     /**
      * @return Screen NULL when no screen
      */
-    getScreen(up: Woc.UrlProps, seh: ScreenElHandler): Screen;
+    getScreen(up: WocGeneric.UrlProperties, seh: ScreenElHandler): Screen;
   }
 
   // ##
@@ -58,7 +58,7 @@ module WocGeneric {
     private elements: JQuery[] = [];
     private $curScreenEl: JQuery = null;
     private curScreen: Screen;
-    private lastUp: Woc.UrlProps = null;
+    private lastUp: WocGeneric.UrlProperties = null;
     private lastScreen: Screen = null;
     private rmCbList: Function[] = [];
 
@@ -69,10 +69,10 @@ module WocGeneric {
     constructor(private cc: Woc.FirstComponentContext) {
       this.$container = $(this.cc.getTemplate('.screens'));
       this.router = this.cc.getService('WocGeneric.FirstRouter');
-      this.rmCbList.push(this.router.addBeforeListener((up: Woc.UrlProps): boolean => {
+      this.rmCbList.push(this.router.addBeforeListener((up: WocGeneric.UrlProperties): boolean => {
         return this.getScreen(up) !== null;
       }));
-      this.rmCbList.push(this.router.addChangeListener((up: Woc.UrlProps) => {
+      this.rmCbList.push(this.router.addChangeListener((up: WocGeneric.UrlProperties) => {
         this.switchTo(up);
       }));
     }
@@ -124,7 +124,7 @@ module WocGeneric {
     // -- Woc.UrlController
     // --
 
-    public fillUrlProps(up: Woc.UrlProps): boolean {
+    public fillUrlProperties(up: WocGeneric.UrlProperties): boolean {
       var screen = this.getScreen(up);
       if (screen === null)
         return false;
@@ -136,7 +136,7 @@ module WocGeneric {
     // -- Private
     // --
 
-    private switchTo(up: Woc.UrlProps): boolean {
+    private switchTo(up: WocGeneric.UrlProperties): boolean {
       var screen = this.getScreen(up);
       if (screen === null)
         return false;
@@ -167,7 +167,7 @@ module WocGeneric {
       return $el;
     }
 
-    private getScreen(up: Woc.UrlProps): Screen {
+    private getScreen(up: WocGeneric.UrlProperties): Screen {
       if (up === this.lastUp)
         return this.lastScreen;
       var provider: ScreenProvider = this.uspBySel[up['sel']];
@@ -195,7 +195,7 @@ module WocGeneric {
 //      this.screens.addScreenProvider(this, [route]);
 //    }
 //
-//    public getScreen(up: Woc.UrlProps, seh: ScreenElHandler): Screen {
+//    public getScreen(up: WocGeneric.UrlProperties, seh: ScreenElHandler): Screen {
 //      var screen = this.map[up.sel];
 //      if (screen === undefined)
 //        throw Error('Unknown route "' + up.sel + '"');

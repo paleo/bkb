@@ -2,9 +2,9 @@
 
 module Woc {
 
-  // ##
-  // ## These interfaces are implemented by the user classes
-  // ##
+  // --
+  // -- Embed
+  // --
 
   // Service:
   // constructor: function (sc: Woc.ServiceContext)
@@ -28,64 +28,12 @@ module Woc {
     init(): void;
   }
 
-  export interface EmbedProperties {
-    name: string;
-    baseUrl: string;
-  }
+  // --
+  // -- Core defined Services
+  // --
 
-  export interface StartingPointService {
+  export interface StartingPoint {
     start(element: HTMLElement): void;
-  }
-
-  export interface TemplateEngineService {
-    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
-  }
-
-  /**
-   * constructor: function (ctc: ComponentTypeContext, tplStr: string)
-   */
-  export interface TemplateProcessor {
-    getContextMethods(): {[index: string]: Function};
-  }
-
-  export interface Dialog {
-    getDialogElement(): any;
-    setDialogOpened(): void;
-    setDialogClosed(): void;
-  }
-
-  /**
-   * The services that implement this interface can be declared as an alias of Woc.Dialogs
-   */
-  export interface Dialogs {
-    /**
-     * @param dialog Woc.Dialog
-     * @param forcedOpen boolean
-     * @param hideBelow boolean
-     * @returns {number} The dialog ID
-     */
-    addDialog(dialog: Dialog, forcedOpen?, hideBelow?): number;
-    openDialog(dialogId: number): void;
-    closeDialog(dialogId: number): boolean;
-    removeDialog(dialogId: number): void;
-    /**
-     *
-     * @param dialogElem
-     * @param setClosedCallback
-     * @param forcedOpen boolean
-     * @param hideBelow boolean
-     * @returns Function A callback for closing the dialog (the callback returns TRUE when dialog is closed, FALSE when the dialog remains)
-     */
-    openDisposableDialog(dialogElem, setClosedCallback?: Function, forcedOpen?, hideBelow?): Function;
-    clearDialogs(): boolean;
-    showInfo(msgHtml: string): void;
-    showWarning(msgHtml: string): void;
-    reportError(e): void;
-    /**
-     * @param msgHtml
-     * @param buttonList [{'label': string, 'callback': Function, 'ajax'?: boolean}]
-     */
-    showConfirm(msgHtml: string, buttonList: any[]): void;
   }
 
   /**
@@ -99,9 +47,20 @@ module Woc {
     wrap(cb: () => void): void;
   }
 
-  // ##
-  // ## Contexts
-  // ##
+  export interface TemplateEngine {
+    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
+  }
+
+  /**
+   * constructor: function (ctc: ComponentTypeContext, tplStr: string)
+   */
+  export interface TemplateProcessor {
+    getContextMethods(): {[index: string]: Function};
+  }
+
+  // --
+  // -- Contexts
+  // --
 
   export interface AppProperties {
     /**
@@ -136,7 +95,12 @@ module Woc {
     getDebugTree(): {};
   }
 
-  export interface SingletonContext {
+  export interface EmbedProperties {
+    name: string;
+    baseUrl: string;
+  }
+
+  export interface EmbedContext {
     getService<S>(serviceName: string): S;
     getService(serviceName: string): any;
     createComponent<C>(componentName: string, props?: {}): C;
@@ -153,38 +117,23 @@ module Woc {
     evalComponent(componentName: string[]): void;
     getName(): string;
     getBaseUrl(): string;
+  }
+
+  export interface ServiceContext extends EmbedContext {
     appConfig: AppConfig;
   }
 
-  export interface ServiceContext extends SingletonContext {
+  export interface InitializerContext extends EmbedContext {
+    appConfig: AppConfig;
   }
 
-  export interface InitializerContext extends SingletonContext {
-  }
-
-  export interface ComponentContext {
-    getService<S>(serviceName: string): S;
-    getService(serviceName: string): any;
-    createComponent<C>(componentName: string, props?: {}): C;
-    createComponent(componentName: string, props?: {}): any;
-    removeComponent(c: Component, fromDOM?: boolean): void;
-    removeComponent(cList: Component[], fromDOM?: boolean): void;
-    hasLibrary(libName: string): boolean;
-    hasLibrary(libName: string[]): boolean;
-    evalLibrary(libName: string): void;
-    evalLibrary(libName: string[]): void;
-    evalService(serviceName: string): void;
-    evalService(serviceName: string[]): void;
-    evalComponent(componentName: string): void;
-    evalComponent(componentName: string[]): void;
-    getName(): string;
-    getBaseUrl(): string;
+  export interface ComponentContext extends EmbedContext {
     appProperties: AppProperties;
   }
 
-  // ##
-  // ## Ajax service
-  // ##
+  // --
+  // -- The Ajax service
+  // --
 
   export interface Ajax {
     /**

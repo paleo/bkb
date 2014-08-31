@@ -3,5 +3,5 @@
 	"encoding": "utf8",
 	"script": ["Dialogs.js"],
 	"name": "WocGeneric.Dialogs",
-	"alias": "Woc.Dialogs"
+	"alias": "WocGeneric.Dialogs"
 }

@@ -12,5 +12,7 @@ _wocscripts/releases
 !/todos.wocb
 
 !woc/lib/*
+!dialog-polyfill*
+!handlebars*
 
 ext.w/jQueryUI.l/smoothness
