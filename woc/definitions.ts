@@ -58,6 +58,7 @@ module Woc {
     getContextMethods(): {[index: string]: Function};
   }
 
+
   // --
   // -- Contexts
   // --
