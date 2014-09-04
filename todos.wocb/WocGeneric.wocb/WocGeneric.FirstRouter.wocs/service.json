@@ -1,6 +1,0 @@
-{
-	"woc": "0.8",
-	"encoding": "utf8",
-	"script": ["FirstRouter.js"],
-	"name": "WocGeneric.FirstRouter"
-}

@@ -14,6 +14,9 @@ module Todos {
       var l: Test.Label = this.sc.createComponent<Test.Label>('Test.Label', {'label': 'Hello!'});
       l.attachTo(element);
 
+      this.test();
+      return;
+
       var dialogs: WocGeneric.Dialogs = this.sc.getService<WocGeneric.Dialogs>('WocGeneric.Dialogs');
       dialogs.showInfo('Info!');
       dialogs.showInfo('Info2!');
@@ -34,63 +37,79 @@ module Todos {
       }]).then((val) => {
         console.log('...confirm: ' + val);
       });
-
-      this.test();
     }
 
 
     public test() {
-      var router: WocGeneric.ARouter = this.sc.getService<WocGeneric.ARouter>('WocGeneric.ARouter');
+      var routerProvider: WocGeneric.EasyRouterProvider = this.sc.getService<WocGeneric.EasyRouterProvider>('WocGeneric.EasyRouterProvider');
 
-      var child = router.createChild();
-      child.map([
+      var child = routerProvider.createRouter().map([
         {
           route: 'details',
-          activate: (prop: WocGeneric.RouteProperties) => { this.activateTodoDetails(prop); },
+          activate: (prop: EasyRouter.RouteQuery) => { this.activateTodoDetails(prop); },
           title: 'Détails'
         }
       ]);
 
-      router.map([
+      var root = routerProvider.createRouter().map([
         {
           route: '',
           redirectTo: 'todos'
         },
         {
           route: 'todos',
-          activate: (prop: WocGeneric.RouteProperties) => { this.activateList(prop); },
+          activate: (prop: EasyRouter.RouteQuery) => { this.activateList(prop); },
           title: 'Liste des TODOS'
         },
         {
           route: 'todos/:id',
-          activate: (prop: WocGeneric.RouteProperties) => { this.activateTodo(prop); },
-          title: (prop: WocGeneric.RouteProperties) => { return this.makeTodoTitle(prop); }
+          activate: (prop: EasyRouter.RouteQuery) => { this.activateTodo(prop); },
+          title: (prop: EasyRouter.RouteQuery) => { return this.makeTodoTitle(prop); }
         },
         {
           route: 'todos/:id/*',
           child: child
         }
-      ]).mapUnknownRoutes('404', {
-        activate: (prop: WocGeneric.RouteProperties) => { this.activate404(prop); },
+      ]).mapUnknownRoutes({
+        useQueryString: '404',
+        activate: (prop: EasyRouter.RouteQuery) => { this.activate404(prop); },
         title: '404 Not Found'
-      }).start();
+      });
+      var p = routerProvider.start(root, {
+        hashBangMode: true,
+        firstQueryString: 'todos/456'
+      });
+      //p = p.then(() => {
+      //  console.log('STEP 1...');
+      //  root.navigate('todos');
+      //});
+      p = p.then(() => {
+        window.setTimeout(() => {
+          console.log('STEP 2...');
+          root.navigate('todos/4442/details');
+        }, 100);
+      });
+      // then(() => {
+      //  console.log('STEP 2...');
+      //  root.navigate('todos/123');
+      //});
+    }
 
+    private activateList(prop: EasyRouter.RouteQuery): void {
+      console.log('............ activateList: ' + JSON.stringify(prop));
     }
-    private activateList(prop: WocGeneric.RouteProperties): void {
-      console.log('activateList: ' + JSON.stringify(prop));
+    private activateTodo(prop: EasyRouter.RouteQuery): void {
+      console.log('............ activateTodo: ' + JSON.stringify(prop));
     }
-    private activateTodo(prop: WocGeneric.RouteProperties): void {
-      console.log('activateTodo: ' + JSON.stringify(prop));
-    }
-    private makeTodoTitle(prop: WocGeneric.RouteProperties): string {
-      console.log('activateTodo: ' + JSON.stringify(prop));
+    private makeTodoTitle(prop: EasyRouter.RouteQuery): string {
+      console.log('............ makeTodoTitle: ' + JSON.stringify(prop));
       return 'MyTitle: ' + prop.routeParams['id'];
     }
-    private activate404(prop: WocGeneric.RouteProperties): void {
-      console.log('activate404: ' + JSON.stringify(prop));
+    private activate404(prop: EasyRouter.RouteQuery): void {
+      console.log('............ activate404: ' + JSON.stringify(prop));
     }
-    private activateTodoDetails(prop: WocGeneric.RouteProperties): void {
-      console.log('activateTodoDetails: ' + JSON.stringify(prop));
+    private activateTodoDetails(prop: EasyRouter.RouteQuery): void {
+      console.log('............ activateTodoDetails: ' + JSON.stringify(prop));
     }
   }
 }
