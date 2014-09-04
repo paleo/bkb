@@ -4,7 +4,7 @@
 module WocGeneric {
   'use strict';
 
-  export class EasyRouterProvider {
+  export class EasyRouterProvider implements Woc.Router {
 
     private onErrCb: (err: any) => void;
     private root: EasyRouter.Router;
@@ -34,5 +34,50 @@ module WocGeneric {
       });
     }
 
+    // --
+    // -- Woc.Router
+    // --
+
+    public navigate(queryString: string): Promise<boolean> {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      return this.root.navigate(queryString);
+    }
+
+    public navigateToUnknown(): Promise<boolean> {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      return this.root.navigateToUnknown();
+    }
+
+    public navigateBack(level?: number): Promise<boolean> {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      return this.root.navigateBack(level);
+    }
+
+    public addCanLeaveListener(cb: () => any, onNavRm?: boolean): number {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      return this.root.addCanLeaveListener(cb, onNavRm);
+    }
+
+    public removeCanLeaveListener(handle: number): void {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      this.root.removeCanLeaveListener(handle);
+    }
+
+    public addLeaveListener(cb: () => void, onNavRm?: boolean): number {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      return this.root.addLeaveListener(cb, onNavRm);
+    }
+
+    public removeLeaveListener(handle: number): void {
+      if (!this.root)
+        throw Error('EasyRouterProvider is not started');
+      this.root.removeLeaveListener(handle);
+    }
   }
 }

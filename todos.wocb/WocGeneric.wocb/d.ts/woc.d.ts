@@ -33,7 +33,7 @@ declare module Woc {
   }
 
   /**
-   * The services that implement this interface can be declared as an alias of Woc.Log
+   * The services that implements this interface can be declared as an alias of Woc.Log
    */
   interface Log {
     error(msg: any): void;
@@ -52,6 +52,27 @@ declare module Woc {
    */
   interface TemplateProcessor {
     getContextMethods(): {[index: string]: Function};
+  }
+
+  /**
+   * The services that implements this interface can be declared as an alias of Woc.Router
+   * Copy of EasyRouter.MinimalRouter
+   */
+  export interface Router {
+    navigate(queryString: string): Promise<boolean>;
+    navigateToUnknown(): Promise<boolean>;
+    navigateBack(level?: number): Promise<boolean>;
+    /**
+     * @param cb returns a boolean or a Promise&lt;boolean&gt;
+     * @param onNavRm default value is FALSE
+     */
+    addCanLeaveListener(cb: () => any, onNavRm?: boolean): number;
+    removeCanLeaveListener(handle: number): void;
+    /**
+     * @param onNavRm default value is FALSE
+     */
+    addLeaveListener(cb: () => void, onNavRm?: boolean): number;
+    removeLeaveListener(handle: number): void;
   }
 
   // ##

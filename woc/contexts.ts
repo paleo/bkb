@@ -409,7 +409,7 @@ module Woc {
     constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
       this.authLibraries = ContextHelper.toSet(useLibraries);
-      this.authServices = ContextHelper.toSet(useServices, 'Woc.Log', 'Woc.Ajax');
+      this.authServices = ContextHelper.toSet(useServices, 'Woc.Ajax', 'Woc.Log', 'Woc.Router');
       this.authComponents = ContextHelper.toSet(useComponents);
     }
 
