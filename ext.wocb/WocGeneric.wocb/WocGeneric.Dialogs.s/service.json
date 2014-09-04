@@ -1,7 +1,0 @@
-{
-	"woc": "0.8",
-	"encoding": "utf8",
-	"script": ["Dialogs.js"],
-	"name": "WocGeneric.Dialogs",
-	"alias": "WocGeneric.Dialogs"
-}

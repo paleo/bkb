@@ -8,6 +8,7 @@ _wocscripts/releases
 /*-?.?.?
 /*.wocb
 !/woc
+!/ready_to_be_included
 !/ext.wocb
 !/todos.wocb
 
