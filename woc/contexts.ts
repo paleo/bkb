@@ -213,7 +213,8 @@ module Woc {
         'tplStr': tplStr,
         'templateEngine': templateEngine,
         'eval': false,
-        'CC': null
+        'CC': null,
+        'Cl': null
       };
     }
 
@@ -224,7 +225,7 @@ module Woc {
       var id = this.compTree.newPlaceholder(name, compTreeArg);
       this.makeReady(name, prop);
       var cc = new prop['CC'](id);
-      var Cl = toClass(name);
+      var Cl = prop['Cl'];
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
       this.compTree.setComp(id, c);
       return c;
@@ -254,8 +255,24 @@ module Woc {
         }).getContextMethods();
       } else
         methods = null;
-      prop['CC'] = Components.mergeTraits(this.ac, methods, name, prop['baseUrl'], prop['useLibraries'],
-        prop['useServices'], prop['useComponents'], true);
+      prop['CC'] = Components.mergeTraits(
+        this.ac,
+        methods,
+        name,
+        prop['baseUrl'],
+        prop['useLibraries'],
+        prop['useServices'],
+        prop['useComponents'],
+        true
+      );
+      var Cl = prop['Cl'] = toClass(name);
+      if (Cl.init) {
+        var cc = new prop['CC'](null);
+        if (prop['useApplication'])
+          Cl.init(this.ac, cc);
+        else
+          Cl.init(cc);
+      }
     }
 
     private static mergeTraits(ac: ImplApplicationContext, methods: {}, name: string, baseUrl: string, useLibraries: string[],
@@ -404,9 +421,9 @@ module Woc {
 
     constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
-      this.authLibraries = ContextHelper.toSet(useLibraries);
-      this.authServices = ContextHelper.toSet(useServices, 'Woc.Ajax', 'Woc.Log', 'Woc.Router');
-      this.authComponents = ContextHelper.toSet(useComponents);
+      this.authLibraries = ContextHelper.toSet(useLibraries, name);
+      this.authServices = ContextHelper.toSet(useServices, name, 'Woc.Ajax', 'Woc.Log', 'Woc.Router');
+      this.authComponents = ContextHelper.toSet(useComponents, name);
     }
 
     public getService(serviceName: string): any {
@@ -479,6 +496,9 @@ module Woc {
     private authComponents: {};
     private ac: ImplApplicationContext;
 
+    /**
+     * @param compId NULL for static init context
+     */
     constructor(private compId: number) {
     }
 

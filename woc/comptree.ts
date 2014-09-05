@@ -11,9 +11,11 @@ module Woc {
     public newPlaceholder(cName: string, compTreeArg): number {
       switch (compTreeArg['from']) {
         case 'S':
-          return this.addFromService(cName, compTreeArg['sc'].getName());
+          return this.addFromRoot(cName, 's(' + compTreeArg['sc'].getName() + ')');
         case 'C':
           var parentId = compTreeArg['id'];
+          if (parentId === null)
+            return this.addFromRoot(cName, 'c(' + cName + ')'); // Case of a call from component static init
           if (this.list[parentId] === undefined)
             throw Error('Unknown parent component "' + parentId + '"');
           var item = this.list[parentId];
@@ -86,10 +88,10 @@ module Woc {
       delete this.list[id];
     }
 
-    private addFromService(cName: string, parentId: string): number {
-      var children = this.tree[parentId];
+    private addFromRoot(cName: string, rootId: string): number {
+      var children = this.tree[rootId];
       if (children === undefined)
-        this.tree[parentId] = children = {};
+        this.tree[rootId] = children = {};
       return this.addItem(cName, children);
     }
 

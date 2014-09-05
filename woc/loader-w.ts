@@ -377,7 +377,7 @@ module Woc {
       // - Components
       for (var i = 0, len = compList.length; i < len; ++i) {
         conf = compList[i].conf;
-        this.components.register(conf['name'], compList[i].url, null, conf['useApplication'], conf['useServices'],
+        this.components.register(conf['name'], compList[i].url, conf['useApplication'], null, conf['useServices'],
           conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
       }
     }

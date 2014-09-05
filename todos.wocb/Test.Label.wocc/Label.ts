@@ -5,8 +5,9 @@ module Test {
 
   export class Label implements Woc.Component {
 
-    public static staticInit(cc: Woc.HBComponentContext) {
-
+    public static init(cc: Woc.HBComponentContext) {
+      console.log('STATIC-INIT!');
+      cc.createComponent('Test.Label');
     }
 
     private $lbl: JQuery;
