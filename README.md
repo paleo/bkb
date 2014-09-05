@@ -11,4 +11,4 @@ In english: [Try to use Google Translate](http://translate.google.com/translate?
 
 ## License
 
-Public domain or [CC0 1.0](http://creativecommons.org/publicdomain/zero/1.0/) of your choice.
+Public domain or [CC0](http://creativecommons.org/publicdomain/zero/1.0/) of your choice.

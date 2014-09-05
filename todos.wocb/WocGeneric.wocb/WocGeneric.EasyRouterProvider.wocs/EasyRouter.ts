@@ -1,3 +1,11 @@
+/*!
+ * Public domain
+ * Or CC0: Tarh Paleo has waived all copyright and related or neighboring rights to EasyRouter. From Benin, 2014.
+ * http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * @license
+ */
+
 /// <reference path='../es6-promise.d.ts' />
 
 module EasyRouter {
