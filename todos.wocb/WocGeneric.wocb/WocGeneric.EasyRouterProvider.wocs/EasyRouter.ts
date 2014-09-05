@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/es6-promise.d.ts' />
+/// <reference path='../es6-promise.d.ts' />
 
 module EasyRouter {
   'use strict';
@@ -64,8 +64,12 @@ module EasyRouter {
     removeLeaveListener(handle: number): void;
   }
 
+  export interface ParentRouter {
+    parentNavigateToUnknown(changeHist: boolean): Promise<boolean>;
+  }
+
   export interface ChildRouter {
-    startAsChild(parent: MinimalRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean);
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
     leave(): Promise<boolean>;
   }
@@ -102,7 +106,7 @@ module EasyRouter {
   // -- Router
   // --
 
-  export class Router implements ChildRouter, MinimalRouter {
+  export class Router implements ParentRouter, ChildRouter, MinimalRouter {
 
     // --
     // -- Initialisation
@@ -111,7 +115,7 @@ module EasyRouter {
     private isRoot: boolean;
     private rootBaseUrl: string;
     private withHistory: boolean;
-    private parent: MinimalRouter;
+    private parent: ParentRouter;
     private children: ChildRouter[] = [];
 
     private routes: Route[] = [];
@@ -152,7 +156,7 @@ module EasyRouter {
       // - Navigate
       return this.doNavigate(firstQueryString, false).then<void>((done: boolean) => {
         if (done) {
-          if (this.curRouteQuery) {
+          if (this.withHistory && this.curRouteQuery) {
             window.history.replaceState(
               this.curRouteQuery.redirectedFrom || this.curRouteQuery.queryString,
               this.curRouteQuery.title,
@@ -195,10 +199,18 @@ module EasyRouter {
     }
 
     // --
+    // -- Public - ParentRouter
+    // --
+
+    public parentNavigateToUnknown(changeHist: boolean): Promise<boolean> {
+      return this.doNavigate(null, changeHist, null, null, true);
+    }
+
+    // --
     // -- Public - ChildRouter
     // --
 
-    public startAsChild(parent: MinimalRouter, withHistory: boolean) {
+    public startAsChild(parent: ParentRouter, withHistory: boolean) {
       if (this.isRoot)
         throw Error('Cannot call startAsChild() on the root router');
       if (this.parent) {
@@ -291,10 +303,13 @@ module EasyRouter {
     // -- Private - Routes
     // --
 
-    private doNavigate(queryString: string, changeHist: boolean, parentUrl: string = null, parentQuery: any = null): Promise<boolean> {
-      if (this.working)
-        return Promise.resolve<boolean>(false);
-      this.working = true;
+    private doNavigate(queryString: string, changeHist: boolean, parentUrl: string = null, parentQuery: any = null,
+        alreadyWorking = false): Promise<boolean> {
+      if (!alreadyWorking) {
+        if (this.working)
+          return Promise.resolve<boolean>(false);
+        this.working = true;
+      }
       if (this.isRoot && changeHist)
         this.rootQSStack.push(queryString);
       var query = this.makeRouteQuery(queryString, parentQuery);
@@ -302,13 +317,13 @@ module EasyRouter {
         this.working = false;
         return Promise.resolve<boolean>(true);
       }
-      var p = this.fireListeners('canLeave', undefined, true);
-      return p.then((can: boolean): any => {
+      var p: Promise<boolean> = this.fireListeners('canLeave', undefined, true);
+      p = p.then<boolean>((can: boolean): any => {
         if (!can)
           return false;
         return this.searchRoute(query).then<boolean>((matching: MatchingRoute): any => {
           if (matching === null)
-            return this.parent ? this.parent.navigateToUnknown() : false;
+            return this.parent ? this.parent.parentNavigateToUnknown(changeHist) : false;
           return this.fireListeners('canNavigate', matching.completedQuery, true).then((can: boolean): any => {
             if (!can)
               return false;
@@ -317,13 +332,17 @@ module EasyRouter {
             return this.doNavigateToMatching(matching, changeHist, parentUrl);
           });
         });
-      }).then<boolean>((done: boolean) => {
-        this.working = false;
-        return done;
-      }, (err: any) => {
-        this.working = false;
-        throw err;
       });
+      if (!alreadyWorking) {
+        p = p.then<boolean>((done: boolean) => {
+          this.working = false;
+          return done;
+        }, (err: any) => {
+          this.working = false;
+          throw err;
+        });
+      }
+      return p;
     }
 
     private doNavigateToMatching(matching: MatchingRoute, changeHist: boolean, parentUrl: string): Promise<boolean> {
@@ -368,7 +387,7 @@ module EasyRouter {
           title = activator.title(completed);
         // - New route
         this.doNavigateNewRouteQuery(Router.makeFinalRouteQuery(completed, title));
-        if (changeHist && this.withHistory)
+        if (changeHist)
           this.pushState(this.curRouteQuery, parentUrl);
         document.title = this.curRouteQuery.title;
         activator.activate(this.curRouteQuery);
@@ -377,6 +396,8 @@ module EasyRouter {
     }
 
     private pushState(query: RouteQuery, parentUrl: string): void {
+      if (!this.withHistory)
+        return;
       var rootQuery = query;
       while (rootQuery.parent)
         rootQuery = rootQuery.parent;
@@ -641,8 +662,6 @@ module EasyRouter {
         if (e.state === null || e.state === undefined)
           return;
         try {
-console.log('# POP: ' + e.state);
-console.log(e);
           this.doNavigate(e.state, false);
         } catch (err) {
           this.onErrCb(err);
@@ -658,7 +677,6 @@ console.log(e);
             return;
           if (queryString.length >= 1 && queryString[0] === '#')
             queryString = queryString.slice(queryString.length >= 2 && queryString[1] === '!' ? 2 : 1);
-console.log('# HASH: ' + queryString);
           this.doNavigate(queryString, false);
         } catch (err) {
           this.onErrCb(err);

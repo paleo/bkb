@@ -111,7 +111,7 @@ module Woc {
     }
 
     public init(bundleName: string) {
-      if (this.byBundle[bundleName] === undefined)
+      if (!this.byBundle || this.byBundle[bundleName] === undefined)
         return;
       var list = this.byBundle[bundleName];
       for (var i = 0, len = list.length; i < len; ++i) {
@@ -337,25 +337,21 @@ module Woc {
       return this.services.get(serviceName);
     }
 
-    public createComponentFromServ(componentName: string, props: {}, sc: ServiceContext): any {
-      return this.components.create(componentName, props, {'from': 'S', 'sc': sc});
+    public createComponentFromServ(serviceName: string, props: {}, sc: ServiceContext): any {
+      return this.components.create(serviceName, props, {'from': 'S', 'sc': sc});
     }
 
     public createComponentFromComp(componentName: string, props: {}, compId: number): any {
       return this.components.create(componentName, props, {'from': 'C', 'id': compId});
     }
 
-    public removeComponentFromId(compId: number, fromDOM = false): void {
-      this.components.getComponentTree().destructFromId(compId, fromDOM);
-    }
-
     public removeComponent(c: any, fromDOM = false): void {
+      var compTree = this.components.getComponentTree();
       if (Array.isArray(c)) {
-        var compTree = this.components.getComponentTree();
         for (var i = 0, len = c.length; i < len; ++i)
           compTree.destruct(c[i], fromDOM);
       } else
-        this.components.getComponentTree().destruct(c, fromDOM);
+        compTree.destruct(c, fromDOM);
     }
 
     public hasLibrary(libName: any): boolean {

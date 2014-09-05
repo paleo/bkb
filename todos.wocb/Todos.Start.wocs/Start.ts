@@ -1,5 +1,4 @@
-/// <reference path="../d.ts/WocGeneric.d.ts" />
-/// <reference path="../d.ts/jquery.d.ts" />
+/// <reference path='../todos.d.ts' />
 /// <reference path="../Test.Label.wocc/Label.ts" />
 
 module Todos {
@@ -15,7 +14,7 @@ module Todos {
       l.attachTo(element);
 
       this.test();
-      return;
+      //return;
 
       var dialogs: WocGeneric.Dialogs = this.sc.getService<WocGeneric.Dialogs>('WocGeneric.Dialogs');
       dialogs.showInfo('Info!');

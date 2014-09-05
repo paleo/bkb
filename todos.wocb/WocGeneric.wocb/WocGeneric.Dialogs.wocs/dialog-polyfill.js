@@ -150,9 +150,9 @@ var dialogPolyfill = (function() {
     return this.returnValue;
   };
 
-  dialogPolyfill.registerDialog = function(element, force) {
+  dialogPolyfill.registerDialog = function(element, skipOnSupport) {
     if (element.show) {
-      if (force !== true)
+      if (skipOnSupport === true)
         return;
       console.warn("This browser already supports <dialog>, the polyfill " +
         "may not work correctly.");

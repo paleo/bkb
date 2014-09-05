@@ -2,10 +2,9 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"version": "0.8.0",
-	"bundles": ["WocGeneric(w)"],
-	"libraries": ["jQuery"],
+	"bundles": ["WocGeneric(w)", "Lib(w)"],
 	"initializers": ["Todos.Conf"],
 	"services": ["Todos.Start"],
 	"components": ["Test.Label"],
-	"theme": "todos-violet"
+	"theme": "TodosViolet"
 }

@@ -27,7 +27,7 @@ class BundleWReader {
   private bundleVersion: string;
 
   public static makeInstance(project: Project, bundleName: string, parentRelPath: string = null): Promise<BundleWReader> {
-    var dirName = BundleWReader.toDir(bundleName, Common.EmbedType.Bundle),
+    var dirName = Common.toWDir(bundleName, Common.EmbedType.Bundle),
       bundleRelPath = parentRelPath === null ? dirName : path.join(parentRelPath, dirName);
     return fsp.exists(project.makeInputFsPath(bundleRelPath)).then((b) => {
       if (!b)
@@ -78,10 +78,12 @@ class BundleWReader {
     var excludedSet: {[index: string]: boolean} = {'bundle.json': true},
       list, dir;
     for (var type = 0; Common.EmbedType[type] !== undefined; ++type) {
+      if (type === Common.EmbedType.Theme)
+        continue;
       list = this.conf[BundleWReader.toBundleConfKey(type)];
       if (list) {
         for (var j = 0, lenJ = list.length; j < lenJ; ++j) {
-          dir = BundleWReader.toDir(list[j], type);
+          dir = Common.toWDir(list[j], type);
           excludedSet[dir] = true;
         }
       }
@@ -126,7 +128,7 @@ class BundleWReader {
   }
 
   private processEmbedThing(writer: BundleWriter, name: string, type: Common.EmbedType): Promise<void> {
-    var dirName = BundleWReader.toDir(name, type);
+    var dirName = Common.toWDir(name, type);
     switch (type) {
       case Common.EmbedType.Library:
         return this.processLibrary(writer, dirName);
@@ -216,23 +218,6 @@ class BundleWReader {
   // -- Private - Tools
   // --
 
-  private static toDir(name: string, type: Common.EmbedType): string {
-    switch (type) {
-      case Common.EmbedType.Library:
-        return name + '.wocl';
-      case Common.EmbedType.Service:
-        return name + '.wocs';
-      case Common.EmbedType.Initializer:
-        return name + '.woci';
-      case Common.EmbedType.Component:
-        return name + '.wocc';
-      case Common.EmbedType.Bundle:
-        return name + '.wocb';
-      default:
-        throw Error('Invalid type "' + type + '"');
-    }
-  }
-
   private static toBundleConfKey(type: Common.EmbedType): string {
     switch (type) {
       case Common.EmbedType.Library:
@@ -305,15 +290,17 @@ class BundleWReader {
       var excludeNames = themeVal ? BundleWReader.appendThemeDirectoriesToSet({'theme.json': true}, themeVal) : {};
       return this.includeOtherFiles(writer, completePath, excludeNames);
     };
-    return Promise.all(themeVal.map((dirOrObj: any): any => {
+    return Promise.all(themeVal.map((nameOrObj: any): any => {
       // - Case of short syntax
-      if (typeof dirOrObj === 'object') {
-        var subDirPath = relPath ? path.join(thingRelPath, relPath, dirOrObj['theme']) : path.join(thingRelPath, dirOrObj['theme']);
-        return makeCopyPromise(subDirPath, null).then(() =>
-          BundleWReader.prependPathToFileList(dirOrObj['stylesheet'], dirOrObj['theme']));
+      if (typeof nameOrObj === 'object') {
+        var subDirPath = relPath ? path.join(thingRelPath, relPath, nameOrObj['name']) : path.join(thingRelPath, nameOrObj['name']);
+        return makeCopyPromise(subDirPath, null).then(
+          () => BundleWReader.prependPathToFileList(nameOrObj['stylesheet'], nameOrObj['name'])
+        );
       }
       // - Normal case
-      var itemRelPath = relPath ? path.join(relPath, dirOrObj) : dirOrObj;
+      var dir = Common.toWDir(nameOrObj, Common.EmbedType.Theme),
+        itemRelPath = relPath ? path.join(relPath, dir) : dir;
       var completePath = path.join(thingRelPath, itemRelPath);
       return this.project.readInputJsonFile(path.join(completePath, 'theme.json'), this.encoding).then((conf): any => {
         BundleWReader.cleanConf(conf);
@@ -337,6 +324,8 @@ class BundleWReader {
   private static prependPathToFileList(nameOrArr: any, pathPrefix: string): string[] {
     if (!nameOrArr)
       return [];
+    if (typeof nameOrArr === 'string')
+      return [path.join(pathPrefix, nameOrArr)];
     for (var i = 0, len = nameOrArr.length; i < len; ++i)
       nameOrArr[i] = path.join(pathPrefix, nameOrArr[i]);
     return nameOrArr;
@@ -345,13 +334,13 @@ class BundleWReader {
   private static appendThemeDirectoriesToSet(fileSet: {[index: string]: boolean}, themeVal: any[]): {[index: string]: boolean} {
     if (!themeVal)
       return fileSet;
-    var item: any;
+    var nameOrObj: any;
     for (var i = 0, len = themeVal.length; i < len; ++i) {
-      item = themeVal[i];
-      if (typeof item === 'string')
-        fileSet[item] = true;
+      nameOrObj = themeVal[i];
+      if (typeof nameOrObj === 'string')
+        fileSet[Common.toWDir(nameOrObj, Common.EmbedType.Theme)] = true;
       else
-        fileSet[item['theme']] = true;
+        fileSet[nameOrObj['name']] = true;
     }
     return fileSet;
   }
@@ -381,7 +370,7 @@ class BundleWReader {
     var dir = this.project.makeInputFsPath(dirRelPath);
     return fsp.readdir(dir).then<void>((list) => {
       return list.reduce((sequence: Promise<void>, childName: string) => {
-        if (childName === '.' || childName === '..' || excludeNames[childName])
+        if (excludeNames[childName] || BundleWriter.mustExcludeFromOtherFile(childName))
           return sequence;
         return sequence.then(() => {
           var fullPath = path.join(dir, childName),

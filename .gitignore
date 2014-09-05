@@ -16,4 +16,5 @@ _wocscripts/releases
 !dialog-polyfill*
 !handlebars*
 
-ready_to_be_included/jQueryUI.wocl/smoothness
+todos.wocb/Lib.wocb/jQueryUI.wocl/smoothness
+!ready_to_be_included/jQueryUI.wocl/smoothness/*.css

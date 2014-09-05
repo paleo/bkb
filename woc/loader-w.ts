@@ -230,7 +230,10 @@ module Woc {
       }
       // - Bundle
       var allThemesP = Promise.all(themePromises).then(() => this.loadTheme(
-        cssLoader, this.bundlePath, this.bundleUrl, this.mergedBundleConf['theme']
+        cssLoader,
+        this.bundlePath,
+        this.bundleUrl,
+        this.mergedBundleConf['theme']
       )).then(() => cssLoader.getPromise());
       // - Promises
       return Promise.all<any>([
@@ -254,12 +257,13 @@ module Woc {
     }
 
     private loadThemeRecursive(thingUrl: string, relThemeUrl: string, themeVal: any[]): Promise<string[]> {
-      return Promise.all(themeVal.map((dirOrObj: any): any => {
+      return Promise.all(themeVal.map((nameOrObj: any): any => {
         // - Case of short syntax
-        if (typeof dirOrObj === 'object')
-          return WThingLoader.toResList(dirOrObj['stylesheet'], dirOrObj['theme']);
+        if (typeof nameOrObj === 'object')
+          return WThingLoader.toResList(nameOrObj['stylesheet'], nameOrObj['name']);
         // - Normal case
-        var dirUrl = relThemeUrl ? relThemeUrl + '/' + dirOrObj : dirOrObj;
+        var dir = WThingLoader.toDir(nameOrObj, WEmbedType.Theme);
+        var dirUrl = relThemeUrl ? relThemeUrl + '/' + dir : dir;
         return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
           WLoader.cleanConf(conf);
           if (!conf['theme'])
@@ -320,6 +324,8 @@ module Woc {
           return name + '.woci';
         case WEmbedType.Component:
           return name + '.wocc';
+        case WEmbedType.Theme:
+          return name + '.woct';
         default:
           throw Error('Invalid type "' + type + '"');
       }

@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../woc.d.ts' />
 
 declare var dialogPolyfill;
 
@@ -149,7 +149,7 @@ module WocGeneric {
     private static appendDialog(dialog: HTMLElement, onClose: (event) => void = null): HTMLElement {
       document.body.appendChild(dialog);
       if (!dialog['show'])
-        dialogPolyfill.registerDialog(dialog);
+        dialogPolyfill.registerDialog(dialog, true);
       if (onClose)
         dialog.addEventListener('close', onClose);
       return dialog;

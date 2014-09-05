@@ -11,7 +11,7 @@ module Woc {
     public newPlaceholder(cName: string, compTreeArg): number {
       switch (compTreeArg['from']) {
         case 'S':
-          return this.addFromRoot(cName, compTreeArg['sc'].getName());
+          return this.addFromService(cName, compTreeArg['sc'].getName());
         case 'C':
           var parentId = compTreeArg['id'];
           if (this.list[parentId] === undefined)
@@ -31,12 +31,11 @@ module Woc {
       c[ComponentTree.ID_PROP] = id;
     }
 
-    public destruct(c: Component, removeFromDOM: boolean) {
-      this.destructItem(c[ComponentTree.ID_PROP], removeFromDOM);
-    }
-
-    public destructFromId(id: number, removeFromDOM: boolean) {
-      this.destructItem(id, removeFromDOM);
+    public destruct(c: any, removeFromDOM: boolean) {
+      if (typeof c === 'number')
+        this.destructItem(c, removeFromDOM);
+      else
+        this.destructItem(c[ComponentTree.ID_PROP], removeFromDOM);
     }
 
     public getTreeCopy(): {} {
@@ -87,7 +86,7 @@ module Woc {
       delete this.list[id];
     }
 
-    private addFromRoot(cName: string, parentId: string): number {
+    private addFromService(cName: string, parentId: string): number {
       var children = this.tree[parentId];
       if (children === undefined)
         this.tree[parentId] = children = {};

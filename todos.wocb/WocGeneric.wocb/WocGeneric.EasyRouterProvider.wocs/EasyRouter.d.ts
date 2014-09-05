@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../woc.d.ts' />
 
 declare module EasyRouter {
 
@@ -59,8 +59,12 @@ declare module EasyRouter {
     removeLeaveListener(handle: number): void;
   }
 
+  interface ParentRouter {
+    parentNavigateToUnknown(changeHist: boolean): Promise<boolean>;
+  }
+
   interface ChildRouter {
-    startAsChild(parent: MinimalRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean);
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
     leave(): Promise<boolean>;
   }
@@ -72,7 +76,7 @@ declare module EasyRouter {
     firstQueryString?: string;
   }
 
-  class Router implements ChildRouter, MinimalRouter {
+  class Router implements ParentRouter, ChildRouter, MinimalRouter {
 
     constructor(onErrCb: (err: any) => void);
 
@@ -80,8 +84,11 @@ declare module EasyRouter {
     map(activators: RouteActivator[]): Router;
     mapUnknownRoutes(activator: RouteActivator): Router;
 
+    // - Parent router
+    parentNavigateToUnknown(changeHist: boolean): Promise<boolean>;
+
     // - Child router
-    startAsChild(parent: MinimalRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean);
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
     leave(): Promise<boolean>;
 

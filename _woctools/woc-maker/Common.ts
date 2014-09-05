@@ -3,7 +3,26 @@
 
 module Common {
   export enum EmbedType {
-    Library, Service, Initializer, Component, Bundle
+    Library, Service, Initializer, Component, Theme, Bundle
+  }
+
+  export function toWDir(name: string, type: EmbedType): string {
+    switch (type) {
+      case EmbedType.Library:
+        return name + '.wocl';
+      case EmbedType.Service:
+        return name + '.wocs';
+      case EmbedType.Initializer:
+        return name + '.woci';
+      case EmbedType.Component:
+        return name + '.wocc';
+      case EmbedType.Theme:
+        return name + '.woct';
+      case EmbedType.Bundle:
+        return name + '.wocb';
+      default:
+        throw Error('Invalid type "' + type + '"');
+    }
   }
 
   export function toSingularLabel(type: EmbedType) {
@@ -16,6 +35,8 @@ module Common {
         return 'initializer';
       case EmbedType.Component:
         return 'component';
+      case EmbedType.Theme:
+        return 'theme';
       case EmbedType.Bundle:
         return 'bundle';
       default:
@@ -33,6 +54,8 @@ module Common {
         return 'initializers';
       case EmbedType.Component:
         return 'components';
+      case EmbedType.Theme:
+        return 'themes';
       case EmbedType.Bundle:
         return 'bundles';
       default:

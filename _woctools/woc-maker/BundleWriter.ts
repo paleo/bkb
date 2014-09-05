@@ -162,6 +162,18 @@ class BundleWriter {
     });
   }
 
+  public static mustExcludeFromOtherFile(fileName: string): boolean {
+    if (fileName === '.' || fileName === '..')
+      return true;
+    var ext: string;
+    for (var type = 0; Common.EmbedType[type] !== undefined; ++type) {
+      ext = Common.toWDir('', type);
+      if (fileName.indexOf(ext, fileName.length - ext.length) !== -1)
+        return true;
+    }
+    return false;
+  }
+
   private cleanOutputDir(rmDestination: boolean): Promise<boolean> {
     return fsp.exists(this.bundlePath).then((b): any => {
       var p: Promise<any>;
@@ -253,7 +265,7 @@ class BundleWriter {
       return fsp.readdir(inputDirPath).then((list: string[]) => {
         var inRelChildPath, inChildPath, outChildPath, allP: Promise<any>[] = [];
         for(var i = 0; i < list.length; i++) {
-          if (list[i] === '.' || list[i] === '..')
+          if (BundleWriter.mustExcludeFromOtherFile(list[i]))
             continue;
           inRelChildPath = path.join(inputRelPath, list[i]);
           inChildPath = path.join(inputDirPath, list[i]);
@@ -283,7 +295,7 @@ class BundleWriter {
   private otherDirContainsSomething(inputRelPath, inputDirPath: string, project: Project): Promise<boolean> {
     return fsp.readdir(inputDirPath).then((list: string[]) => {
       return list.reduce((sequence: Promise<boolean>, childName: string) => {
-        if (childName === '.' || childName === '..')
+        if (BundleWriter.mustExcludeFromOtherFile(childName))
           return sequence;
         return sequence.then((hasSomeThing: boolean): any => {
           if (hasSomeThing)

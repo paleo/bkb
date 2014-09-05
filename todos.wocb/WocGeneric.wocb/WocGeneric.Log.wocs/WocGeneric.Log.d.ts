@@ -1,4 +1,4 @@
-/// <reference path='../d.ts/woc.d.ts' />
+/// <reference path='../woc.d.ts' />
 
 declare module WocGeneric {
   enum LogType {
