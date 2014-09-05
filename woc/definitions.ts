@@ -126,7 +126,15 @@ module Woc {
     getService(serviceName: string): any;
     createComponent<C>(componentName: string, props?: {}): C;
     createComponent(componentName: string, props?: {}): any;
+    /**
+     * @param c
+     * @param fromDOM default is FALSE
+     */
     removeComponent(c: Component, fromDOM?: boolean): void;
+    /**
+     * @param cList
+     * @param fromDOM default is FALSE
+     */
     removeComponent(cList: Component[], fromDOM?: boolean): void;
     hasLibrary(libName: string): boolean;
     hasLibrary(libName: string[]): boolean;

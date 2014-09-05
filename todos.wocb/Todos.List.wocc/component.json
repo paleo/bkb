@@ -1,0 +1,12 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"templateEngine": ["WocGeneric.HBTemplateEngine"],
+	"useLibraries": ["jQuery"],
+  "useServices": "Todos.Model",
+  "useComponents": "Todos.Item",
+	"script": "List.js",
+	"templates": "t.html",
+	"stylesheet": "p.css",
+	"name": "Todos.List"
+}

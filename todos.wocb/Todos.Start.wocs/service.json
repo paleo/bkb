@@ -2,8 +2,8 @@
 	"woc": "0.8",
 	"encoding": "utf8",
 	"useLibraries": ["jQuery"],
-	"useServices": ["WocGeneric.Dialogs", "WocGeneric.EasyRouterProvider"],
-	"useComponents": ["Test.Label"],
+	"useServices": ["Todos.Model", "WocGeneric.EasyRouterProvider"],
+	"useComponents": ["Todos.List"],
 	"script": "Start.js",
 	"name": "Todos.Start"
 }

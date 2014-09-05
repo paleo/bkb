@@ -696,15 +696,15 @@ module EasyRouter {
       if (opt.hashBangMode) {
         var hash = window.location.hash;
         if (!hash || hash.length <= 2)
-          return '/';
+          return '';
         return hash.slice(2);
       }
       var path = window.location.pathname;
       var baseLen = opt.baseUrl.length;
       if (path.length <= baseLen)
-        return '/';
+        return '';
       if (path.slice(0, baseLen) !== opt.baseUrl)
-        return '/';
+        return '';
       return path.slice(baseLen);
     }
 
