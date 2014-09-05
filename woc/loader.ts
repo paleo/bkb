@@ -60,6 +60,8 @@ module Woc {
         return p;
       // - First call
       if (opt.w) {
+        if (!WLoader)
+          throw Error('Cannot load bundle "' + JSON.stringify(opt) + '" in working mode, please use woc-w.min.js');
         var wLoader = new WLoader(this.libraries, this.services, this.initializers, this.components, this, this.wocUrl, opt);
         p = wLoader.loadWBundle();
       } else
