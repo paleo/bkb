@@ -7,6 +7,8 @@ module WocGeneric {
   export class EasyRouterProvider implements Woc.Router {
 
     private onErrCb: (err: any) => void;
+    private onRejectCb: (err: any, query?: EasyRouter.RouteQuery) => void;
+    private onUnknownRouteCb: (query: EasyRouter.RouteQuery) => void;
     private root: EasyRouter.Router;
 
     constructor(private sc: Woc.ServiceContext) {
@@ -14,12 +16,19 @@ module WocGeneric {
       this.onErrCb = function (err: any) {
         log.error(err);
       };
+      this.onRejectCb = function (err: any, query?: EasyRouter.RouteQuery) {
+        log.error('Error on route: "' + query.queryString + '"');
+        log.error(err);
+      };
+      this.onUnknownRouteCb = function (query: EasyRouter.RouteQuery) {
+        log.warning('Unknown route: "' + query.queryString + '"');
+      };
     }
 
     public createRouter(): EasyRouter.Router {
       if (this.root)
         throw Error('EasyRouterProvider is already started');
-      return new EasyRouter.Router(this.onErrCb);
+      return new EasyRouter.Router(this.onErrCb, this.onRejectCb, this.onUnknownRouteCb);
     }
 
     public start(root: EasyRouter.Router, opt = {}): Promise<void> {

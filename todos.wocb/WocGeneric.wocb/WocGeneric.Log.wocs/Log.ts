@@ -24,8 +24,8 @@ module WocGeneric {
     // -- Public
     // --
 
-    public error(msg: any): void {
-      this.fireEvent(LogType.Error, msg);
+    public error(err: any): void {
+      this.fireEvent(LogType.Error, err);
     }
 
     public info(msg: any): void {

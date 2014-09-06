@@ -5,7 +5,7 @@ declare module WocGeneric {
     Error, Info, Warning, Trace
   }
   interface Log {
-    error(msg: any): void;
+    error(err: any): void;
     info(msg: any): void;
     warning(msg: any): void;
     trace(msg: any): void;

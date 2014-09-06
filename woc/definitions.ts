@@ -40,7 +40,7 @@ module Woc {
    * The services that implements this interface can be declared as an alias of Woc.Log
    */
   export interface Log {
-    error(msg: any): void;
+    error(err: any): void;
     info(msg: any): void;
     warning(msg: any): void;
     trace(msg: any): void;

@@ -47,7 +47,11 @@ module EasyRouter {
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
-    deactivate?(query: RouteQuery): any;
+    canDeactivate?(): any;
+    /**
+     * @return any void or a Promise&lt;void&gt;
+     */
+    deactivate?(): any;
     /**
      * A string or a callback(query: RouteProperties) that returns a string or a Promise&lt;string&gt;
      */
@@ -77,9 +81,9 @@ module EasyRouter {
   }
 
   export interface ChildRouter {
-    startAsChild(parent: ParentRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean): void;
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
-    leave(): Promise<boolean>;
+    leaveChildRouter(): Promise<boolean>;
   }
 
   export interface RootOptions {
@@ -120,6 +124,8 @@ module EasyRouter {
     // -- Initialisation
     // --
 
+    private onAsyncErrCb: (err: any) => void;
+
     private isRoot: boolean;
     private rootBaseUrl: string;
     private withHistory: boolean;
@@ -127,16 +133,27 @@ module EasyRouter {
     private children: ChildRouter[] = [];
 
     private routes: Route[] = [];
-    private unknownRActivator: RouteActivator;
+    private unknownActivator: RouteActivator;
     private listeners = {};
     private onNavRmListeners = {};
 
     private rootQSStack: string[] = [];
-    private curRouteQuery: RouteQuery;
-    private curChild: ChildRouter;
+    private curRouteQuery: RouteQuery = null;
+    private curActivator: RouteActivator = null;
+    private curChild: ChildRouter = null;
     private working = false;
 
-    constructor(private onErrCb: (err: any) => void) {
+    constructor(
+        onAsyncErrCb: (err: any) => void,
+        private onRejectCb: (err: any, query?: RouteQuery) => void = null,
+        private onUnknownRouteCb: (query: RouteQuery) => void = null
+      ) {
+      this.onAsyncErrCb = function (err: any) {
+        try {
+          onAsyncErrCb(err);
+        } catch (e) {
+        }
+      };
     }
 
     public startRoot(opt: RootOptions): Promise<void> {
@@ -172,7 +189,7 @@ module EasyRouter {
             );
           }
         } else
-          throw Error('Fail to navigate to the first URL: "' + firstQueryString + '"');
+          throw this.makeRejectError('Fail to navigate to the first URL: "' + firstQueryString + '"');
       });
     }
 
@@ -202,7 +219,7 @@ module EasyRouter {
     public mapUnknownRoutes(activator: RouteActivator): Router {
       if (Object.freeze)
         Object.freeze(activator);
-      this.unknownRActivator = activator;
+      this.unknownActivator = activator;
       return this;
     }
 
@@ -218,7 +235,7 @@ module EasyRouter {
     // -- Public - ChildRouter
     // --
 
-    public startAsChild(parent: ParentRouter, withHistory: boolean) {
+    public startAsChild(parent: ParentRouter, withHistory: boolean): void {
       if (this.isRoot)
         throw Error('Cannot call startAsChild() on the root router');
       if (this.parent) {
@@ -238,11 +255,13 @@ module EasyRouter {
       return this.doNavigate(queryString, changeHist, parentUrl, parentQuery);
     }
 
-    public leave(): Promise<boolean> {
-      this.curRouteQuery = null;
-      return this.fireListeners('canLeave', undefined, true).then((can: boolean) => {
-        this.fireListeners('leave', undefined, false);
-        return can;
+    public leaveChildRouter(): Promise<boolean> {
+      if (!this.curRouteQuery)
+        return Promise.resolve(true);
+      return this.canLeaveCurrent().then((can: boolean): any => {
+        if (!can)
+          return false;
+        return this.setNewRouteQuery(null, null).then(() => true)
       });
     }
 
@@ -325,7 +344,7 @@ module EasyRouter {
         this.working = false;
         return Promise.resolve<boolean>(true);
       }
-      var p: Promise<boolean> = this.fireListeners('canLeave', undefined, true);
+      var p = this.canLeaveCurrent();
       p = p.then<boolean>((can: boolean): any => {
         if (!can)
           return false;
@@ -353,14 +372,43 @@ module EasyRouter {
       return p;
     }
 
+    private canLeaveCurrent(): Promise<boolean> {
+      var promises: Promise<boolean>[] = [];
+      if (this.curActivator && this.curActivator.canDeactivate) {
+        var can: any;
+        try {
+          can = this.curActivator.canDeactivate();
+        } catch (err) {
+          this.callOnRejectCb(err, this.curRouteQuery);
+          can = false;
+        }
+        if (!can)
+          return Promise.resolve(false);
+        if (can !== true)
+          promises.push(can);
+      }
+      promises.push(this.fireListeners('canLeave', undefined, true));
+      return Promise.all(promises).then<boolean>((arr) => {
+        for (var i = 0, len = arr.length; i < len; ++i) {
+          if (!arr[i])
+            return false;
+        }
+        return true;
+      });
+    }
+
     private doNavigateToMatching(matching: MatchingRoute, changeHist: boolean, parentUrl: string): Promise<boolean> {
       var activator = matching.activator,
         completed = matching.completedQuery,
         p: Promise<boolean>;
       // - Case of a child router
       if (activator.child) {
+        // - Call Unknown route CB
+        if (activator === this.unknownActivator)
+          this.callUnknownRouteCb(completed);
+        // - Call the child router
         if (this.curChild && this.curChild !== activator.child)
-          p = this.curChild.leave();
+          p = this.curChild.leaveChildRouter();
         else
           p = Promise.resolve<boolean>(true);
         return p.then<boolean>((done: boolean): any => {
@@ -368,21 +416,21 @@ module EasyRouter {
             return false;
           var parentUrl = this.toUrl(completed.processedQueryString, parentUrl),
             childQS = completed.remainingQueryString;
-          return activator.child.childNavigate(childQS, changeHist, parentUrl, completed).then((done: boolean) => {
+          return activator.child.childNavigate(childQS, changeHist, parentUrl, completed).then((done: boolean): any => {
             this.curChild = activator.child;
             if (done)
-              this.doNavigateNewRouteQuery(completed);
+              return this.setNewRouteQuery(completed, activator).then(() => done);
             return done;
           });
         });
       }
       // - Switch to the new route
       if (this.curChild) {
-        p = this.curChild.leave();
+        p = this.curChild.leaveChildRouter();
         this.curChild = null;
       } else
         p = Promise.resolve<boolean>(true);
-      return p.then<boolean>((done: boolean) => {
+      return p.then<boolean>((done: boolean): any => {
         if (!done)
           return false;
         // - Get the title
@@ -392,14 +440,19 @@ module EasyRouter {
         else if (typeof activator.title === 'string')
           title = activator.title;
         else
-          title = activator.title(completed);
-        // - New route
-        this.doNavigateNewRouteQuery(Router.makeFinalRouteQuery(completed, title));
-        if (changeHist)
-          this.pushState(this.curRouteQuery, parentUrl);
-        document.title = this.curRouteQuery.title;
-        activator.activate(this.curRouteQuery);
-        return true;
+          title = this.wrapUserCbOnErrorReject(activator.title, completed, completed);
+        var finalRoute = Router.makeFinalRouteQuery(completed, title);
+        // - Call Unknown route CB
+        if (activator === this.unknownActivator)
+          this.callUnknownRouteCb(finalRoute);
+        // - Change route
+        return this.setNewRouteQuery(finalRoute, activator).then(() => {
+          if (changeHist)
+            this.pushState(this.curRouteQuery, parentUrl);
+          document.title = this.curRouteQuery.title;
+          var activated = this.wrapUserCbOnErrorReject(activator.activate, this.curRouteQuery, this.curRouteQuery);
+          return activated ? activated.then(() => true) : true;
+        });
       });
     }
 
@@ -422,19 +475,29 @@ module EasyRouter {
       return this.rootBaseUrl ? this.rootBaseUrl + url : url;
     }
 
-    private doNavigateNewRouteQuery(query: RouteQuery) {
+    private setNewRouteQuery(query: RouteQuery, activator: RouteActivator): Promise<void> {
+      var p: Promise<void> = null;
+      if (this.curActivator && this.curActivator.deactivate) {
+        var deactivated: any = this.wrapUserCbOnErrorReject(this.curActivator.deactivate, query);
+        if (deactivated)
+          p = deactivated;
+      }
+      this.curActivator = activator;
       this.curRouteQuery = query;
       this.fireListeners('leave', undefined, false).catch((err) => {
-        this.onErrCb(err);
+        this.onAsyncErrCb(err);
       });
-      this.fireListeners('navigate', query, false).catch((err) => {
-        this.onErrCb(err);
-      });
+      if (query) {
+        this.fireListeners('navigate', query, false).catch((err) => {
+          this.onAsyncErrCb(err);
+        });
+      }
       // - Remove listeners
       for (var k in this.onNavRmListeners) {
         if (this.onNavRmListeners.hasOwnProperty(k))
           this.removeListener(this.onNavRmListeners[k]['type'], this.onNavRmListeners[k]['handle']);
       }
+      return p ? p : Promise.resolve<void>();
     }
 
     /**
@@ -452,7 +515,7 @@ module EasyRouter {
           if (!this.routes.hasOwnProperty(k))
             continue;
           r = this.routes[k];
-          matchArr = Router.matchActivator(query, r.activator, r.compiledRoute);
+          matchArr = this.matchActivator(query, r.activator, r.compiledRoute);
           can = matchArr[0];
           if (can === false)
             continue;
@@ -467,8 +530,8 @@ module EasyRouter {
         }
       }
       // - Add unknown routes
-      if (this.unknownRActivator) {
-        matchArr = Router.matchActivator(query, this.unknownRActivator);
+      if (this.unknownActivator) {
+        matchArr = this.matchActivator(query, this.unknownActivator);
         can = matchArr[0];
         if (can !== false) {
           matching = <any>matchArr[1];
@@ -490,7 +553,7 @@ module EasyRouter {
       return deeper;
     }
 
-    private static matchActivator(query: RouteQuery, activator: RouteActivator, cr: CompiledRoute = null) {
+    private matchActivator(query: RouteQuery, activator: RouteActivator, cr: CompiledRoute = null) {
       var completed: RouteQuery;
       if (cr) {
         completed = Router.makeCompletedRouteQuery(query, cr, activator);
@@ -505,7 +568,8 @@ module EasyRouter {
       };
       if (!activator.canActivate)
         return [true, matching];
-      return [activator.canActivate(completed), matching];
+      var can = this.wrapUserCbOnErrorReject(activator.canActivate, completed, completed);
+      return [can, matching];
     }
 
     // --
@@ -672,7 +736,7 @@ module EasyRouter {
         try {
           this.doNavigate(e.state, false);
         } catch (err) {
-          this.onErrCb(err);
+          this.onAsyncErrCb(err);
         }
       };
     }
@@ -687,7 +751,7 @@ module EasyRouter {
             queryString = queryString.slice(queryString.length >= 2 && queryString[1] === '!' ? 2 : 1);
           this.doNavigate(queryString, false);
         } catch (err) {
-          this.onErrCb(err);
+          this.onAsyncErrCb(err);
         }
       };
     }
@@ -711,6 +775,48 @@ module EasyRouter {
     // --
     // -- Private - Tools
     // --
+
+    private callUnknownRouteCb(query: RouteQuery) {
+      if (this.onUnknownRouteCb) {
+        try {
+          this.onUnknownRouteCb(query);
+        } catch (err) {
+          this.onAsyncErrCb(err);
+        }
+      }
+    }
+
+    private wrapUserCbOnErrorReject(cb: any, query: RouteQuery = undefined, arg: any = undefined): any {
+      var res: any;
+      try {
+        if (arg === undefined)
+          res = cb();
+        else
+          res = cb(arg);
+      } catch (err) {
+        throw this.makeRejectError(err, query);
+      }
+      if (typeof res === 'object' && res['then'] && res['catch']) {
+        res['catch']((err) => {
+          throw this.callOnRejectCb(err);
+        });
+      }
+    }
+
+    private makeRejectError(msg: string, query: RouteQuery = undefined): Error {
+      return this.callOnRejectCb(Error(msg), query);
+    }
+
+    private callOnRejectCb(err: any, query: RouteQuery = undefined): any {
+      if (this.onRejectCb) {
+        try {
+          this.onRejectCb(err, query);
+        } catch (e) {
+          this.onAsyncErrCb(e);
+        }
+      }
+      return err;
+    }
 
     private static compileRoute(route: string): CompiledRoute {
       var pNames: string[] = [];

@@ -14,11 +14,8 @@ module Todos {
     public attachTo(el: HTMLElement): Item {
       this.$el = $(el).append(this.cc.render('TodosItem', this.task));
       this.$el.find('.TodosItem-editBtn').click(() => {
-console.log('click: ' + 'todos/' + this.task.id);
         this.cc.getService<Woc.Router>('Woc.Router').navigate('todos/' + this.task.id).then((b) => {
 console.log('then: ' + b);
-        }, (err) => {
-          console.log(err);
         });
       });
       return this;

@@ -34,7 +34,11 @@ declare module EasyRouter {
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
-    deactivate?(query: RouteQuery): any;
+    canDeactivate?(): any;
+    /**
+     * @return any void or a Promise&lt;void&gt;
+     */
+    deactivate?(): any;
     /**
      * A string or a callback(query: RouteProperties) that returns a string or a Promise&lt;string&gt;
      */
@@ -64,9 +68,9 @@ declare module EasyRouter {
   }
 
   interface ChildRouter {
-    startAsChild(parent: ParentRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean): void;
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
-    leave(): Promise<boolean>;
+    leaveChildRouter(): Promise<boolean>;
   }
 
   interface RootOptions {
@@ -78,7 +82,11 @@ declare module EasyRouter {
 
   class Router implements ParentRouter, ChildRouter, MinimalRouter {
 
-    constructor(onErrCb: (err: any) => void);
+    constructor(
+        onAsyncErrCb: (err: any) => void,
+        onRejectCb?: (err: any, query?: RouteQuery) => void,
+        onUnknownRouteCb?: (query: RouteQuery) => void
+      );
 
     startRoot(opt: RootOptions): Promise<void>;
     map(activators: RouteActivator[]): Router;
@@ -88,9 +96,9 @@ declare module EasyRouter {
     parentNavigateToUnknown(changeHist: boolean): Promise<boolean>;
 
     // - Child router
-    startAsChild(parent: ParentRouter, withHistory: boolean);
+    startAsChild(parent: ParentRouter, withHistory: boolean): void;
     childNavigate(queryString: string, changeHist: boolean, parentUrl: string, parentQuery: any): Promise<boolean>;
-    leave(): Promise<boolean>;
+    leaveChildRouter(): Promise<boolean>;
 
     // - Minimal router
     navigate(queryString: string): Promise<boolean>;
