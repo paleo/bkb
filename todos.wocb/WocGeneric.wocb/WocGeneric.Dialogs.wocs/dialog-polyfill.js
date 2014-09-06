@@ -3,9 +3,9 @@ var dialogPolyfill = (function() {
   var addEventListenerFn = (window.document.addEventListener
       ? function(element, type, fn) { element.addEventListener(type, fn); }
       : function(element, type, fn) { element.attachEvent('on' + type, fn); });
-  var removeEventListenerFn = (window.document.removeEventListener
-      ? function(element, type, fn) { element.removeEventListener(type, fn); }
-      : function(element, type, fn) { element.detachEvent('on' + type, fn); });
+  //var removeEventListenerFn = (window.document.removeEventListener
+  //    ? function(element, type, fn) { element.removeEventListener(type, fn); }
+  //    : function(element, type, fn) { element.detachEvent('on' + type, fn); });
 
   var dialogPolyfill = {};
 

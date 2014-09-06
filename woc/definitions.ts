@@ -122,10 +122,10 @@ module Woc {
   }
 
   export interface EmbedContext {
-    getService<S>(serviceName: string): S;
     getService(serviceName: string): any;
-    createComponent<C>(componentName: string, props?: {}): C;
+    getService<S>(serviceName: string): S;
     createComponent(componentName: string, props?: {}): any;
+    createComponent<C>(componentName: string, props?: {}): C;
     /**
      * @param c
      * @param fromDOM default is FALSE

@@ -93,7 +93,8 @@ module Woc {
       cleanArr('useServices');
       cleanArr('useComponents');
       cleanArr('script');
-      cleanArr('theme');
+      cleanArr('themes');
+      cleanArr('beforeThemes');
       cleanArr('stylesheet');
       cleanArr('templates');
       cleanArr('alias');
@@ -134,25 +135,49 @@ module Woc {
     }
 
     private initMergedBundleConf() {
-      var i, len, bundleProp, themes = [], encoding = null;
+      var i, len, bundleProp, themes = [], beforeThemes = [], encoding = null;
       for (i = 0, len = this.embedBundleList.length; i < len; ++i) {
         bundleProp = this.embedBundleList[i];
         if (!encoding)
           encoding = bundleProp.conf['encoding'];
         else if (bundleProp.conf['encoding'] && encoding !== bundleProp.conf['encoding'])
           throw Error('Encoding conflict with embed bundles: "' + encoding + '" doesn\'t match with "' + bundleProp.conf['encoding'] + '"');
-        if (bundleProp.conf['theme'] !== undefined)
-          themes.push(WThingLoader.toResList(bundleProp.conf['theme'], bundleProp.embedPath));
+        if (bundleProp.conf['themes'] !== undefined)
+          themes.push(WLoader.toMergedThemes(bundleProp.conf['themes'], bundleProp.embedPath));
+        if (bundleProp.conf['beforeThemes'] !== undefined)
+          beforeThemes.push(WLoader.toMergedThemes(bundleProp.conf['beforeThemes'], bundleProp.embedPath));
       }
       var mainConf = len > 0 ? this.embedBundleList[0].conf : null;
-      var flatThemeList = [];
+      var revFlatThemes = [],
+        flatBeforeThemes = [];
       for (var j = themes.length - 1; j >= 0; --j)
-        Array.prototype.push.apply(flatThemeList, themes[j]);
+        Array.prototype.push.apply(revFlatThemes, themes[j]);
+      for (var k = 0, lenK = beforeThemes.length; k < lenK; ++k)
+        Array.prototype.push.apply(flatBeforeThemes, beforeThemes[k]);
       this.mergedBundleConf = {
         'version': mainConf ? mainConf['version'] : undefined,
         'encoding': encoding,
-        'theme': flatThemeList
+        'themes': revFlatThemes,
+        'beforeThemes': flatBeforeThemes
       };
+    }
+
+    private static toMergedThemes(themesVal: any, pathPrefix: string = null): string[] {
+      if (!themesVal)
+        return [];
+      if (!Array.isArray(themesVal))
+        themesVal = [themesVal];
+      if (!pathPrefix)
+        return themesVal;
+      var nameOrObj: any;
+      for (var i = 0, len = themesVal.length; i < len; ++i) {
+        nameOrObj = themesVal[i];
+        if (typeof nameOrObj === 'string')
+          themesVal[i] = pathPrefix + '/' + nameOrObj;
+        else
+          nameOrObj['name'] = pathPrefix + '/' + nameOrObj['name'];
+      }
+      return themesVal;
     }
   }
 
@@ -182,7 +207,7 @@ module Woc {
           }
           this.thingList[i].conf = confList[i];
         }
-        return this.fillFileLoaders();
+        return this.loadBeforeThemesThenFillFileLoaders();
       }).then((tplMap) => {
         this.registerAll(tplMap);
       });
@@ -191,10 +216,25 @@ module Woc {
     /**
      * @returns A promise which returns the map of templates
      */
-    private fillFileLoaders(): Promise<{[index: string]: string}> {
+    private loadBeforeThemesThenFillFileLoaders(): Promise<{[index: string]: string}> {
+      var cssLoader = new WCssLoader();
+      // - Load bundle before themes
+      return this.loadTheme(
+        cssLoader,
+        this.bundlePath,
+        this.bundleUrl,
+        this.mergedBundleConf['beforeThemes']
+      ).then(() => {
+        return this.fillFileLoaders(cssLoader);
+      });
+    }
+
+    /**
+     * @returns A promise which returns the map of templates
+     */
+    private fillFileLoaders(cssLoader: WCssLoader): Promise<{[index: string]: string}> {
       var scriptLoader = new WScriptLoader(this.libraries);
       var tplLoader = new WTplLoader(this.ajax);
-      var cssLoader = new WCssLoader();
       var themePromises: Promise<void>[] = [];
       // - Libraries, Services, Components
       var prop: WThingProp;
@@ -207,7 +247,7 @@ module Woc {
               cssLoader,
               prop.conf['name'],
               prop.url,
-              prop.conf['theme'],
+              prop.conf['themes'],
               WThingLoader.toResList(prop.conf['stylesheet'])
             ));
             break;
@@ -220,7 +260,7 @@ module Woc {
               cssLoader,
               prop.conf['name'],
               prop.url,
-              prop.conf['theme'],
+              prop.conf['themes'],
               WThingLoader.toResList(prop.conf['stylesheet']))
             );
             break;
@@ -229,12 +269,14 @@ module Woc {
         }
       }
       // - Bundle
-      var allThemesP = Promise.all(themePromises).then(() => this.loadTheme(
-        cssLoader,
-        this.bundlePath,
-        this.bundleUrl,
-        this.mergedBundleConf['theme']
-      )).then(() => cssLoader.getPromise());
+      var allThemesP = Promise.all(themePromises).
+        then(() => this.loadTheme(
+          cssLoader,
+          this.bundlePath,
+          this.bundleUrl,
+          this.mergedBundleConf['themes']
+        )).
+        then(() => cssLoader.getPromise());
       // - Promises
       return Promise.all<any>([
         scriptLoader.getPromise(),
@@ -245,19 +287,19 @@ module Woc {
       });
     }
 
-    private loadTheme(cssLoader: WCssLoader, thingName: string, baseUrl: string, themeVal: any, cssList: string[] = []): Promise<void> {
-      if (!themeVal) {
+    private loadTheme(cssLoader: WCssLoader, thingName: string, baseUrl: string, themesVal: any, cssList: string[] = []): Promise<void> {
+      if (!themesVal) {
         cssLoader.add(thingName, baseUrl, cssList);
         return Promise.resolve<void>();
       }
-      return this.loadThemeRecursive(baseUrl, null, themeVal).then((list: string[]) => {
+      return this.loadThemeRecursive(baseUrl, null, themesVal).then((list: string[]) => {
         Array.prototype.push.apply(list, cssList);
         cssLoader.add(thingName, baseUrl, list);
       });
     }
 
-    private loadThemeRecursive(thingUrl: string, relThemeUrl: string, themeVal: any[]): Promise<string[]> {
-      return Promise.all(themeVal.map((nameOrObj: any): any => {
+    private loadThemeRecursive(thingUrl: string, relThemeUrl: string, themesVal: any[]): Promise<string[]> {
+      return Promise.all(themesVal.map((nameOrObj: any): any => {
         // - Case of short syntax
         if (typeof nameOrObj === 'object')
           return WThingLoader.toResList(nameOrObj['stylesheet'], nameOrObj['name']);
@@ -266,9 +308,9 @@ module Woc {
         var dirUrl = relThemeUrl ? relThemeUrl + '/' + dir : dir;
         return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
           WLoader.cleanConf(conf);
-          if (!conf['theme'])
+          if (!conf['themes'])
             return WThingLoader.toResList(conf['stylesheet'], dirUrl);
-          return this.loadThemeRecursive(thingUrl, dirUrl, conf['theme']).then((list: string[]) => {
+          return this.loadThemeRecursive(thingUrl, dirUrl, conf['themes']).then((list: string[]) => {
             Array.prototype.push.apply(list, WThingLoader.toResList(conf['stylesheet'], dirUrl));
             return list;
           });
@@ -401,7 +443,7 @@ module Woc {
       }
     }
 
-    public static toResList(nameOrArr: any, pathPrefix: string = null): string[] {
+    private static toResList(nameOrArr: any, pathPrefix: string = null): string[] {
       nameOrArr = nameOrArr ? (typeof nameOrArr === 'string' ? [nameOrArr] : nameOrArr) : [];
       if (pathPrefix) {
         for (var i = 0, len = nameOrArr.length; i < len; ++i)
@@ -577,6 +619,8 @@ module Woc {
     }
 
     public add(thingName: string, baseUrl: string, relUrls: string[]) {
+      if (relUrls.length === 0)
+        return;
       this.urlValidator.add(baseUrl, relUrls);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {
         return Loader.addCssLinkToDOM(baseUrl + '/' + relUrl);
@@ -603,6 +647,8 @@ module Woc {
     }
 
     public add(compName: string, baseUrl: string, relUrls: string[]) {
+      if (relUrls.length === 0)
+        return;
       this.urlValidator.add(baseUrl, relUrls);
       this.compNames.push(compName);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {

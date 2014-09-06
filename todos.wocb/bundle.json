@@ -6,5 +6,6 @@
 	"initializers": ["Todos.Conf"],
 	"services": ["Todos.Start", "Todos.Model"],
 	"components": ["Todos.List", "Todos.Item"],
-	"theme": "TodosViolet"
+	"beforeThemes": "ResetCSS",
+	"themes": "TodosViolet"
 }

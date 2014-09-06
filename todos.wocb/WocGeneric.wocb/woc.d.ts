@@ -118,10 +118,10 @@ declare module Woc {
   }
 
   interface EmbedContext {
-    getService<S>(serviceName: string): S;
     getService(serviceName: string): any;
-    createComponent<C>(componentName: string, props?: {}): C;
+    getService<S>(serviceName: string): S;
     createComponent(componentName: string, props?: {}): any;
+    createComponent<C>(componentName: string, props?: {}): C;
     removeComponent(c: Component, fromDOM?: boolean): void;
     removeComponent(cList: Component[], fromDOM?: boolean): void;
     hasLibrary(libName: string): boolean;

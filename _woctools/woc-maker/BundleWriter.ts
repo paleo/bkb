@@ -29,6 +29,7 @@ class BundleWriter {
   private libraries = {};
   private contextThings;
   private bundleCss: string = null;
+  private bundleBeforeCss: string = null;
   private css: string[] = [];
   private otherFiles = {};
 
@@ -48,12 +49,21 @@ class BundleWriter {
     this.bundleProp[key] = val;
   }
 
-  public setBundleCss(css: {}[]): Promise<void> {
+  public appendBundleCss(css: {}[], before: boolean, embedName: string = null): Promise<void> {
     if (!css)
       return Promise.resolve<void>();
-    return BundleWriter.concatFiles('Bundle ' + this.bundleName, css, this.cssMinifier, 'css').then((content: string): void => {
-      this.bundleCss = content;
-    });
+    // - Make title
+    var title = embedName ? 'Bundle ' + embedName : 'Main bundle';
+    if (before)
+      title += ' (before)';
+    // - Concat files
+    return BundleWriter.concatFiles(title, css, this.cssMinifier, 'css').
+      then((content: string): void => {
+        if (before)
+          this.bundleBeforeCss = this.bundleBeforeCss ? this.bundleBeforeCss + '\n' + content : content;
+        else
+          this.bundleCss = this.bundleCss ? this.bundleCss + '\n' + content : content;
+      });
   }
 
   public addLibrary(name: string, useLibraries: string[], script: {}[], css: {}[]): Promise<void> {
@@ -150,9 +160,14 @@ class BundleWriter {
         return false;
       var p: Promise<any> = this.writeFile(this.bundleName + '.json', JSON.stringify(this.makeData()));
       if (this.hasCss()) {
-        var cssMeta = '@charset "' + this.project.getDefaultEncoding() + '";\n';
-        var bundleCss = this.bundleCss ? '\n' + this.bundleCss : '';
-        p = Promise.all([p, this.writeFile(this.bundleName + '.css', cssMeta + this.css.join('\n') + bundleCss)]);
+        var cssMeta = '@charset "' + this.project.getDefaultEncoding() + '";\n',
+          beforeCss = this.bundleBeforeCss ? this.bundleBeforeCss + '\n' : '',
+          afterCss = this.bundleCss ? '\n' + this.bundleCss : '',
+          cssP = this.writeFile(
+            this.bundleName + '.css',
+            cssMeta + beforeCss + this.css.join('\n') + afterCss
+          );
+        p = Promise.all([p, cssP]);
       }
       return p.then(() => {
         return this.copyOtherFiles();
