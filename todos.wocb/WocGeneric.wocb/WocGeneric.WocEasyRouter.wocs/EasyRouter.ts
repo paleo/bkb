@@ -15,7 +15,7 @@ module EasyRouter {
   // -- Public interfaces
   // --
 
-  export interface RouteQuery {
+  export interface Query {
     parent?: any;
     redirectedFrom?: string;
     queryString: string;
@@ -37,13 +37,13 @@ module EasyRouter {
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
-    canActivate?(query: RouteQuery): any;
+    canActivate?(query: Query): any;
     redirectTo?: string;
     /**
      * This callback is required except if a child router is defined
      * @return any void (undefined) or a Promise&lt;void&gt;
      */
-    activate?(query: RouteQuery): any;
+    activate?(query: Query): any;
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
@@ -109,7 +109,7 @@ module EasyRouter {
   }
 
   interface MatchingRoute {
-    completedQuery: RouteQuery;
+    completedQuery: Query;
     activator: RouteActivator;
     compiledRoute?: CompiledRoute;
   }
@@ -138,15 +138,15 @@ module EasyRouter {
     private onNavRmListeners = {};
 
     private rootQSStack: string[] = [];
-    private curRouteQuery: RouteQuery = null;
+    private curQuery: Query = null;
     private curActivator: RouteActivator = null;
     private curChild: ChildRouter = null;
     private working = false;
 
     constructor(
         onAsyncErrCb: (err: any) => void,
-        private onRejectCb: (err: any, query?: RouteQuery) => void = null,
-        private onUnknownRouteCb: (query: RouteQuery) => void = null
+        private onRejectCb: (err: any, query?: Query) => void = null,
+        private onUnknownRouteCb: (query: Query) => void = null
       ) {
       this.onAsyncErrCb = function (err: any) {
         try {
@@ -181,11 +181,11 @@ module EasyRouter {
       // - Navigate
       return this.doNavigate(firstQueryString, false).then<void>((done: boolean) => {
         if (done) {
-          if (this.withHistory && this.curRouteQuery) {
+          if (this.withHistory && this.curQuery) {
             window.history.replaceState(
-              this.curRouteQuery.redirectedFrom || this.curRouteQuery.queryString,
-              this.curRouteQuery.title,
-              this.toUrl(this.curRouteQuery.queryString, null)
+              this.curQuery.redirectedFrom || this.curQuery.queryString,
+              this.curQuery.title,
+              this.toUrl(this.curQuery.queryString, null)
             );
           }
         } else
@@ -256,12 +256,12 @@ module EasyRouter {
     }
 
     public leaveChildRouter(): Promise<boolean> {
-      if (!this.curRouteQuery)
+      if (!this.curQuery)
         return Promise.resolve(true);
       return this.canLeaveCurrent().then((can: boolean): any => {
         if (!can)
           return false;
-        return this.setNewRouteQuery(null, null).then(() => true)
+        return this.setNewQuery(null, null).then(() => true)
       });
     }
 
@@ -310,7 +310,7 @@ module EasyRouter {
     // -- Public
     // --
 
-    public addCanNavigateListener(cb: (query: RouteQuery) => any, onNavRm = false): number {
+    public addCanNavigateListener(cb: (query: Query) => any, onNavRm = false): number {
       return this.addListener('canNavigate', cb, onNavRm);
     }
 
@@ -318,7 +318,7 @@ module EasyRouter {
       return this.removeListener('canNavigate', handle);
     }
 
-    public addNavigateListener(cb: (query: RouteQuery) => void, onNavRm = false): number {
+    public addNavigateListener(cb: (query: Query) => void, onNavRm = false): number {
       return this.addListener('navigate', cb, onNavRm);
     }
 
@@ -339,8 +339,8 @@ module EasyRouter {
       }
       if (this.isRoot && changeHist)
         this.rootQSStack.push(queryString);
-      var query = this.makeRouteQuery(queryString, parentQuery);
-      if (this.curRouteQuery && this.curRouteQuery.queryString === query.queryString) {
+      var query = this.makeQuery(queryString, parentQuery);
+      if (this.curQuery && this.curQuery.queryString === query.queryString) {
         this.working = false;
         return Promise.resolve<boolean>(true);
       }
@@ -379,7 +379,7 @@ module EasyRouter {
         try {
           can = this.curActivator.canDeactivate();
         } catch (err) {
-          this.callOnRejectCb(err, this.curRouteQuery);
+          this.callOnRejectCb(err, this.curQuery);
           can = false;
         }
         if (!can)
@@ -419,7 +419,7 @@ module EasyRouter {
           return activator.child.childNavigate(childQS, changeHist, parentUrl, completed).then((done: boolean): any => {
             this.curChild = activator.child;
             if (done)
-              return this.setNewRouteQuery(completed, activator).then(() => done);
+              return this.setNewQuery(completed, activator).then(() => done);
             return done;
           });
         });
@@ -441,22 +441,22 @@ module EasyRouter {
           title = activator.title;
         else
           title = this.wrapUserCbOnErrorReject(activator.title, completed, completed);
-        var finalRoute = Router.makeFinalRouteQuery(completed, title);
+        var finalRoute = Router.makeFinalQuery(completed, title);
         // - Call Unknown route CB
         if (activator === this.unknownActivator)
           this.callUnknownRouteCb(finalRoute);
         // - Change route
-        return this.setNewRouteQuery(finalRoute, activator).then(() => {
+        return this.setNewQuery(finalRoute, activator).then(() => {
           if (changeHist)
-            this.pushState(this.curRouteQuery, parentUrl);
-          document.title = this.curRouteQuery.title;
-          var activated = this.wrapUserCbOnErrorReject(activator.activate, this.curRouteQuery, this.curRouteQuery);
+            this.pushState(this.curQuery, parentUrl);
+          document.title = this.curQuery.title;
+          var activated = this.wrapUserCbOnErrorReject(activator.activate, this.curQuery, this.curQuery);
           return activated ? activated.then(() => true) : true;
         });
       });
     }
 
-    private pushState(query: RouteQuery, parentUrl: string): void {
+    private pushState(query: Query, parentUrl: string): void {
       if (!this.withHistory)
         return;
       var rootQuery = query;
@@ -475,7 +475,7 @@ module EasyRouter {
       return this.rootBaseUrl ? this.rootBaseUrl + url : url;
     }
 
-    private setNewRouteQuery(query: RouteQuery, activator: RouteActivator): Promise<void> {
+    private setNewQuery(query: Query, activator: RouteActivator): Promise<void> {
       var p: Promise<void> = null;
       if (this.curActivator && this.curActivator.deactivate) {
         var deactivated: any = this.wrapUserCbOnErrorReject(this.curActivator.deactivate, query);
@@ -483,7 +483,7 @@ module EasyRouter {
           p = deactivated;
       }
       this.curActivator = activator;
-      this.curRouteQuery = query;
+      this.curQuery = query;
       this.fireListeners('leave', undefined, false).catch((err) => {
         this.onAsyncErrCb(err);
       });
@@ -501,9 +501,9 @@ module EasyRouter {
     }
 
     /**
-     * @return any[] NULL or the Route and completed RouteQuery
+     * @return any[] NULL or the Route and completed Query
      */
-    private searchRoute(query: RouteQuery): Promise<MatchingRoute> {
+    private searchRoute(query: Query): Promise<MatchingRoute> {
       // - Make pending list
       var pendingList = [],
         r: Route,
@@ -553,10 +553,10 @@ module EasyRouter {
       return deeper;
     }
 
-    private matchActivator(query: RouteQuery, activator: RouteActivator, cr: CompiledRoute = null) {
-      var completed: RouteQuery;
+    private matchActivator(query: Query, activator: RouteActivator, cr: CompiledRoute = null) {
+      var completed: Query;
       if (cr) {
-        completed = Router.makeCompletedRouteQuery(query, cr, activator);
+        completed = Router.makeCompletedQuery(query, cr, activator);
         if (!completed)
           return [false];
       } else
@@ -576,7 +576,7 @@ module EasyRouter {
     // -- Private - Queries
     // --
 
-    private makeRouteQuery(queryString: string, parentQuery: any): RouteQuery {
+    private makeQuery(queryString: string, parentQuery: any): Query {
       var hash: string,
         params: { [index: string]: string; };
       if (queryString === null || queryString === undefined) {
@@ -584,8 +584,8 @@ module EasyRouter {
         hash = null;
         params = null;
       } else {
-        if (this.curRouteQuery && this.curRouteQuery.queryString === queryString)
-          return this.curRouteQuery;
+        if (this.curQuery && this.curQuery.queryString === queryString)
+          return this.curQuery;
         var hashPos = queryString.indexOf('#');
         hash = hashPos === -1 ? null : queryString.slice(hashPos + 1);
         if (hash === '')
@@ -604,7 +604,7 @@ module EasyRouter {
           }
         }
       }
-      var query: RouteQuery = {
+      var query: Query = {
         queryString: queryString,
         queryHash: hash,
         queryParams: params
@@ -616,7 +616,7 @@ module EasyRouter {
       return query;
     }
 
-    private static makeCompletedRouteQuery(query: RouteQuery, compiledRoute: CompiledRoute, activator: RouteActivator): RouteQuery {
+    private static makeCompletedQuery(query: Query, compiledRoute: CompiledRoute, activator: RouteActivator): Query {
       var m = compiledRoute.regexp.exec(query.queryString);
       if (m === null)
         return null;
@@ -633,7 +633,7 @@ module EasyRouter {
       var lastIndex = m.length - 1;
       var remaining: string = lastIndex > pNamesLen ? m[lastIndex] : null,
         processed = remaining ? query.queryString.slice(0, -remaining.length) : query.queryString;
-      var completed: RouteQuery = {
+      var completed: Query = {
         queryString: query.queryString,
         queryHash: query.queryHash,
         queryParams: query.queryParams,
@@ -654,10 +654,10 @@ module EasyRouter {
       return completed;
     }
 
-    private static makeFinalRouteQuery(completedQuery: RouteQuery, title: string): RouteQuery {
+    private static makeFinalQuery(completedQuery: Query, title: string): Query {
       if (!title)
         return completedQuery;
-      var finalQuery: RouteQuery = {
+      var finalQuery: Query = {
         queryString: completedQuery.queryString,
         queryHash: completedQuery.queryHash,
         queryParams: completedQuery.queryParams,
@@ -776,7 +776,7 @@ module EasyRouter {
     // -- Private - Tools
     // --
 
-    private callUnknownRouteCb(query: RouteQuery) {
+    private callUnknownRouteCb(query: Query) {
       if (this.onUnknownRouteCb) {
         try {
           this.onUnknownRouteCb(query);
@@ -786,7 +786,7 @@ module EasyRouter {
       }
     }
 
-    private wrapUserCbOnErrorReject(cb: any, query: RouteQuery = undefined, arg: any = undefined): any {
+    private wrapUserCbOnErrorReject(cb: any, query: Query = undefined, arg: any = undefined): any {
       var res: any;
       try {
         if (arg === undefined)
@@ -797,17 +797,18 @@ module EasyRouter {
         throw this.makeRejectError(err, query);
       }
       if (typeof res === 'object' && res['then'] && res['catch']) {
-        res['catch']((err) => {
+        res = res['catch']((err) => {
           throw this.callOnRejectCb(err);
         });
       }
+      return res;
     }
 
-    private makeRejectError(msg: string, query: RouteQuery = undefined): Error {
+    private makeRejectError(msg: string, query: Query = undefined): Error {
       return this.callOnRejectCb(Error(msg), query);
     }
 
-    private callOnRejectCb(err: any, query: RouteQuery = undefined): any {
+    private callOnRejectCb(err: any, query: Query = undefined): any {
       if (this.onRejectCb) {
         try {
           this.onRejectCb(err, query);

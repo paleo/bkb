@@ -4,7 +4,7 @@
 
 html, body, div, span, applet, object, iframe,
 h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, address, cite, code, small,
+button, a, abbr, address, cite, code, small,
 dfn, img, kbd, q, samp, var,
 dl, dt, dd, ol, ul, li,
 fieldset, form, label, legend,
@@ -36,6 +36,9 @@ body {
 }
 ol, ul {
   list-style: none;
+}
+button {
+  background: transparent;
 }
 blockquote, q {
   quotes: none;

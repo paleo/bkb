@@ -5,7 +5,7 @@
 	"bundles": ["WocGeneric(w)", "Lib(w)"],
 	"initializers": ["Todos.Conf"],
 	"services": ["Todos.Start", "Todos.Model"],
-	"components": ["Todos.List", "Todos.Item"],
+	"components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.Item", "Todos.EditPanel"],
 	"beforeThemes": "ResetCSS",
 	"themes": "TodosViolet"
 }

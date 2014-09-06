@@ -1,4 +1,4 @@
-/// <reference path='../todos.d.ts' />
+/// <reference path='../Todos.d.ts' />
 /// <reference path="../Test.Label.wocc/Label.ts" />
 
 module Todos {

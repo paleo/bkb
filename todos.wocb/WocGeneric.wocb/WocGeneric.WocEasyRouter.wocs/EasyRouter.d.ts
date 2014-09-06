@@ -2,7 +2,7 @@
 
 declare module EasyRouter {
 
-  interface RouteQuery {
+  interface Query {
     parent?: any;
     redirectedFrom?: string;
     queryString: string;
@@ -24,13 +24,13 @@ declare module EasyRouter {
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
-    canActivate?(query: RouteQuery): any;
+    canActivate?(query: Query): any;
     redirectTo?: string;
     /**
      * This callback is required except if a child router is defined
      * @return any void (undefined) or a Promise&lt;void&gt;
      */
-    activate?(query: RouteQuery): any;
+    activate?(query: Query): any;
     /**
      * @return any a boolean or a Promise&lt;boolean&gt;
      */
@@ -84,8 +84,8 @@ declare module EasyRouter {
 
     constructor(
         onAsyncErrCb: (err: any) => void,
-        onRejectCb?: (err: any, query?: RouteQuery) => void,
-        onUnknownRouteCb?: (query: RouteQuery) => void
+        onRejectCb?: (err: any, query?: Query) => void,
+        onUnknownRouteCb?: (query: Query) => void
       );
 
     startRoot(opt: RootOptions): Promise<void>;
@@ -117,9 +117,9 @@ declare module EasyRouter {
     removeLeaveListener(handle: number): void;
 
     // - Router listeners
-    addCanNavigateListener(cb: (query: RouteQuery) => any, onNavRm?: boolean): number;
+    addCanNavigateListener(cb: (query: Query) => any, onNavRm?: boolean): number;
     removeCanNavigateListener(handle: number): void;
-    addNavigateListener(cb: (query: RouteQuery) => void, onNavRm?: boolean): number;
+    addNavigateListener(cb: (query: Query) => void, onNavRm?: boolean): number;
     removeNavigateListener(handle: number): void;
   }
 }

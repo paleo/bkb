@@ -15,7 +15,8 @@ module WocGeneric {
     private map = {};
 
     constructor(tplStr: string, private prop: Woc.EmbedProperties) {
-      this.splitTemplates(tplStr);
+      if (tplStr)
+        this.splitTemplates(tplStr);
     }
 
     public getContextMethods(): {[index: string]: Function} {

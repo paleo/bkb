@@ -479,7 +479,7 @@ module Woc {
     private authComponents: {};
     private ac: ImplApplicationContext;
 
-    public createComponent(componentName: string, props?: {}): any {
+    public createComponent(componentName: string, props?: any): any {
       if (this.restrictedAccess && !this.authComponents[componentName])
         throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
       return this.ac.createComponentFromServ(componentName, props, <any>this);

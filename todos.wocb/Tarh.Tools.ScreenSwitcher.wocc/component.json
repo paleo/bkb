@@ -1,0 +1,9 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"useLibraries": ["jQuery"],
+  "useServices": ["WocGeneric.WocEasyRouter"],
+	"script": "ScreenSwitcher.js",
+	"stylesheet": "p.css",
+	"name": "Tarh.Tools.ScreenSwitcher"
+}

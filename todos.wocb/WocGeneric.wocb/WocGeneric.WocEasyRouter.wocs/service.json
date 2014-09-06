@@ -1,0 +1,7 @@
+{
+	"woc": "0.8",
+	"encoding": "utf8",
+	"script": ["WocEasyRouter.js", "EasyRouter.js"],
+	"name": "WocGeneric.WocEasyRouter",
+  "alias": "Woc.Router"
+}

@@ -33,7 +33,7 @@ module Woc {
   // --
 
   export interface StartingPoint {
-    start(element: HTMLElement): void;
+    start(el: HTMLElement): void;
   }
 
   /**
@@ -124,8 +124,8 @@ module Woc {
   export interface EmbedContext {
     getService(serviceName: string): any;
     getService<S>(serviceName: string): S;
-    createComponent(componentName: string, props?: {}): any;
-    createComponent<C>(componentName: string, props?: {}): C;
+    createComponent(componentName: string, props?: any): any;
+    createComponent<C>(componentName: string, props?: any): C;
     /**
      * @param c
      * @param fromDOM default is FALSE

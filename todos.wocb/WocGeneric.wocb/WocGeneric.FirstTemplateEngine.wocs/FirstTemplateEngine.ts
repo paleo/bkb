@@ -20,7 +20,8 @@ module WocGeneric {
     private lblCount: number;
 
     constructor(tplStr: string, private prop: Woc.EmbedProperties) {
-      this.parse(tplStr);
+      if (tplStr)
+        this.parse(tplStr);
       // TODO Reference all labels in the l10n service
       // labels: {'lbl-id': 'The Label Key (= default value)'} where the label ID is a CSS class and the label key is
       // the key in JSON language files
