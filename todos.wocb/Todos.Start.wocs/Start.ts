@@ -10,6 +10,7 @@ module Todos {
     }
 
     public start(el: HTMLElement) {
+      el.classList.add('AppWrapper');
       this.sc.createComponent('Tarh.Tools.ScreenSwitcher', [
         {
           route: '',

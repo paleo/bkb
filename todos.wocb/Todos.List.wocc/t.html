@@ -1,7 +1,10 @@
 <!-- Template: TodosList -->
 
-<ul class="TodosList">
-  {{#each items}}
-  <li class="TodosList-li"><div class="sd-item" data-id="{{id}}"></div></li>
-  {{/each}}
-</ul>
+<section class="TodosList">
+  <h1 class="TodosList-h1 ob-pageTitle">Liste des tâches</h1>
+  <ul class="TodosList-ul">
+    {{#each items}}
+    <li class="TodosList-li"><div class="sd-item" data-id="{{id}}"></div></li>
+    {{/each}}
+  </ul>
+</section>

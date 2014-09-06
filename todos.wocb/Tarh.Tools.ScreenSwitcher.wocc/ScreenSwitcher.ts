@@ -21,7 +21,7 @@ module Tarh.Tools {
   export class ScreenSwitcher implements Woc.Component {
 
     private router: WocGeneric.WocEasyRouter;
-    private $el: JQuery;
+    private $comp: JQuery;
     private propMap = {};
     private $404: JQuery;
 
@@ -30,7 +30,7 @@ module Tarh.Tools {
     }
 
     public attachTo(el: HTMLElement): ScreenSwitcher {
-      this.$el = $(el);
+      this.$comp = $('<div class="ScreenSwitcher"></div>').appendTo(el);
       for (var i = 0, len = this.screens.length; i < len; ++i)
         this.addScreen(this.screens[i]);
       this.add404Screen();
@@ -54,7 +54,7 @@ module Tarh.Tools {
         },
         title: title
       }]);
-      var $sd = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$el);
+      var $sd = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$comp);
       return this.propMap[route] = {
         $sd: $sd,
         comp: comp.attachTo($sd[0])
@@ -67,17 +67,17 @@ module Tarh.Tools {
         activate: (query: EasyRouter.Query) => { this.activate404(query); },
         title: '404 Not Found'
       });
-      this.$404 = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$el);
+      this.$404 = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$comp);
     }
 
     private activateScreen(route: string): void {
       var screen: ScreenProp = this.propMap[route];
-      this.$el.children().hide();
+      this.$comp.children().hide();
       screen.$sd.show();
     }
 
     private activate404(query: EasyRouter.Query): void {
-      this.$el.children().hide();
+      this.$comp.children().hide();
       this.$404.text('Unknown page: ' + query.queryString).show();
     }
   }

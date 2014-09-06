@@ -1,11 +1,11 @@
 {
-	"woc": "0.8",
-	"encoding": "utf8",
-	"version": "0.8.0",
-	"bundles": ["WocGeneric(w)", "Lib(w)"],
-	"initializers": ["Todos.Conf"],
-	"services": ["Todos.Start", "Todos.Model"],
-	"components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.Item", "Todos.EditPanel"],
-	"beforeThemes": "ResetCSS",
-	"themes": "TodosViolet"
+  "woc": "0.8",
+  "encoding": "utf8",
+  "version": "0.8.0",
+  "bundles": ["WocGeneric(w)", "Lib(w)"],
+  "initializers": ["Todos.Conf"],
+  "services": ["Todos.Start", "Todos.Model"],
+  "components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.Item", "Todos.EditPanel"],
+  "beforeThemes": "ResetCSS",
+  "themes": "TodosViolet"
 }

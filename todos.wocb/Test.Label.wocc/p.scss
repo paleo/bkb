@@ -2,27 +2,27 @@
 
 .simple-btn,
 .ajax-btn {
-	background: none;
-	border: none;
-	-moz-box-sizing: border-box;
-	-ms-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	box-sizing: border-box;
-	border-radius: 2px;
-	color: #f38484;
-	cursor: pointer;
-	display: inline-block;
-	font-weight: bold;
-	padding: 2px;
-	position: relative;
+  background: none;
+  border: none;
+  -moz-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  border-radius: 2px;
+  color: #f38484;
+  cursor: pointer;
+  display: inline-block;
+  font-weight: bold;
+  padding: 2px;
+  position: relative;
 }
 
 .ajax-btn {
-	padding-right: 20px;
+  padding-right: 20px;
 
-	.ajax-flag {
-		position: absolute;
-		right: 0;
-		top: 0;
-	}
+  .ajax-flag {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
 }

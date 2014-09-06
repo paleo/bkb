@@ -170,29 +170,29 @@ module WocGeneric {
     private initShortDialogs() {
       var el = document.createElement('div');
       el.innerHTML = '<dialog class="SmallDialog info ob-dialog">\
-	<p class="SmallDialog-msg"></p>\
+  <p class="SmallDialog-msg"></p>\
 </dialog>\
 <dialog class="SmallDialog warn ob-dialog">\
-	<p class="SmallDialog-msg"></p>\
+  <p class="SmallDialog-msg"></p>\
 </dialog>\
 <dialog class="SmallDialog err ob-dialog">\
   <form method="dialog">\
-  	<p class="SmallDialog-msg"></p>\
-  	<div class="SmallDialog-action">\
+    <p class="SmallDialog-msg"></p>\
+    <div class="SmallDialog-action">\
       <button type="submit" value="ok" autofocus>OK</button>\
     </div>\
   </form>\
 </dialog>\
 <dialog class="SmallDialog confirm ob-dialog">\
   <form method="dialog">\
-  	<p class="SmallDialog-msg"></p>\
-  	<div class="SmallDialog-action">\
+    <p class="SmallDialog-msg"></p>\
+    <div class="SmallDialog-action">\
       <button type="submit" value="0" style="display: none"></button>\
       <button type="submit" value="1" style="display: none"></button>\
       <button type="submit" value="2" style="display: none"></button>\
       <button type="submit" value="3" style="display: none"></button>\
       <button type="submit" value="4" style="display: none"></button>\
-  	</div>\
+    </div>\
   </form>\
 </dialog>';
       this.smallDialogMap[SmallDialogType.Info] = Dialogs.appendDialog(<HTMLElement>el.firstChild, () => {

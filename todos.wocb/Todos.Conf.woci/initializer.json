@@ -1,7 +1,7 @@
 {
-	"woc": "0.8",
-	"encoding": "utf8",
-	"useLibraries": ["jQuery"],
-	"script": "Conf.js",
-	"name": "Todos.Conf"
+  "woc": "0.8",
+  "encoding": "utf8",
+  "useLibraries": ["jQuery"],
+  "script": "Conf.js",
+  "name": "Todos.Conf"
 }

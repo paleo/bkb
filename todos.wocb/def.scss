@@ -1,0 +1,149 @@
+@charset "UTF-8";
+
+@mixin clearFloats {
+  clear: both;
+  content: "";
+  display: block;
+}
+
+@mixin gradient($top, $bottom: lighten($top, 6%)) {
+  background: $top;
+  background: -moz-linear-gradient(top, $top 0%, $bottom 100%);
+  background: -ms-linear-gradient(top, $top 0%, $bottom 100%);
+  background: -webkit-linear-gradient(top, $top 0%, $bottom 100%);
+  background: linear-gradient(to bottom, $top 0%, $bottom 100%);
+  border-radius: 7px;
+}
+
+$smallGap: 10px;
+$gap: 22px;
+
+// - Columns
+$c1: 63px;
+$c2: 148px;
+$c3: 233px;
+$c4: 318px;
+$c5: 403px;
+$c6: 488px;
+$c7: 573px;
+$c8: 658px;
+$c9: 743px;
+$c10: 828px;
+$c11: 913px;
+$c12: 998px;
+
+// - Columns with gutters
+$g: 22px;
+$c1g: 85px;
+$c2g: 170px;
+$c3g: 255px;
+$c4g: 340px;
+$c5g: 425px;
+$c6g: 510px;
+$c7g: 595px;
+$c8g: 680px;
+$c9g: 765px;
+$c10g: 850px;
+$c11g: 935px;
+$c12g: 1020px;
+
+// - Rows
+$r1: 22px;
+$r2: 44px;
+$r3: 66px;
+$r4: 88px;
+$r5: 110px;
+$r6: 132px;
+$r7: 154px;
+$r8: 176px;
+$r9: 198px;
+$r10: 220px;
+$r11: 242px;
+$r12: 264px;
+$r13: 286px;
+$r14: 308px;
+$r15: 330px;
+$r16: 352px;
+$r17: 374px;
+$r18: 396px;
+$r19: 418px;
+$r20: 440px;
+
+// - Font sizes
+$f6: 0.375em;
+$f7: 0.4375em;
+$f8: 0.5em;
+$f9: 0.5625em;
+$f10: 0.625em;
+$f11: 0.6875em;
+$f12: 0.75em;
+$f13: 0.8125em;
+$f14: 0.875em;
+$f15: 0.9375em;
+$f16: 1em;
+$f17: 1.0625em;
+$f18: 1.125em;
+$f19: 1.1875em;
+$f20: 1.25em;
+$f21: 1.3125em;
+$f22: 1.375em;
+$f23: 1.4375em;
+$f24: 1.5em;
+$f25: 1.5625em;
+$f26: 1.625em;
+$f27: 1.6875em;
+$f28: 1.75em;
+$f29: 1.8125em;
+$f30: 1.875em;
+$f31: 1.9375em;
+$f32: 2em;
+$f33: 2.0625em;
+$f34: 2.125em;
+$f35: 2.1875em;
+$f36: 2.25em;
+$f37: 2.3125em;
+$f38: 2.375em;
+$f39: 2.4375em;
+$f40: 2.5em;
+
+// Pixels to em
+$epx1: 0.0625em;
+$epx2: 0.125em;
+$epx3: 0.1875em;
+$epx4: 0.25em;
+$epx5: 0.3125em;
+$epx6: 0.375em;
+$epx7: 0.4375em;
+$epx8: 0.5em;
+$epx9: 0.5625em;
+$epx10: 0.625em;
+$epx11: 0.6875em;
+$epx12: 0.75em;
+$epx13: 0.8125em;
+$epx14: 0.875em;
+$epx15: 0.9375em;
+$epx16: 1em;
+$epx17: 1.0625em;
+$epx18: 1.125em;
+$epx19: 1.1875em;
+$epx20: 1.25em;
+$epx21: 1.3125em;
+$epx22: 1.375em;
+$epx23: 1.4375em;
+$epx24: 1.5em;
+$epx25: 1.5625em;
+$epx26: 1.625em;
+$epx27: 1.6875em;
+$epx28: 1.75em;
+$epx29: 1.8125em;
+$epx30: 1.875em;
+$epx31: 1.9375em;
+$epx32: 2em;
+$epx33: 2.0625em;
+$epx34: 2.125em;
+$epx35: 2.1875em;
+$epx36: 2.25em;
+$epx37: 2.3125em;
+$epx38: 2.375em;
+$epx39: 2.4375em;
+$epx40: 2.5em;

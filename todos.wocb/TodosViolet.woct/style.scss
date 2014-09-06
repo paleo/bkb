@@ -1,9 +1,21 @@
 @charset "UTF-8";
+@import "../def.scss";
 
 body {
-  background-color: #FED;
+  background-color: #DED;
 }
 
-.nice {
-	background: blue;
+.AppWrapper {
+  background-color: #FFF;
+  margin: 0 auto;
+  max-width: $c6;
+  min-height: $r10;
+  padding: $r2 $c1g;
+}
+
+.ob-pageTitle {
+  font-size: $f25;
+  font-weight: bold;
+  margin-bottom: $gap;
+  text-align: center;
 }

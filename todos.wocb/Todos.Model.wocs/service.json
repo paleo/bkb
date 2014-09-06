@@ -1,6 +1,6 @@
 {
-	"woc": "0.8",
-	"encoding": "utf8",
-	"script": "Model.js",
-	"name": "Todos.Model"
+  "woc": "0.8",
+  "encoding": "utf8",
+  "script": "Model.js",
+  "name": "Todos.Model"
 }

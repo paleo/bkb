@@ -1,5 +1,5 @@
 {
-	"woc": "0.8",
-	"encoding": "utf8",
-	"stylesheet": ["reset.css"]
+  "woc": "0.8",
+  "encoding": "utf8",
+  "stylesheet": ["reset.css"]
 }
