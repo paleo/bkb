@@ -15,10 +15,20 @@ module Todos {
 
     public attachTo(el: HTMLElement): List {
       this.$comp = $(this.cc.render('TodosList')).appendTo(el);
-      this.$ul = this.$comp.find('.TodosList-ul');
+      this.$ul = this.$comp.find('.TodosList-ul').click((e) => {
+        if (!e.target['classList'])
+          return;
+        var btn = <HTMLButtonElement>e.target;
+        if (btn.classList.contains('js-rmBtn'))
+          this.removeItem(parseInt(btn.value, 10));
+      });
       this.cc.createComponent<Todos.Item>('Todos.Item', {list: this}).attachTo(this.$comp.find('.TodosList-new')[0]);
       this.refresh();
       return this;
+    }
+
+    public destruct() {
+      this.$ul.off();
     }
 
     public refresh(): void {
@@ -27,11 +37,11 @@ module Todos {
         this.$ul.empty();
         this.cc.removeComponent(this.items);
       }
+      this.items = [];
       // - Build
       this.$ul.append(this.cc.render('each-TodosList-li', {
         items: this.model.listTasks()
       }));
-      this.items = [];
       var that = this;
       this.$ul.find('.js-item').each(function () {
         that.items.push(
@@ -45,6 +55,11 @@ module Todos {
         items: [task]
       })).appendTo(this.$ul);
       this.cc.createComponent<Todos.Item>('Todos.Item', {list: this, id: task.id}).attachTo($li.find('.js-item')[0]);
+    }
+
+    private removeItem(id: number): void {
+      this.model.rmTask(id);
+      this.refresh();
     }
   }
 }

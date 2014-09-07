@@ -9,5 +9,8 @@
 <!-- Template: each-TodosList-li -->
 
 {{#each items}}
-<li class="TodosList-li"><div class="js-item" data-id="{{id}}"></div></li>
+<li class="TodosList-li">
+  <button class="TodosList-rmBtn js-rmBtn" value="{{id}}">×</button>
+  <div class="TodosList-item js-item" data-id="{{id}}"></div>
+</li>
 {{/each}}

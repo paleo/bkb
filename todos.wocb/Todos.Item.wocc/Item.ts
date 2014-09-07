@@ -29,7 +29,7 @@ module Todos {
           e.preventDefault();
           this.cc.getService<Woc.Log>('Woc.Log').wrap(() => this.add());
         });
-        this.$addTitle = this.$addForm.find('.TodosItem-input');
+        this.$addTitle = this.$addForm.find('.js-newTitle');
       } else {
         var $comp = $(this.cc.render('TodosItem', this.task)).appendTo(el);
         this.$editBtn = $comp.find('.TodosItem-editBtn').click(() => {

@@ -1,8 +1,38 @@
 @charset "UTF-8";
+@import "../def";
 
 .TodosList {
   &-li {
-    background-color: #FAFFFF;
+    background-color: #BBB;
+    border-bottom: #EEE;
     color: #FFF;
+    height: $r2;
+    padding-left: 30px;
+    position: relative;
+    &:nth-child(even) {
+      background-color: #CCC;
+    }
+  }
+  &-rmBtn {
+    font-size: $f32;
+    font-weight: bold;
+    height: 100%;
+    left: 0;
+    line-height: $r2;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 30px;
+    &:focus,
+    &:hover {
+      background-color: rgba(255, 255, 255, .4);
+    }
+  }
+  &-item {
+    height: 100%;
+    overflow: hidden;
+  }
+  &-new {
+    margin-top: $gap;
   }
 }

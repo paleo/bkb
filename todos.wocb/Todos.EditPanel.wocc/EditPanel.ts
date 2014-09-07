@@ -132,9 +132,5 @@ module Todos {
       this.curTask.title = this.$title.val();
       this.curTask.description = this.$description.val();
     }
-
-    private refreshBtnBar() {
-
-    }
   }
 }

@@ -37,10 +37,6 @@ body {
 ol, ul {
   list-style: none;
 }
-button {
-  background: transparent;
-  text-align: inherit;
-}
 blockquote, q {
   quotes: none;
 }
@@ -56,4 +52,13 @@ table {
 article, aside, details, figcaption, figure, 
 footer, header, main, menu, nav, section {
   display: block;
+}
+button {
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+input, textarea {
+  margin: 0;
 }
