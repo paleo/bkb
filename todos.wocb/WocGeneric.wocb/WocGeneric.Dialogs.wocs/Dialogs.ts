@@ -15,6 +15,7 @@ module WocGeneric {
     // -- Initialisation
     // --
 
+    private log: Woc.Log;
     private smallDialogMap = {};
     private smallMsgQueue = [];
     private curSmallProp: {} = null;
@@ -23,7 +24,11 @@ module WocGeneric {
     private registeredMap = {};
     private regOpenedStack = [];
 
-    constructor() {
+    constructor(sc: Woc.ServiceContext) {
+      this.log = sc.getService('Woc.Log');
+      var router: Woc.Router = sc.getService('Woc.Router');
+      router.addCanLeaveListener(() => this.canLeave());
+      router.addLeaveListener(() => this.leave());
       this.initShortDialogs();
     }
 
@@ -65,12 +70,13 @@ module WocGeneric {
       returnValue: any;
       isDefault?: boolean;
     }[]): Promise<any> {
-      return new Promise<any>((resolve) => {
+      return new Promise<any>((resolve, reject) => {
         this.smallMsgQueue.push({
           'msgHtml': msgHtml,
           'type': SmallDialogType.Confirm,
           'buttons': buttons,
-          'resolve': resolve
+          'resolve': resolve,
+          'reject': reject
         });
         this.pleaseProcessShortDialogs();
       });
@@ -135,15 +141,17 @@ module WocGeneric {
     // --
 
     private closeRegistered(val: any, handle: string) {
-      var prop = this.regOpenedStack.pop();
-      if (!prop)
+      var props = this.regOpenedStack.pop();
+      if (!props)
         return;
-      if (prop['rmDialog'])
-        prop['rmDialog']();
-      if (prop['handle'] !== handle)
-        prop['reject'](Error('Current dialog handle "' + handle + '" should match with "' + prop['handle'] + '"'));
-      else
-        prop['resolve'](val);
+      if (props['rmDialog'])
+        props['rmDialog']();
+      if (props['handle'] !== handle) {
+        var err = Error('Current dialog handle "' + handle + '" should match with "' + props['handle'] + '"');
+        this.log.error(err);
+        props['reject'](err);
+      } else
+        props['resolve'](val);
     }
 
     private static appendDialog(dialog: HTMLElement, onClose: (event) => void = null): HTMLElement {
@@ -161,6 +169,54 @@ module WocGeneric {
         if (onClose !== null)
           dialog.removeEventListener('close', onClose);
       };
+    }
+
+    // --
+    // -- Private - Router events
+    // --
+
+    private canLeave(): boolean {
+      if (this.regOpenedStack.length > 0)
+        return false;
+      var props;
+      if (this.curSmallProp) {
+        props = this.curSmallProp;
+        if (props['type'] === SmallDialogType.Error || props['type'] === SmallDialogType.Confirm)
+          return false;
+      }
+      for (var i = 0, len = this.smallMsgQueue.length; i < len; ++i) {
+        props = this.smallMsgQueue[i];
+        if (props['type'] === SmallDialogType.Error || props['type'] === SmallDialogType.Confirm)
+          return false;
+      }
+      return true;
+    }
+
+    private leave(): void {
+      var props;
+      while (props = this.regOpenedStack.pop()) {
+        this.unregister(props['handle']);
+        if (props['reject'])
+          props['reject'](Error('Current route is closed'));
+      }
+      if (this.curSmallProp) {
+        props = this.curSmallProp;
+        if (props['type'] === SmallDialogType.Confirm && props['reject'])
+          props['reject'](Error('Current route is closed'));
+        this.curSmallProp = null;
+      }
+      var i = 0,
+        len = this.smallMsgQueue.length;
+      while (i < len) {
+        props = this.smallMsgQueue[i];
+        if (props['type'] === SmallDialogType.Confirm && props['reject']) {
+          props['reject'](Error('Current route is closed'));
+          this.smallMsgQueue.splice(i, 1);
+          --len;
+        } else
+          ++i;
+      }
+      this.pleaseProcessShortDialogs();
     }
 
     // --
@@ -213,19 +269,20 @@ module WocGeneric {
     private smallDialogClose(val: string = null) {
       if (this.curSmallProp === null)
         return;
-      var cb = this.curSmallProp['resolve'];
-      var buttons = this.curSmallProp['buttons'];
-      this.curSmallProp = null;
-      if (cb) {
-        if (val === null)
-          cb();
-        else if (buttons) {
-          var btnProp = buttons[val];
-          if (btnProp)
-            cb(btnProp['returnValue']);
+      try {
+        var cb = this.curSmallProp['resolve'];
+        var prop = this.curSmallProp;
+        this.curSmallProp = null;
+        if (cb) {
+          if (val === null || (prop['buttons'] && prop['buttons'][val]))
+            cb(prop['buttons'][val]['returnValue']);
+          else
+            cb();
         }
+        this.pleaseProcessShortDialogs();
+      } catch (e) {
+        this.log.error(e);
       }
-      this.pleaseProcessShortDialogs();
     }
 
     private pleaseProcessShortDialogs() {
@@ -246,11 +303,15 @@ module WocGeneric {
         window.setTimeout(() => {
           if (cur !== this.smallDialogCount)
             return;
-          dialog.close();
-          if (cur !== this.smallDialogCount)
-            return;
-          this.curSmallProp = null;
-          this.pleaseProcessShortDialogs();
+          try {
+            dialog.close();
+            if (cur !== this.smallDialogCount)
+              return;
+            this.curSmallProp = null;
+            this.pleaseProcessShortDialogs();
+          } catch (e) {
+            this.log.error(e);
+          }
         }, props['delayInMs']);
       }
     }

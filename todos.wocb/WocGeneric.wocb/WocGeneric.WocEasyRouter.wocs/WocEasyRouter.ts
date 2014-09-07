@@ -8,7 +8,6 @@ module WocGeneric {
     hashBangMode?: boolean;
     noHistory?: boolean;
     firstQueryString?: string;
-    root?: EasyRouter.Router;
   }
 
   export class WocEasyRouter implements Woc.Router {
@@ -16,11 +15,12 @@ module WocGeneric {
     private onErrCb: (err: any) => void;
     private onRejectCb: (err: any, query?: EasyRouter.Query) => void;
     private onUnknownRouteCb: (query: EasyRouter.Query) => void;
-    private root: EasyRouter.Router = null;
+    private root: EasyRouter.Router;
     private started = false;
 
     constructor(private sc: Woc.ServiceContext) {
       var log = <Woc.Log>sc.getService('Woc.Log');
+      this.root = this.createRouter();
       this.onErrCb = function (err: any) {
         log.error(err);
       };
@@ -33,6 +33,10 @@ module WocGeneric {
       };
     }
 
+    public getRoot(): EasyRouter.Router {
+      return this.root;
+    }
+
     public createRouter(): EasyRouter.Router {
       if (this.started)
         throw Error('WocEasyRouter is already started');
@@ -42,12 +46,6 @@ module WocGeneric {
     public start(opt: WocEasyRouterOptions): Promise<void> {
       if (this.started)
         throw Error('WocEasyRouter is already started');
-      if (opt.root) {
-        if (this.root)
-          throw Error('the root router is already defined');
-        this.root = opt.root;
-      } else
-        this.getRoot();
       this.started = true;
       return this.root.startRoot({
         baseUrl: this.sc.appConfig.baseUrl,
@@ -62,12 +60,12 @@ module WocGeneric {
     // --
 
     public map(activators: EasyRouter.RouteActivator[]): WocEasyRouter {
-      this.getRoot().map(activators);
+      this.root.map(activators);
       return this;
     }
 
     public mapUnknownRoutes(activator: EasyRouter.RouteActivator): WocEasyRouter {
-      this.getRoot().mapUnknownRoutes(activator);
+      this.root.mapUnknownRoutes(activator);
       return this;
     }
 
@@ -94,37 +92,19 @@ module WocGeneric {
     }
 
     public addCanLeaveListener(cb: () => any, onNavRm?: boolean): number {
-      if (!this.started)
-        throw Error('WocEasyRouter is not started');
       return this.root.addCanLeaveListener(cb, onNavRm);
     }
 
     public removeCanLeaveListener(handle: number): void {
-      if (!this.started)
-        throw Error('WocEasyRouter is not started');
       this.root.removeCanLeaveListener(handle);
     }
 
     public addLeaveListener(cb: () => void, onNavRm?: boolean): number {
-      if (!this.started)
-        throw Error('WocEasyRouter is not started');
       return this.root.addLeaveListener(cb, onNavRm);
     }
 
     public removeLeaveListener(handle: number): void {
-      if (!this.started)
-        throw Error('WocEasyRouter is not started');
       this.root.removeLeaveListener(handle);
-    }
-
-    // --
-    // -- Private
-    // --
-
-    private getRoot(): EasyRouter.Router {
-      if (!this.root)
-        this.root = this.createRouter();
-      return this.root;
     }
   }
 }
