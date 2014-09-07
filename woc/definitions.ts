@@ -44,7 +44,7 @@ module Woc {
     info(msg: any): void;
     warning(msg: any): void;
     trace(msg: any): void;
-    wrap(cb: () => void): void;
+    wrap(cb: () => any): any;
   }
 
   export interface TemplateEngine {

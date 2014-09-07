@@ -21,40 +21,48 @@ module Todos {
 
     constructor(private sc: Woc.ServiceContext) {
       this.addTask({
-        title: 'Première tâche',
-        description: 'Texte de la première tâche...',
+        title: 'First task',
+        description: 'Text of the first task…',
         id: null
       });
       this.addTask({
-        title: 'Deuxième tâche',
-        description: 'Texte de la deuxième tâche...',
+        title: 'Second task',
+        description: 'Text of the second task…',
         id: null
       });
     }
 
+    public newTask(): ModelTask {
+      return {
+        title: null,
+        description: null,
+        id: null
+      };
+    }
+
     public addTask(t: ModelTask): ModelTask {
-      var copy = Model.cloneTask(t, false);
+      var copy = Model.cloneTask(t, true, false);
       copy.id = this.tasks.length;
       return this.tasks[copy.id] = Object.freeze(copy);
     }
 
-    public rmTask(t: ModelTask): void {
-      if (t.id === null || t.id === undefined)
+    public rmTask(id: number): void {
+      if (id === null || id === undefined)
         throw Error('Missing id');
-      delete this.tasks[t.id];
+      delete this.tasks[id];
     }
 
     public updateTask(t: ModelTask): ModelTask {
       if (t.id === null || t.id === undefined)
         throw Error('Missing id');
-      return this.tasks[t.id] = Model.cloneTask(t, true);
+      return this.tasks[t.id] = Model.cloneTask(t, true, true);
     }
 
     public listTasks(copy = false): ModelTask[] {
       var list: ModelTask[] = [];
       for (var k in this.tasks) {
         if (this.tasks.hasOwnProperty(k))
-          list.push(copy ? Model.cloneTask(this.tasks[k], false) : this.tasks[k]);
+          list.push(copy ? Model.cloneTask(this.tasks[k], false, false) : this.tasks[k]);
       }
       return list;
     }
@@ -63,14 +71,30 @@ module Todos {
       var t = this.tasks[id];
       if (!t)
         return undefined;
-      return copy ? Model.cloneTask(t, false) : t;
+      return copy ? Model.cloneTask(t, false, false) : t;
     }
 
-    private static cloneTask(t: ModelTask, freeze: boolean): ModelTask {
+    public isChanged(t: ModelTask): boolean {
+      if (t.id === null)
+        return Model.cleanString(t.title) !== null || Model.cleanString(t.description) !== null;
+      var cur = this.tasks[t.id];
+      if (!cur)
+        return true;
+      return Model.cleanString(t.title) !== cur.title || Model.cleanString(t.description) !== cur.description;
+    }
+
+    private static cleanString(val: string): string {
+      if (!val)
+        return null;
+      val = val.trim();
+      return val === '' ? null : val;
+    }
+
+    private static cloneTask(t: ModelTask, clean: boolean, freeze: boolean): ModelTask {
       var o = {
-        title: t.title,
-        description: t.description || null,
-        id: t.id || null
+        title: clean ? Model.cleanString(t.title) : t.title,
+        description: clean ? Model.cleanString(t.description) : t.description,
+        id: t.id
       };
       return freeze ? Object.freeze(o) : o;
     }

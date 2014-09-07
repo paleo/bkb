@@ -7,5 +7,5 @@
   "services": ["Todos.Start", "Todos.Model"],
   "components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.Item", "Todos.EditPanel"],
   "beforeThemes": "ResetCSS",
-  "themes": "TodosViolet"
+  "themes": "Simple"
 }

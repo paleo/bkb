@@ -5,7 +5,8 @@ module Todos {
 
   export class List implements Woc.Component {
     private model: Todos.Model;
-    private $el: JQuery;
+    private $comp: JQuery;
+    private $ul: JQuery;
     private items: Todos.Item[];
 
     constructor(private cc: Woc.HBComponentContext) {
@@ -13,24 +14,37 @@ module Todos {
     }
 
     public attachTo(el: HTMLElement): List {
-      this.$el = $(el);
+      this.$comp = $(this.cc.render('TodosList')).appendTo(el);
+      this.$ul = this.$comp.find('.TodosList-ul');
+      this.cc.createComponent<Todos.Item>('Todos.Item', {list: this}).attachTo(this.$comp.find('.TodosList-new')[0]);
       this.refresh();
       return this;
     }
 
-    public refresh() {
+    public refresh(): void {
       // - Clear
-      if (this.items)
+      if (this.items) {
+        this.$ul.empty();
         this.cc.removeComponent(this.items);
+      }
       // - Build
-      this.items = [];
-      this.$el.empty().append(this.cc.render('TodosList', {
+      this.$ul.append(this.cc.render('each-TodosList-li', {
         items: this.model.listTasks()
       }));
+      this.items = [];
       var that = this;
-      this.$el.find('.sd-item').each(function () {
-        that.cc.createComponent<Todos.Item>('Todos.Item', {id: $(this).attr('data-id')}).attachTo(this);
+      this.$ul.find('.js-item').each(function () {
+        that.items.push(
+          that.cc.createComponent<Todos.Item>('Todos.Item', {list: this, id: $(this).attr('data-id')}).attachTo(this)
+        );
       });
+    }
+
+    public add(task: ModelTask): void {
+      var $li = $(this.cc.render('each-TodosList-li', {
+        items: [task]
+      })).appendTo(this.$ul);
+      this.cc.createComponent<Todos.Item>('Todos.Item', {list: this, id: task.id}).attachTo($li.find('.js-item')[0]);
     }
   }
 }

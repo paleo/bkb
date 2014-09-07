@@ -51,7 +51,7 @@ module WocGeneric {
     private splitTemplates(templates: string) {
       // TODO IE8 compat: see http://blog.stevenlevithan.com/archives/cross-browser-split
       try {
-        var arr = templates.split(/\s*<!--\s*Template:\s*([a-zA-Z0-9_\-]+)\s*-->\s*/),
+        var arr = templates.split(/\s*<!--\s*Template:\s*([^\s]+)\s*-->\s*/),
           name, tpl;
         for (var i = 1, len = arr.length; i < len; ++i) {
           name = arr[i];

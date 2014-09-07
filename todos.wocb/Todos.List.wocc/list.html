@@ -1,0 +1,13 @@
+<!-- Template: TodosList -->
+
+<section class="TodosList">
+  <h1 class="ob-pageTitle">Task list</h1>
+  <ul class="TodosList-ul"></ul>
+  <div class="TodosList-new"></div>
+</section>
+
+<!-- Template: each-TodosList-li -->
+
+{{#each items}}
+<li class="TodosList-li"><div class="js-item" data-id="{{id}}"></div></li>
+{{/each}}

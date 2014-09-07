@@ -40,9 +40,9 @@ module WocGeneric {
       this.fireEvent(LogType.Trace, msg);
     }
 
-    public wrap(cb: () => void): void {
+    public wrap(cb: () => any): any {
       try {
-        cb();
+        return cb();
       } catch (e) {
         this.error(e);
       }

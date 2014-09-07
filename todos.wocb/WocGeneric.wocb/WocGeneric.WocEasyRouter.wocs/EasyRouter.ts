@@ -128,6 +128,8 @@ module EasyRouter {
 
     private isRoot: boolean;
     private rootBaseUrl: string;
+    private rootQSStack: string[];
+
     private withHistory: boolean;
     private parent: ParentRouter;
     private children: ChildRouter[] = [];
@@ -137,7 +139,6 @@ module EasyRouter {
     private listeners = {};
     private onNavRmListeners = {};
 
-    private rootQSStack: string[] = [];
     private curQuery: Query = null;
     private curActivator: RouteActivator = null;
     private curChild: ChildRouter = null;
@@ -160,6 +161,7 @@ module EasyRouter {
       if (this.isRoot !== undefined)
         throw Error('Cannot call startRoot(), the router is ' + (this.isRoot ? 'already root' : 'a child'));
       this.isRoot = true;
+      this.rootQSStack = [];
       // - Base URL
       this.rootBaseUrl = opt.baseUrl;
       if (this.rootBaseUrl) {
@@ -284,10 +286,10 @@ module EasyRouter {
         return Promise.resolve<boolean>(true);
       if (level < 0)
         return Promise.resolve<boolean>(false);
-      var qs: string;
-      while (--level >= 0)
-        qs = this.rootQSStack.pop();
-      return this.doNavigate(qs, false);
+      var qs = this.rootQSStack[this.rootQSStack.length - level - 1];
+      if (qs === undefined)
+        return Promise.resolve(false);
+      return this.doNavigate(qs, true);
     }
 
     public addCanLeaveListener(cb: () => any, onNavRm = false): number {
@@ -337,7 +339,7 @@ module EasyRouter {
           return Promise.resolve<boolean>(false);
         this.working = true;
       }
-      if (this.isRoot && changeHist)
+      if (this.isRoot)
         this.rootQSStack.push(queryString);
       var query = this.makeQuery(queryString, parentQuery);
       if (this.curQuery && this.curQuery.queryString === query.queryString) {
@@ -749,7 +751,7 @@ module EasyRouter {
             return;
           if (queryString.length >= 1 && queryString[0] === '#')
             queryString = queryString.slice(queryString.length >= 2 && queryString[1] === '!' ? 2 : 1);
-          this.doNavigate(queryString, false);
+          this.doNavigate(queryString, true);
         } catch (err) {
           this.onAsyncErrCb(err);
         }

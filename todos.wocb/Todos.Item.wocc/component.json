@@ -5,7 +5,7 @@
   "useLibraries": ["jQuery"],
   "useServices": "Todos.Model",
   "script": "Item.js",
-  "templates": "t.html",
-  "stylesheet": "p.css",
+  "templates": "item.html",
+  "stylesheet": "item.css",
   "name": "Todos.Item"
 }

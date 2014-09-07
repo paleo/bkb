@@ -9,7 +9,7 @@ declare module WocGeneric {
     info(msg: any): void;
     warning(msg: any): void;
     trace(msg: any): void;
-    wrap(cb: () => void): void;
+    wrap(cb: () => any): any;
     /**
      * @param cb This function must return TRUE if the message is successfully logged
      */

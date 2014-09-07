@@ -6,7 +6,7 @@
   "useServices": "Todos.Model",
   "useComponents": "Todos.Item",
   "script": "List.js",
-  "templates": "t.html",
-  "stylesheet": "p.css",
+  "templates": "list.html",
+  "stylesheet": "list.css",
   "name": "Todos.List"
 }
