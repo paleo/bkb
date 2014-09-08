@@ -1,5 +1,5 @@
 {
-	"woc": "0.8",
+	"woc": "0.9",
 	"script": ["CookiesHelper.js"],
 	"name": "CookiesHelper"
 }

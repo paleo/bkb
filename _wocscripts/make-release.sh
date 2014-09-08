@@ -36,7 +36,7 @@ fi
 echo "Make woc.min.js"
 cd $SRC_DIR
 $DIR/make-woc-min.sh || exit 1;
-ls -l woc.min.js
+ls -l woc*.min.js
 
 # Make directory
 
@@ -48,12 +48,12 @@ cd $DIR/releases || exit 1;
 
 mkdir $RELEASE_DIRNAME || exit 1;
 
-cp -r -t $RELEASE_DIRNAME $SRC_DIR/LICENSE $SRC_DIR/todos.html $SRC_DIR/es5-shim.min.js $SRC_DIR/woc.min.js $SRC_DIR/ext.w $SRC_DIR/todos.w $SRC_DIR/_woctools || exit 1;
+cp -r -t $RELEASE_DIRNAME $SRC_DIR/LICENSE $SRC_DIR/index.html $SRC_DIR/es5-shim.min.js $SRC_DIR/woc.min.js $SRC_DIR/woc-w.min.js $SRC_DIR/todos.wocb $SRC_DIR/_woctools || exit 1;
 rm -f -r $RELEASE_DIRNAME/_woctools/node_modules
 
-echo "Edit todos.html: switch to \".w\" mode and use \"woc.min.js\""
+echo "Edit index.html: switch to \"w\" mode and use \"woc-w.min.js\""
 read -p "Press [Enter] key to edit..."
-vim $RELEASE_DIRNAME/todos.html || exit 1;
+vim $RELEASE_DIRNAME/index.html || exit 1;
 
 # Make archive
 
@@ -64,8 +64,8 @@ tar -cz -f $RELEASE_FILENAME $RELEASE_DIRNAME || exit 1;
 
 ls -l
 echo "... Done. Test the release:"
-echo "> http://localhost:8080/wocreleases/$RELEASE_DIRNAME/todos.html"
+echo "> http://localhost:8080/wocreleases/$RELEASE_DIRNAME/"
 echo "> cd $DIR/releases/$RELEASE_DIRNAME/"
 echo "> npm install --prefix _woctools/"
-echo "> node _woctools/woc-make.js -r true ext todos"
+echo "> node _woctools/woc-make.js -r true todos"
 

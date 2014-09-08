@@ -1,5 +1,5 @@
 {
-  "woc": "0.8",
+  "woc": "0.9",
   "encoding": "utf8",
   "script": ["Log.js"],
   "name": "WocGeneric.Log",

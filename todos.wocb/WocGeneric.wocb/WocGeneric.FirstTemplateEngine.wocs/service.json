@@ -1,5 +1,5 @@
 {
-  "woc": "0.8",
+  "woc": "0.9",
   "encoding": "utf8",
   "script": ["FirstTemplateEngine.js"],
   "name": "WocGeneric.FirstTemplateEngine"

@@ -1,4 +1,4 @@
 {
-  "woc": "0.8",
+  "woc": "0.9",
   "libraries": ["jQueryUI", "jQuery"]
 }

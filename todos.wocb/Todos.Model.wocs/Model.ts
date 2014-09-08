@@ -1,5 +1,4 @@
 /// <reference path='../Todos.d.ts' />
-/// <reference path="../Test.Label.wocc/Label.ts" />
 
 module Todos {
   'use strict';

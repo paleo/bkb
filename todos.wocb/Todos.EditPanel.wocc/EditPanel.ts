@@ -78,7 +78,6 @@ module Todos {
           isDefault: true
         }
       ]).then((val) => this.log.wrap(() => {
-console.log(val);
         if (val) {
           this.model.rmTask(this.curTask.id);
           this.dialogs.showInfo('Task is removed!');
