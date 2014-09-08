@@ -69,7 +69,8 @@ module Todos {
       this.dialogs.confirm('Delete the task?', [
         {
           label: 'Cancel',
-          returnValue: false
+          returnValue: false,
+          isCancel: true
         },
         {
           label: 'Delete',
@@ -77,6 +78,7 @@ module Todos {
           isDefault: true
         }
       ]).then((val) => this.log.wrap(() => {
+console.log(val);
         if (val) {
           this.model.rmTask(this.curTask.id);
           this.dialogs.showInfo('Task is removed!');
@@ -94,7 +96,8 @@ module Todos {
         {
           label: 'Cancel',
           returnValue: 'cancel',
-          isDefault: true
+          isDefault: true,
+          isCancel: true
         },
         {
           label: 'Save',

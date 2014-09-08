@@ -1,0 +1,11 @@
+@charset "UTF-8";
+
+.SmallDialog {
+  padding: 2em 3em;
+  &-msg {
+    font-size: 1.125em;
+  }
+  &-btnBar {
+    margin-top: 1em;
+  }
+}

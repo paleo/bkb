@@ -69,6 +69,7 @@ module WocGeneric {
       label: string;
       returnValue: any;
       isDefault?: boolean;
+      isCancel?: boolean;
     }[]): Promise<any> {
       return new Promise<any>((resolve, reject) => {
         this.smallMsgQueue.push({
@@ -101,7 +102,9 @@ module WocGeneric {
 
     public showModal(dialog: any): Promise<any> {
       var handle: string,
-        onClose: (event) => void,
+        onClose = () => {
+          this.closeRegistered(dialog.returnValue, handle);
+        },
         rmDialog: Function = null;
       if (typeof dialog === 'string') {
         handle = dialog;
@@ -109,19 +112,13 @@ module WocGeneric {
           throw Error('Unknown dialog "' + handle + '"');
         if (this.registeredMap[handle]['dialog'] === null) {
           dialog = this.registeredMap[handle]['maker']();
-          onClose = () => {
-            this.closeRegistered(dialog.returnValue, handle);
-          };
           this.registeredMap[handle]['dialog'] = Dialogs.appendDialog(dialog, onClose);
           this.registeredMap[handle]['rmDialog'] = Dialogs.makeRmDialogCb(dialog, onClose);
           this.registeredMap[handle]['maker'] = null;
         } else
           dialog = this.registeredMap[handle]['dialog'];
       } else {
-        onClose = () => {
-          handle = null;
-          this.closeRegistered(dialog.returnValue, handle);
-        };
+        handle = null;
         Dialogs.appendDialog(dialog, onClose);
         rmDialog = Dialogs.makeRmDialogCb(dialog, onClose);
       }
@@ -132,6 +129,7 @@ module WocGeneric {
           'resolve': resolve,
           'reject': reject
         });
+        dialog.returnValue = null;
         dialog.showModal();
       });
     }
@@ -234,20 +232,20 @@ module WocGeneric {
 <dialog class="SmallDialog err ob-dialog">\
   <form method="dialog">\
     <p class="SmallDialog-msg"></p>\
-    <div class="SmallDialog-action">\
-      <button type="submit" value="ok" autofocus>OK</button>\
+    <div class="SmallDialog-btnBar js-buttons">\
+      <button class="ob-btn" value="ok" autofocus>OK</button>\
     </div>\
   </form>\
 </dialog>\
 <dialog class="SmallDialog confirm ob-dialog">\
   <form method="dialog">\
     <p class="SmallDialog-msg"></p>\
-    <div class="SmallDialog-action">\
-      <button type="submit" value="0" style="display: none"></button>\
-      <button type="submit" value="1" style="display: none"></button>\
-      <button type="submit" value="2" style="display: none"></button>\
-      <button type="submit" value="3" style="display: none"></button>\
-      <button type="submit" value="4" style="display: none"></button>\
+    <div class="SmallDialog-btnBar js-buttons">\
+      <button value="0" class="ob-btn" style="display: none"></button>\
+      <button value="1" class="ob-btn" style="display: none"></button>\
+      <button value="2" class="ob-btn" style="display: none"></button>\
+      <button value="3" class="ob-btn" style="display: none"></button>\
+      <button value="4" class="ob-btn" style="display: none"></button>\
     </div>\
   </form>\
 </dialog>';
@@ -263,6 +261,7 @@ module WocGeneric {
       var that = this;
       this.smallDialogMap[SmallDialogType.Confirm] = Dialogs.appendDialog(<HTMLElement>el.firstChild, function () {
         that.smallDialogClose(this.returnValue);
+        this.returnValue = null; // Next call
       });
     }
 
@@ -274,15 +273,26 @@ module WocGeneric {
         var prop = this.curSmallProp;
         this.curSmallProp = null;
         if (cb) {
-          if (val === null || (prop['buttons'] && prop['buttons'][val]))
-            cb(prop['buttons'][val]['returnValue']);
-          else
+          if (prop['buttons']) {
+            if (val === null || !prop['buttons'][val])
+              cb(Dialogs.getCancelReturnValue(prop['buttons']));
+            else
+              cb(prop['buttons'][val]['returnValue']);
+          } else
             cb();
         }
         this.pleaseProcessShortDialogs();
       } catch (e) {
         this.log.error(e);
       }
+    }
+
+    private static getCancelReturnValue(buttons): any {
+      for (var i = 0, len = buttons.length; i < len; ++i) {
+        if (buttons[i]['isCancel'])
+          return buttons[i]['returnValue'];
+      }
+      return undefined;
     }
 
     private pleaseProcessShortDialogs() {
@@ -318,7 +328,7 @@ module WocGeneric {
 
     private setConfirmButtons(buttons: {}[]): HTMLElement {
       var dialog: any = this.smallDialogMap[SmallDialogType.Confirm];
-      var action = <HTMLElement>dialog.querySelector('.SmallDialog-action'),
+      var action = <HTMLElement>dialog.querySelector('.js-buttons'),
         btnProp,
         btn: any,
         hasDefault = false,
@@ -327,14 +337,13 @@ module WocGeneric {
       for (var len = buttons.length; i < len && i < maxBtn; ++i) {
         btnProp = buttons[i];
         btn = action.children[i];
-        btn.style.display = 'block';
+        btn.style.display = '';
         btn.innerHTML = btnProp['label'];
         if (btnProp['isDefault'] && !hasDefault) {
           btn.setAttribute('autofocus', 'autofocus');
           hasDefault = true;
-        } else {
+        } else
           btn.removeAttribute('autofocus');
-        }
       }
       for (; i < maxBtn; ++i) {
         btn = action.children[i];
