@@ -2,6 +2,7 @@
 
 module Tarh.Tools {
   'use strict';
+  var $ = jQuery;
 
   export interface Screen {
     route: string;

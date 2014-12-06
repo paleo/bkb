@@ -2,15 +2,13 @@
 
 <section class="TodosList">
   <h1 class="ob-pageTitle">Task list</h1>
-  <ul class="TodosList-ul"></ul>
-  <div class="TodosList-new"></div>
+  <ul class="TodosList-ul">
+    <li class="TodosList-li" v-repeat="itemProps: itemPropsList">
+      <button class="TodosList-rmBtn js-rmBtn" v-on="click: rmCb(itemProps.id)">×</button>
+<!--      <button class="TodosList-rmBtn js-rmBtn" v-on="click: itemProps.rmCb()">×</button>
+      <button class="TodosList-rmBtn js-rmBtn" v-on="click: itemProps.id | woc-cb removeItem">×</button>-->
+      <div class="TodosList-item" v-woc-component="Todos.Item : itemProps"></div><!--  | woc-call makeObj -->
+    </li>
+  </ul>
+  <div class="TodosList-new" v-woc-component="Todos.Item : newItemProps"></div>
 </section>
-
-<!-- Template: each-TodosList-li -->
-
-{{#each items}}
-<li class="TodosList-li">
-  <button class="TodosList-rmBtn js-rmBtn" value="{{id}}">×</button>
-  <div class="TodosList-item js-item" data-id="{{id}}"></div>
-</li>
-{{/each}}

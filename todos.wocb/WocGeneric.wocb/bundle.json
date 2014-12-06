@@ -1,4 +1,4 @@
 {
   "woc": "0.9",
-  "services": ["WocGeneric.Log", "WocGeneric.WocEasyRouter", "WocGeneric.Dialogs", "WocGeneric.HBTemplateEngine", "WocGeneric.FirstTemplateEngine"]
+  "services": ["WocGeneric.Log", "WocGeneric.WocEasyRouter", "WocGeneric.Dialogs", "WocGeneric.VueTemplateEngine", "WocGeneric.HBTemplateEngine", "WocGeneric.FirstTemplateEngine"]
 }

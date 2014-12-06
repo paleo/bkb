@@ -46,14 +46,15 @@
       baseUrl = bases.length > 0 ? bases[0].href : null;
       if (!baseUrl)
         throw Error('An element "base" or a parameter "data-woc-base" is required');
-      if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
-        baseUrl = baseUrl.slice(0, baseUrl.length -1);
       var prefix = window.location.protocol + '//' + window.location.host;
       if (strStartsWith(baseUrl, prefix))
         baseUrl = baseUrl.slice(prefix.length);
     }
+    var wocUrl = document.documentElement.getAttribute('data-woc-url') || baseUrl;
+    if (wocUrl.length > 1 && wocUrl[wocUrl.length - 1] === '/')
+      wocUrl = wocUrl.slice(0, -1);
     var ac = Woc.makeApplicationContext({
-      'wocUrl': document.documentElement.getAttribute('data-woc-url') || baseUrl,
+      'wocUrl': wocUrl,
       'baseUrl': baseUrl,
       'firstRelUrl': document.documentElement.getAttribute('data-woc-first') || null
     });

@@ -1,7 +1,7 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.HBTemplateEngine"],
+  "templateEngine": ["WocGeneric.VueTemplateEngine"],
   "useLibraries": ["jQuery"],
   "useServices": "Todos.Model",
   "useComponents": "Todos.Item",

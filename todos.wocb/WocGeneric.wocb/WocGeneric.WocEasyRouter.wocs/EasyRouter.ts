@@ -796,7 +796,7 @@ module EasyRouter {
         else
           res = cb(arg);
       } catch (err) {
-        throw this.makeRejectError(err, query);
+        throw this.callOnRejectCb(err, query);
       }
       if (typeof res === 'object' && res['then'] && res['catch']) {
         res = res['catch']((err) => {

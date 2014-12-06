@@ -12,29 +12,35 @@ module WocGeneric {
   }
   
   class Processor implements Woc.TemplateProcessor {
+    private static hb;
     private map = {};
+    private tplStrMap = {};
 
     constructor(tplStr: string, private prop: Woc.EmbedProperties) {
+      if (!Processor.hb)
+        Processor.hb = Handlebars.create();
       if (tplStr)
         this.splitTemplates(tplStr);
     }
 
     public getContextMethods(): {[index: string]: Function} {
       return {
-        render: (name: string, context = {}): string => {
-          return this.render(name, context);
+        render: (name: string, data = {}): string => {
+          return this.render(name, data);
         },
-        renderIn: (el: HTMLElement, name: string, context = {}): void => {
-          el.innerHTML = this.render(name, context);
+        renderIn: (el: HTMLElement, name: string, data = {}): void => {
+          el.innerHTML = this.render(name, data);
         }
       };
     }
 
-    private render(name: string, context = {}): string {
+    private render(name: string, data = {}): string {
       try {
         if (this.map[name] === undefined)
           throw Error('Unknown template "' + name + '"');
-        return this.map[name](context);
+        if (this.map[name] === null)
+          this.map[name] = Processor.hb.compile(this.tplStrMap[name]);
+        return this.map[name](data);
       } catch (e) {
         throw Error('Handlebars error when rendering in "' + this.prop.name + '": ' + (e['message'] ? e['message'] : e));
       }
@@ -56,7 +62,8 @@ module WocGeneric {
         for (var i = 1, len = arr.length; i < len; ++i) {
           name = arr[i];
           tpl = arr[++i];
-          this.map[name] = Handlebars.compile(tpl);
+          this.tplStrMap[name] = tpl;
+          this.map[name] = null;
         }
       } catch (e) {
         throw Error('Handlebars error when compilation in "' + this.prop.name + '": ' + (e['message'] ? e['message'] : e));

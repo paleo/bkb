@@ -16,7 +16,11 @@ module Todos {
           comp: this.sc.createComponent('Todos.List'),
           title: 'List of tasks',
           activate: (query: EasyRouter.Query, comp: Todos.List) => {
-            comp.refresh();
+            //try {
+              comp.refresh();
+            //} catch (e) {
+            //  console.log(e);
+            //}
           }
         },
         {

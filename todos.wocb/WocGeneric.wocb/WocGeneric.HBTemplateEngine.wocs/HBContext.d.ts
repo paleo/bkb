@@ -2,8 +2,8 @@
 
 declare module Woc {
   interface HBContext {
-    render(name: string, context?: {}): string;
-    renderIn(el: HTMLElement, name: string, context?: {}): void;
+    render(name: string, data?: {}): string;
+    renderIn(el: HTMLElement, name: string, data?: {}): void;
   }
   interface HBServiceContext extends HBContext, ServiceContext {
   }

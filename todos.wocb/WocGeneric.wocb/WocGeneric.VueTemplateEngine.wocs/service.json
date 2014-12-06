@@ -1,0 +1,6 @@
+{
+  "woc": "0.9",
+  "encoding": "utf8",
+  "script": ["vue.js", "VueTemplateEngine.js"],
+  "name": "WocGeneric.VueTemplateEngine"
+}

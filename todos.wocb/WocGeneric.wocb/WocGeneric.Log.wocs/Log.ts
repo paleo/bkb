@@ -60,6 +60,7 @@ module WocGeneric {
     // --
 
     private fireEvent(type: LogType, msg: string) {
+console.log('log msg: ' + msg);
       var msgStr, stack = null;
       switch (typeof msg) {
         case 'string':

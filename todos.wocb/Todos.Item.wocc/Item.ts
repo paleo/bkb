@@ -2,6 +2,7 @@
 
 module Todos {
   'use strict';
+  var $ = jQuery;
 
   export class Item implements Woc.Component {
     private model: Todos.Model;
@@ -12,10 +13,10 @@ module Todos {
     private $addForm: JQuery;
     private $addTitle: JQuery;
 
-    constructor(private cc: Woc.HBComponentContext, props: {}) {
+    constructor(private cc: Woc.HBComponentContext, private props: {}) {
       this.model = cc.getService<Todos.Model>('Todos.Model');
-      this.list = props['list'];
-      this.insert = props['id'] ? false : true;
+      this.list = props['listCb']();
+      this.insert = props['id'] === null || props['id'] === undefined;
       if (this.insert)
         this.task = this.model.newTask();
       else
@@ -46,9 +47,19 @@ module Todos {
         this.$editBtn.off();
     }
 
+    public refresh() {
+console.log('Item.refresh: ' + this.props['id']);
+      if (this.$editBtn) {
+        this.task = this.model.getTask(this.props['id']);
+        if (this.task)
+          this.$editBtn.text(this.task.title);
+      }
+    }
+
     private add() {
       this.task.title = this.$addTitle.val();
-      this.list.add(this.model.addTask(this.task));
+      this.model.addTask(this.task);
+      this.list.refresh();
       this.task = this.model.newTask();
       this.$addTitle.val(this.task.title);
     }

@@ -48,7 +48,7 @@ cd $DIR/releases || exit 1;
 
 mkdir $RELEASE_DIRNAME || exit 1;
 
-cp -r -t $RELEASE_DIRNAME $SRC_DIR/LICENSE $SRC_DIR/index.html $SRC_DIR/es5-shim.min.js $SRC_DIR/woc.min.js $SRC_DIR/woc-w.min.js $SRC_DIR/todos.wocb $SRC_DIR/ready_to_be_included $SRC_DIR/_woctools || exit 1;
+cp -r -t $RELEASE_DIRNAME $SRC_DIR/index.html $SRC_DIR/es5-shim.min.js $SRC_DIR/woc.min.js $SRC_DIR/woc-w.min.js $SRC_DIR/todos.wocb $SRC_DIR/ready_to_be_included $SRC_DIR/_woctools || exit 1;
 rm -f -r $RELEASE_DIRNAME/_woctools/node_modules
 
 echo "Edit index.html: switch to \"w\" mode and use \"woc-w.min.js\""

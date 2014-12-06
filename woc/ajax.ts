@@ -112,7 +112,7 @@ module Woc {
               try {
                 resolve(JSON.parse(resp));
               } catch (e) {
-                reject('Invalid JSON, loaded from: ' + url);
+                reject(Error('Invalid JSON, loaded from: ' + url + '\n' + resp));
                 return;
               }
               break;
@@ -121,7 +121,7 @@ module Woc {
           }
         };
         req.onerror = () => {
-          reject('Network error when loading "' + url + '", error ' + req.status + ' (' + req.statusText + ')');
+          reject(Error('Network error when loading "' + url + '", error ' + req.status + ' (' + req.statusText + ')'));
         };
         // - Make the query
         var sDataStr;

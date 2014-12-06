@@ -4,6 +4,5 @@
   "useLibraries": ["jQuery"],
   "useServices": ["WocGeneric.WocEasyRouter"],
   "script": "ScreenSwitcher.js",
-  "stylesheet": "screen-switcher.css",
   "name": "Tarh.Tools.ScreenSwitcher"
 }

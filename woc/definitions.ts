@@ -122,6 +122,8 @@ module Woc {
   }
 
   export interface EmbedContext {
+    logError(err: any): void;
+    logWrap(cb: () => any): any;
     getService(serviceName: string): any;
     getService<S>(serviceName: string): S;
     createComponent(componentName: string, props?: any): any;
@@ -136,6 +138,8 @@ module Woc {
      * @param fromDOM default is FALSE
      */
     removeComponent(cList: Component[], fromDOM?: boolean): void;
+    getChildComponents(): Component[];
+    callChildComponents(methodName, ...args: any[]): any[];
     hasLibrary(libName: string): boolean;
     hasLibrary(libName: string[]): boolean;
     evalLibrary(libName: string): void;
@@ -146,6 +150,7 @@ module Woc {
     evalComponent(componentName: string[]): void;
     getName(): string;
     getBaseUrl(): string;
+    getOwner(): {};
   }
 
   export interface ServiceContext extends EmbedContext {

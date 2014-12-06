@@ -157,6 +157,7 @@ module Woc {
       prop['context'] = new ImplContext(prop['name'], prop['baseUrl'], prop['useLibraries'], prop['useServices'],
         prop['useComponents'], prop['coreClass'] ? false : true);
       prop['inst'] = prop['useApplication'] ? new cl(this.ac, prop['context']) : new cl(prop['context']);
+      prop['context']['_wocOwner'] = prop['inst'];
     }
 
     private coreRegister(name: string, coreClass: string) {
@@ -218,7 +219,7 @@ module Woc {
       };
     }
 
-    public create(name: string, props: {}, compTreeArg: {}): Component {
+    public create(name: string, props: {}, compTreeArg: CompTreeArg): Component {
       var prop = this.map[name];
       if (prop === undefined)
         throw Error('Unknown component "' + name + '"');
@@ -227,6 +228,7 @@ module Woc {
       var cc = new prop['CC'](id);
       var Cl = prop['Cl'];
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
+      cc['_wocOwner'] = c;
       this.compTree.setComp(id, c);
       return c;
     }
@@ -266,7 +268,7 @@ module Woc {
         true
       );
       var Cl = prop['Cl'] = toClass(name);
-      if (Cl.init) {
+      if (typeof Cl.init === 'function') {
         var cc = new prop['CC'](null);
         if (prop['useApplication'])
           Cl.init(this.ac, cc);
@@ -354,13 +356,25 @@ module Woc {
       return this.services.get(serviceName);
     }
 
-    public createComponentFromServ(serviceName: string, props: {}, sc: ServiceContext): any {
-      return this.components.create(serviceName, props, {'from': 'S', 'sc': sc});
+    public createComponent(serviceName: string, props: {}, compTreeArg: CompTreeArg): any {
+      return this.components.create(serviceName, props, compTreeArg);
     }
 
-    public createComponentFromComp(componentName: string, props: {}, compId: number): any {
-      return this.components.create(componentName, props, {'from': 'C', 'id': compId});
+    public getChildComponents(compTreeArg: CompTreeArg): Component[] {
+      return this.components.getComponentTree().getChildComponents(compTreeArg);
     }
+
+    public callChildComponents(compTreeArg: CompTreeArg, methodName, args: any[]): any[] {
+      return this.components.getComponentTree().callChildComponents(compTreeArg, methodName, args);
+    }
+
+    //public createComponentFromServ(serviceName: string, props: {}, sc: ServiceContext): any {
+    //  return this.components.create(serviceName, props, {'from': 'S', 'sc': sc}); // TODO
+    //}
+    //
+    //public createComponentFromComp(componentName: string, props: {}, compId: number): any {
+    //  return this.components.create(componentName, props, {'from': 'C', 'id': compId});
+    //}
 
     public removeComponent(c: any, fromDOM = false): void {
       var compTree = this.components.getComponentTree();
@@ -418,6 +432,7 @@ module Woc {
     private authLibraries: {};
     private authServices: {};
     private authComponents: {};
+    private _wocOwner;
 
     constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
@@ -426,14 +441,36 @@ module Woc {
       this.authComponents = ContextHelper.toSet(useComponents, name);
     }
 
+    public logError(err: any): void {
+      (<Woc.Log>this.ac.getService('Woc.Log')).error(err);
+    }
+
+    public logWrap(cb: () => any): any {
+      return (<Woc.Log>this.ac.getService('Woc.Log')).wrap(cb);
+    }
+
     public getService(serviceName: string): any {
       if (this.restrictedAccess && !this.authServices[serviceName])
         throw Error('In "' + this.name + '", unauthorized access to the service "' + serviceName + '"');
       return this.ac.getService(serviceName);
     }
 
+    public createComponent(componentName: string, props?: any): any {
+      if (this.restrictedAccess && !this.authComponents[componentName])
+        throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
+      return this.ac.createComponent(componentName, props, this.getCompTreeArg());
+    }
+
     public removeComponent(c: any, fromDOM = false): void {
       this.ac.removeComponent(c, fromDOM);
+    }
+
+    public getChildComponents(): Component[] {
+      return this.ac.getChildComponents(this.getCompTreeArg());
+    }
+
+    public callChildComponents(methodName, ...args: any[]): any[] {
+      return this.ac.callChildComponents(this.getCompTreeArg(), methodName, args);
     }
 
     public hasLibrary(libName: any): boolean {
@@ -467,6 +504,14 @@ module Woc {
     public getBaseUrl(): string {
       return this.baseUrl;
     }
+
+    public getOwner(): {} {
+      if (this._wocOwner === undefined)
+        throw Error('Missing owner here');
+      return this._wocOwner;
+    }
+
+    private getCompTreeArg: () => CompTreeArg;
   }
 
   // ##
@@ -474,15 +519,11 @@ module Woc {
   // ##
 
   class SingletonContextTrait {
-    private restrictedAccess: boolean;
-    private name: string;
-    private authComponents: {};
-    private ac: ImplApplicationContext;
-
-    public createComponent(componentName: string, props?: any): any {
-      if (this.restrictedAccess && !this.authComponents[componentName])
-        throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
-      return this.ac.createComponentFromServ(componentName, props, <any>this);
+    private getCompTreeArg(): CompTreeArg {
+      return {
+        from: 'S',
+        sc: this
+      }
     }
   }
 
@@ -491,21 +532,18 @@ module Woc {
   // ##
 
   class ComponentContextTrait {
-    private restrictedAccess: boolean;
-    private name: string;
-    private authComponents: {};
-    private ac: ImplApplicationContext;
-
     /**
      * @param compId NULL for static init context
      */
     constructor(private compId: number) {
     }
 
-    public createComponent(componentName: string, props: {} = null): any {
-      if (this.restrictedAccess && !this.authComponents[componentName])
-        throw Error('In "' + this.name + '", unauthorized access to the component "' + componentName + '"');
-      return this.ac.createComponentFromComp(componentName, props, this.compId);
+    private getCompTreeArg(): CompTreeArg {
+      return {
+        from: 'C',
+        id: this.compId,
+        cc: this
+      };
     }
   }
 

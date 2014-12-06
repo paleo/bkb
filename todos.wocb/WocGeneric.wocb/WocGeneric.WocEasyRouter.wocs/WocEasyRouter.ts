@@ -20,7 +20,6 @@ module WocGeneric {
 
     constructor(private sc: Woc.ServiceContext) {
       var log = <Woc.Log>sc.getService('Woc.Log');
-      this.root = this.createRouter();
       this.onErrCb = function (err: any) {
         log.error(err);
       };
@@ -31,6 +30,7 @@ module WocGeneric {
       this.onUnknownRouteCb = function (query: EasyRouter.Query) {
         log.warning('Unknown route: "' + query.queryString + '"');
       };
+      this.root = this.createRouter();
     }
 
     public getRoot(): EasyRouter.Router {
