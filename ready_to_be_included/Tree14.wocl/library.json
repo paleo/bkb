@@ -1,5 +1,5 @@
 {
 	"woc": "0.9",
-	"script": ["Tree14.js"],
+	"scripts": ["Tree14.js"],
 	"name": "Tree14"
 }

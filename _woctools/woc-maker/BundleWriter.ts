@@ -66,15 +66,15 @@ class BundleWriter {
       });
   }
 
-  public addLibrary(name: string, useLibraries: string[], script: {}[], css: {}[]): Promise<void> {
+  public addLibrary(name: string, useLibraries: string[], scripts: {}[], css: {}[]): Promise<void> {
     if (this.libraries[name] !== undefined)
       throw Error('Conflict in bundle "' + this.bundleName + '": several libraries "' + name + '"');
     var lib = {};
     if (useLibraries !== null)
       lib['useLibraries'] = useLibraries;
     var p = Promise.resolve<void>();
-    if (script) {
-      p = BundleWriter.concatFiles('Library ' + name, script, this.jsMinifier, 'js').then((content: string): void => {
+    if (scripts) {
+      p = BundleWriter.concatFiles('Library ' + name, scripts, this.jsMinifier, 'js').then((content: string): void => {
         lib['js'] = content;
       });
     }
@@ -93,12 +93,12 @@ class BundleWriter {
   }
 
   public addContextThing(type: Common.EmbedType, name: string, useApp: boolean, useLibraries: string[], useServices: string[],
-                         useComponents: string[], script: {}[], css: {}[], tpl: {}[], templateEngine: string, alias: string[]): Promise<void> {
+                         useComponents: string[], scripts: {}[], css: {}[], tpl: {}[], templateEngine: string, alias: string[]): Promise<void> {
     if (this.contextThings[type][name] !== undefined)
       throw Error('Conflict in bundle "' + this.bundleName + '": several ' + Common.toPluralLabel(type) + ' "' + name + '"');
     var prop = {},
       pList = [];
-    //return BundleWriter.concatFiles(title, script, this.jsMinifier, 'js').then((content: string): void => {
+    //return BundleWriter.concatFiles(title, scripts, this.jsMinifier, 'js').then((content: string): void => {
     if (useApp)
       prop['useApplication'] = true;
     if (useLibraries !== null)
@@ -112,7 +112,7 @@ class BundleWriter {
     if (alias)
       prop['alias'] = alias;
     var title = Common.EmbedType[type] +  ' ' + name;
-    pList.push(BundleWriter.concatFiles(title, script, this.jsMinifier, 'js').then((content: string): void => {
+    pList.push(BundleWriter.concatFiles(title, scripts, this.jsMinifier, 'js').then((content: string): void => {
       prop['js'] = content;
     }));
     if (tpl !== null) {

@@ -3,6 +3,6 @@
   "encoding": "utf8",
   "useLibraries": ["jQuery"],
   "useServices": ["WocGeneric.WocEasyRouter"],
-  "script": "ScreenSwitcher.js",
+  "scripts": "ScreenSwitcher.js",
   "name": "Tarh.Tools.ScreenSwitcher"
 }

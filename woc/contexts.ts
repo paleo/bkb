@@ -25,12 +25,12 @@ module Woc {
       this.ac = ac;
     }
 
-    public register(libName: string, useLibraries: string[], script: string) {
+    public register(libName: string, useLibraries: string[], scripts: string) {
       if (this.map[libName] !== undefined)
         throw Error('The lib "' + libName + '" is already declared');
       this.map[libName] = {
         'useLibraries': useLibraries,
-        'script': script,
+        'scripts': scripts,
         'loading': false
       };
     }
@@ -54,8 +54,8 @@ module Woc {
         prop['loading'] = true;
         this.ac.evalLibrary(prop['useLibraries']);
       }
-      if (prop['script'] !== null)
-        globalEval(prop['script']);
+      if (prop['scripts'] !== null)
+        globalEval(prop['scripts']);
       this.map[libName] = true;
       return true;
     }
@@ -76,7 +76,7 @@ module Woc {
     }
 
     public register(name: string, baseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
-                    useComponents: string[], script: string, tplStr: string, templateEngine: string, alias: string[] = null) {
+                    useComponents: string[], scripts: string, tplStr: string, templateEngine: string, alias: string[] = null) {
       if (this.map[name] !== undefined)
         throw Error('The ' + this.label + ' "' + name + '" is already declared');
       var prop = {
@@ -86,7 +86,7 @@ module Woc {
         'useLibraries': useLibraries,
         'useServices': useServices,
         'useComponents': useComponents,
-        'script': script,
+        'scripts': scripts,
         'tplStr': tplStr,
         'templateEngine': templateEngine,
         'context': null,
@@ -139,8 +139,8 @@ module Woc {
         return;
       if (prop['useLibraries'])
         this.ac.evalLibrary(prop['useLibraries']);
-      if (prop['script'] !== null)
-        globalEval(prop['script']);
+      if (prop['scripts'] !== null)
+        globalEval(prop['scripts']);
       var cl = toClass(prop['coreClass'] || prop['name']);
       // - Template methods
       var methods;
@@ -201,7 +201,7 @@ module Woc {
     }
 
     public register(name: string, componentBaseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
-                    useComponents: string[], script: string, tplStr: string, templateEngine: string) {
+                    useComponents: string[], scripts: string, tplStr: string, templateEngine: string) {
       if (this.map[name] !== undefined)
         throw Error('Conflict for component "' + name + '"');
       this.map[name] = {
@@ -210,7 +210,7 @@ module Woc {
         'useLibraries': useLibraries,
         'useServices': useServices,
         'useComponents': useComponents,
-        'script': script,
+        'scripts': scripts,
         'tplStr': tplStr,
         'templateEngine': templateEngine,
         'eval': false,
@@ -246,8 +246,8 @@ module Woc {
       prop['eval'] = true;
       if (prop['useLibraries'])
         this.ac.evalLibrary(prop['useLibraries']);
-      if (prop['script'] !== null)
-        globalEval(prop['script']);
+      if (prop['scripts'] !== null)
+        globalEval(prop['scripts']);
       var methods;
       if (prop['templateEngine']) {
         var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);

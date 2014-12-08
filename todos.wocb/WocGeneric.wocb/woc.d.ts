@@ -15,11 +15,7 @@ declare module Woc {
    * constructor: function (ac: Woc.ApplicationContext, cc: Woc.ComponentContext, props: any)
    */
   interface Component {
-    attachTo?(...elements: HTMLElement[]): Component;
-    detach?(): Component;
-    show?(): Component;
-    hide?(): Component;
-    setEnabled?(b: boolean): Component;
+    attachTo?(...elements: HTMLElement[]): void;
     destructInDOM?(): void;
     destruct?(): void;
   }

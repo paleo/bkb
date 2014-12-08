@@ -92,10 +92,10 @@ module Woc {
       cleanArr('useLibraries');
       cleanArr('useServices');
       cleanArr('useComponents');
-      cleanArr('script');
+      cleanArr('scripts');
       cleanArr('themes');
       cleanArr('beforeThemes');
-      cleanArr('stylesheet');
+      cleanArr('styleSheets');
       cleanArr('templates');
       cleanArr('alias');
     }
@@ -242,26 +242,26 @@ module Woc {
         prop = this.thingList[i];
         switch(prop.type) {
           case WEmbedType.Library:
-            scriptLoader.addLib(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
+            scriptLoader.addLib(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useLibraries']);
             themePromises.push(this.loadTheme(
               cssLoader,
               prop.conf['name'],
               prop.url,
               prop.conf['themes'],
-              WThingLoader.toResList(prop.conf['stylesheet'])
+              WThingLoader.toResList(prop.conf['styleSheets'])
             ));
             break;
           case WEmbedType.Service:
           case WEmbedType.Initializer:
           case WEmbedType.Component:
-            scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['script']), prop.conf['useLibraries']);
+            scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useLibraries']);
             tplLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['templates']));
             themePromises.push(this.loadTheme(
               cssLoader,
               prop.conf['name'],
               prop.url,
               prop.conf['themes'],
-              WThingLoader.toResList(prop.conf['stylesheet']))
+              WThingLoader.toResList(prop.conf['styleSheets']))
             );
             break;
           default:
@@ -302,16 +302,16 @@ module Woc {
       return Promise.all(themesVal.map((nameOrObj: any): any => {
         // - Case of short syntax
         if (typeof nameOrObj === 'object')
-          return WThingLoader.toResList(nameOrObj['stylesheet'], nameOrObj['name']);
+          return WThingLoader.toResList(nameOrObj['styleSheets'], nameOrObj['name']);
         // - Normal case
         var dir = WThingLoader.toDir(nameOrObj, WEmbedType.Theme);
         var dirUrl = relThemeUrl ? relThemeUrl + '/' + dir : dir;
         return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
           WLoader.cleanConf(conf);
           if (!conf['themes'])
-            return WThingLoader.toResList(conf['stylesheet'], dirUrl);
+            return WThingLoader.toResList(conf['styleSheets'], dirUrl);
           return this.loadThemeRecursive(thingUrl, dirUrl, conf['themes']).then((list: string[]) => {
-            Array.prototype.push.apply(list, WThingLoader.toResList(conf['stylesheet'], dirUrl));
+            Array.prototype.push.apply(list, WThingLoader.toResList(conf['styleSheets'], dirUrl));
             return list;
           });
         });

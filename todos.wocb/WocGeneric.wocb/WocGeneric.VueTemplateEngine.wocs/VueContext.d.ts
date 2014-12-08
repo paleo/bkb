@@ -2,7 +2,12 @@
 
 declare module Woc {
   interface VueContext {
-    renderIn(el: HTMLElement, name: string, data?: {}): void;
+    /**
+     * @return {} an extension of Vue.js
+     */
+    useCustomTemplateEngine: (name: string) => {};
+    useDefaultTemplateEngine: () => void;
+    bindTemplate(opt: {}): void;
   }
   interface VueServiceContext extends VueContext, ServiceContext {
   }

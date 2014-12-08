@@ -30,7 +30,7 @@ module Tarh.Tools {
       this.router = this.cc.getService('WocGeneric.WocEasyRouter');
     }
 
-    public attachTo(el: HTMLElement): ScreenSwitcher {
+    public attachTo(el: HTMLElement): void {
       this.$comp = $('<div class="ScreenSwitcher"></div>').appendTo(el);
       for (var i = 0, len = this.screens.length; i < len; ++i)
         this.addScreen(this.screens[i]);
@@ -38,7 +38,6 @@ module Tarh.Tools {
       this.router.start({
         hashBangMode: true
       });
-      return this;
     }
 
     private addScreen(screen: Screen): ScreenProp {
@@ -56,9 +55,10 @@ module Tarh.Tools {
         title: title
       }]);
       var $sd = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$comp);
+      comp.attachTo($sd[0]);
       return this.propMap[route] = {
         $sd: $sd,
-        comp: comp.attachTo($sd[0])
+        comp: comp
       };
     }
 

@@ -2,18 +2,15 @@
 
 module Todos {
   'use strict';
-  var $ = jQuery;
 
   export class Item implements Woc.Component {
     private model: Todos.Model;
     private list: Todos.List;
     private insert: boolean;
     private task: ModelTask;
-    private $editBtn: JQuery;
-    private $addForm: JQuery;
-    private $addTitle: JQuery;
+    private tplData;
 
-    constructor(private cc: Woc.HBComponentContext, private props: {}) {
+    constructor(private cc: Woc.VueComponentContext, private props: {}) {
       this.model = cc.getService<Todos.Model>('Todos.Model');
       this.list = props['listCb']();
       this.insert = props['id'] === null || props['id'] === undefined;
@@ -23,45 +20,57 @@ module Todos {
         this.task = this.model.getTask(props['id']);
     }
 
-    public attachTo(el: HTMLElement): Item {
+    public attachTo(el: HTMLElement): void {
       if (this.insert) {
-        this.$addForm = $(this.cc.render('TodosNewItem', this.task)).appendTo(el);
-        this.$addForm.submit((e) => {
-          e.preventDefault();
-          this.cc.getService<Woc.Log>('Woc.Log').wrap(() => this.add());
+        this.tplData = {
+          title: this.task.title
+        };
+        this.cc.bindTemplate({
+          el: el,
+          wocTemplate: 'TodosNewItem',
+          data: this.tplData,
+          methods: {
+            addCb: (e) => {
+              e.preventDefault();
+              this.cc.logWrap(() => this.add());
+            }
+          }
         });
-        this.$addTitle = this.$addForm.find('.js-newTitle');
       } else {
-        var $comp = $(this.cc.render('TodosItem', this.task)).appendTo(el);
-        this.$editBtn = $comp.find('.TodosItem-editBtn').click(() => {
-          this.cc.getService<Woc.Router>('Woc.Router').navigate('todos/' + this.task.id);
+        this.tplData = {
+          title: this.task.title
+        };
+        this.cc.bindTemplate({
+          el: el,
+          wocTemplate: 'TodosItem',
+          data: this.tplData,
+          methods: {
+            editCb: () => {
+              this.cc.getService<Woc.Router>('Woc.Router').navigate('todos/' + this.task.id);
+            }
+          }
         });
       }
-      return this;
     }
 
     public destruct() {
-      if (this.insert)
-        this.$addForm.off();
-      else
-        this.$editBtn.off();
+      console.log('Item: DESTRUCT ' + (this.task ? '' + this.task.id : 'NULL'));
     }
 
     public refresh() {
-console.log('Item.refresh: ' + this.props['id']);
-      if (this.$editBtn) {
-        this.task = this.model.getTask(this.props['id']);
-        if (this.task)
-          this.$editBtn.text(this.task.title);
+      if (!this.insert) {
+        this.task = this.model.getTask(this.task.id);
+        if (this.task) // test is exists (the view sync can be differed)
+          this.tplData.title = this.task.title;
       }
     }
 
     private add() {
-      this.task.title = this.$addTitle.val();
+      this.task.title = this.tplData.title;
       this.model.addTask(this.task);
-      this.list.refresh();
       this.task = this.model.newTask();
-      this.$addTitle.val(this.task.title);
+      this.tplData.title = this.task.title;
+      this.list.refresh();
     }
   }
 }

@@ -2,11 +2,10 @@
   "woc": "0.9",
   "encoding": "utf8",
   "templateEngine": ["WocGeneric.VueTemplateEngine"],
-  "useLibraries": ["jQuery"],
   "useServices": "Todos.Model",
   "useComponents": "Todos.Item",
-  "script": "List.js",
+  "scripts": "List.js",
   "templates": "list.html",
-  "stylesheet": "list.css",
+  "styleSheets": "list.css",
   "name": "Todos.List"
 }

@@ -1,6 +1,6 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "script": ["handlebars-v1.3.0.min.js", "HBTemplateEngine.js"],
+  "scripts": ["handlebars-v1.3.0.min.js", "HBTemplateEngine.js"],
   "name": "WocGeneric.HBTemplateEngine"
 }

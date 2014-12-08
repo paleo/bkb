@@ -176,13 +176,13 @@ class BundleWReader {
       if (conf['name'] === undefined)
         throw Error('Missing "name" in ' + jsonPath);
       // - Read the theme configuration
-      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['stylesheet']).then((cssList) => {
+      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
           writer.addLibrary(
             conf['name'],
             BundleWReader.arrayOrNull(conf['useLibraries']),
-            this.makeFileArr(dirRelPath, conf['script']),
+            this.makeFileArr(dirRelPath, conf['scripts']),
             this.makeFileArr(dirRelPath, cssList)
           ),
           this.includeOtherFiles(
@@ -204,10 +204,10 @@ class BundleWReader {
       this.checkEncoding(dirName, conf['encoding']);
       if (conf['name'] === undefined)
         throw Error('Missing "name" in ' + jsonPath);
-      if (Project.isEmpty(conf['script']))
-        throw Error('Missing "script" in ' + jsonPath);
+      if (Project.isEmpty(conf['scripts']))
+        throw Error('Missing "scripts" in ' + jsonPath);
       // - Read the theme configuration
-      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['stylesheet']).then((cssList) => {
+      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
           writer.addContextThing(
@@ -217,7 +217,7 @@ class BundleWReader {
             BundleWReader.arrayOrNull(conf['useLibraries']),
             BundleWReader.arrayOrNull(conf['useServices']),
             BundleWReader.arrayOrNull(conf['useComponents']),
-            this.makeFileArr(dirRelPath, conf['script']),
+            this.makeFileArr(dirRelPath, conf['scripts']),
             this.makeFileArr(dirRelPath, cssList),
             this.makeFileArr(dirRelPath, conf['templates']),
             conf['templateEngine'],
@@ -314,7 +314,7 @@ class BundleWReader {
       if (typeof nameOrObj === 'object') {
         var subDirPath = relPath ? path.join(thingRelPath, relPath, nameOrObj['name']) : path.join(thingRelPath, nameOrObj['name']);
         return makeCopyPromise(subDirPath, null).then(
-          () => BundleWReader.prependPathToFileList(nameOrObj['stylesheet'], nameOrObj['name'])
+          () => BundleWReader.prependPathToFileList(nameOrObj['styleSheets'], nameOrObj['name'])
         );
       }
       // - Normal case
@@ -325,9 +325,9 @@ class BundleWReader {
         BundleWReader.cleanConf(conf);
         return makeCopyPromise(completePath, conf['themes']).then((): any => {
           if (!conf['themes'])
-            return BundleWReader.prependPathToFileList(conf['stylesheet'], itemRelPath);
+            return BundleWReader.prependPathToFileList(conf['styleSheets'], itemRelPath);
           return this.readThemeConfRecursive(writer, thingRelPath, itemRelPath, conf['themes']).then((list: string[]) => {
-            Array.prototype.push.apply(list, BundleWReader.prependPathToFileList(conf['stylesheet'], itemRelPath));
+            Array.prototype.push.apply(list, BundleWReader.prependPathToFileList(conf['styleSheets'], itemRelPath));
             return list;
           });
         });
@@ -430,10 +430,10 @@ class BundleWReader {
     cleanArr('useLibraries');
     cleanArr('useServices');
     cleanArr('useComponents');
-    cleanArr('script');
+    cleanArr('scripts');
     cleanArr('themes');
     cleanArr('beforeThemes');
-    cleanArr('stylesheet');
+    cleanArr('styleSheets');
     cleanArr('templates');
     cleanArr('alias');
   }

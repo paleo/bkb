@@ -2,7 +2,6 @@
 
 module Todos {
   'use strict';
-  var $ = jQuery;
 
   export class List implements Woc.Component {
     private model: Todos.Model;
@@ -12,22 +11,24 @@ module Todos {
       this.model = cc.getService<Todos.Model>('Todos.Model');
     }
 
-    public attachTo(el: HTMLElement): List {
+    public attachTo(el: HTMLElement): void {
       this.tplData = {
         itemPropsList: [],
         newItemProps: {
           listCb: () => this
-        },
-        rmCb: (id) => {
-          this.removeItem(id);
         }
       };
       this.refresh();
-      this.cc.renderIn(el, 'TodosList', this.tplData);
-      return this;
-    }
-
-    public destruct() {
+      this.cc.bindTemplate({
+        el: el,
+        wocTemplate: 'TodosList',
+        data: this.tplData,
+        methods: {
+          rmCb: (id) => {
+            this.removeItem(id);
+          }
+        }
+      });
     }
 
     public refresh(): void {
@@ -44,14 +45,12 @@ module Todos {
       }
       if (!changed && this.tplData.itemPropsList[i])
         changed = true;
-console.log('refresh: ' + changed); // TODO call recursively to child.refresh()
       if (changed)
         this.tplData.itemPropsList = propsList;
       this.cc.callChildComponents('refresh');
     }
 
     private removeItem(id: number): void {
-console.log('removeItem: ' + id);
       this.model.rmTask(id);
       this.refresh();
     }

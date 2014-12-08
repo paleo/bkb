@@ -1,7 +1,7 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "script": ["dialog-polyfill.js", "Dialogs.js"],
-  "stylesheet": ["dialog-polyfill.css", "dialogs.css"],
+  "scripts": ["dialog-polyfill.js", "Dialogs.js"],
+  "styleSheets": ["dialog-polyfill.css", "dialogs.css"],
   "name": "WocGeneric.Dialogs"
 }

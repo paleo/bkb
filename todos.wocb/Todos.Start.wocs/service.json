@@ -3,6 +3,6 @@
   "encoding": "utf8",
   "useServices": ["WocGeneric.WocEasyRouter", "Todos.Model"],
   "useComponents": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.EditPanel"],
-  "script": "Start.js",
+  "scripts": "Start.js",
   "name": "Todos.Start"
 }

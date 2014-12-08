@@ -21,7 +21,7 @@ module Todos {
       this.model = cc.getService<Todos.Model>('Todos.Model');
     }
 
-    public attachTo(el: HTMLElement): EditPanel {
+    public attachTo(el: HTMLElement): void {
       var $comp = $(this.cc.render('TodosEdit')).appendTo(el);
       this.$title = $comp.find('.js-title');
       this.$description = $comp.find('.js-description');
@@ -34,7 +34,6 @@ module Todos {
         var $btn = $(this);
         $btn.click(() => that.log.wrap(() => that.action($btn.val())));
       });
-      return this;
     }
 
     public destruct() {

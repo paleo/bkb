@@ -1,11 +1,10 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.HBTemplateEngine"],
-  "useLibraries": ["jQuery"],
+  "templateEngine": ["WocGeneric.VueTemplateEngine"],
   "useServices": "Todos.Model",
-  "script": "Item.js",
+  "scripts": "Item.js",
   "templates": "item.html",
-  "stylesheet": "item.css",
+  "styleSheets": "item.css",
   "name": "Todos.Item"
 }
