@@ -7,8 +7,7 @@ import path = require("path");
 import rsvp = require('es6-promise');
 var Promise = rsvp.Promise;
 
-import fsext = require('./fsext');
-var fsp = fsext.fsp;
+import fsp = require('../lib/fsp');
 import minifiers = require('./minifiers');
 import Project = require('./Project');
 import BundleWriter = require('./BundleWriter');

@@ -29,6 +29,10 @@ module Woc {
   }
 
   // ##
+  // ## Common
+  // ##
+
+  // ##
   // ## WLoader
   // ##
 
@@ -38,17 +42,19 @@ module Woc {
     // -- Initialisation
     // --
 
+    private bundlePath: string;
+    private bundleUrl: string;
     private ajax: Woc.Ajax;
+    private urlMaker: WUrlMaker;
     private embedBundleList: WBundleProp[] = [];
     private mergedBundleConf: {};
     private preloads: Promise<void>[] = [];
-    private bundlePath: string;
-    private bundleUrl: string;
 
     constructor(private libraries: Libraries, private services: Singletons, private initializers: Singletons,
-                private components: Components, private loader: Loader, parentUrl: string, private opt: BundleLoadingOptions) {
+                private components: Components, private loader: Loader, private wocUrl: string,
+                private opt: BundleLoadingOptions) {
       this.bundlePath = WLoader.toBundleDir(opt.name);
-      this.bundleUrl = parentUrl + '/' + this.bundlePath;
+      this.bundleUrl = this.bundlePath;
       this.ajax = this.services.get('Woc.Ajax');
     }
 
@@ -57,12 +63,15 @@ module Woc {
     // --
 
     public loadWBundle(): Promise<void> {
-      return this.loadBundleConfRecursive(this.bundlePath, null, this.bundleUrl).then(() => {
-        this.initMergedBundleConf();
-        return Promise.all(this.preloads);
+      return WUrlMakerProvider.getWUrlMaker(this.wocUrl, this.ajax).then((urlMaker: WUrlMaker) => {
+        this.urlMaker = urlMaker;
+        return this.loadBundleConfRecursive(this.bundlePath, null, this.bundleUrl).then(() => {
+          this.initMergedBundleConf();
+          return Promise.all(this.preloads);
+        });
       }).then(() => {
         var thingLoader = new WThingLoader(this.libraries, this.services, this.initializers, this.components, this.ajax,
-          this.bundlePath, this.bundleUrl, this.embedBundleList, this.mergedBundleConf, this.opt.name);
+          this.urlMaker, this.bundlePath, this.bundleUrl, this.embedBundleList, this.mergedBundleConf, this.opt.name);
         return thingLoader.loadAll();
       }).then(() => {
         var conf = this.mergedBundleConf;
@@ -105,7 +114,7 @@ module Woc {
     // --
 
     private loadBundleConfRecursive(bundlePath, bundleEmbedPath, bundleUrl): Promise<void> {
-      return this.ajax.get(bundleUrl + '/bundle.json').then<void>((bundleConf) => {
+      return this.ajax.get(this.urlMaker.toUrl(bundleUrl + '/bundle.json')).then<void>((bundleConf) => {
         WLoader.cleanConf(bundleConf);
         if (bundleConf['preload']) {
           Array.prototype.push.apply(this.preloads, bundleConf['preload'].map((optStr) => {
@@ -190,14 +199,15 @@ module Woc {
     private thingList: WThingProp[];
 
     constructor(private libraries: Libraries, private services: Singletons, private initializers: Singletons,
-                private components: Components, private ajax: Woc.Ajax, private bundlePath: string, private bundleUrl: string,
-                private embedBundleList: WBundleProp[], private mergedBundleConf: {}, private mergedBundleName: string) {
+                private components: Components, private ajax: Woc.Ajax, private urlMaker: WUrlMaker, private bundlePath: string,
+                private bundleUrl: string, private embedBundleList: WBundleProp[], private mergedBundleConf: {},
+                private mergedBundleName: string) {
       this.initThingList();
     }
 
     public loadAll(): Promise<void> {
       return Promise.all(this.thingList.map((prop) => {
-        return this.ajax.get(prop.confUrl);
+        return this.ajax.get(this.urlMaker.toUrl(prop.confUrl));
       })).then((confList) => {
         for (var i = 0, len = this.thingList.length; i < len; ++i) {
           WLoader.cleanConf(confList[i]);
@@ -217,7 +227,7 @@ module Woc {
      * @returns A promise which returns the map of templates
      */
     private loadBeforeThemesThenFillFileLoaders(): Promise<{[index: string]: string}> {
-      var cssLoader = new WCssLoader();
+      var cssLoader = new WCssLoader(this.urlMaker);
       // - Load bundle before themes
       return this.loadTheme(
         cssLoader,
@@ -233,8 +243,8 @@ module Woc {
      * @returns A promise which returns the map of templates
      */
     private fillFileLoaders(cssLoader: WCssLoader): Promise<{[index: string]: string}> {
-      var scriptLoader = new WScriptLoader(this.libraries);
-      var tplLoader = new WTplLoader(this.ajax);
+      var scriptLoader = new WScriptLoader(this.urlMaker, this.libraries);
+      var tplLoader = new WTplLoader(this.ajax, this.urlMaker);
       var themePromises: Promise<void>[] = [];
       // - Libraries, Services, Components
       var prop: WThingProp;
@@ -306,7 +316,7 @@ module Woc {
         // - Normal case
         var dir = WThingLoader.toDir(nameOrObj, WEmbedType.Theme);
         var dirUrl = relThemeUrl ? relThemeUrl + '/' + dir : dir;
-        return this.ajax.get(thingUrl + '/' + dirUrl + '/theme.json').then((conf): any => {
+        return this.ajax.get(this.urlMaker.toUrl(thingUrl + '/' + dirUrl + '/theme.json')).then((conf): any => {
           WLoader.cleanConf(conf);
           if (!conf['themes'])
             return WThingLoader.toResList(conf['styleSheets'], dirUrl);
@@ -406,21 +416,21 @@ module Woc {
       // - Services
       for (var i = 0, len = servList.length; i < len; ++i) {
         conf = servList[i].conf;
-        this.services.register(conf['name'], servList[i].url, conf['useApplication'], null, conf['useServices'],
-          conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine'], conf['alias']);
+        this.services.register(conf['name'], this.urlMaker.toAbsUrl(servList[i].url), conf['useApplication'], null,
+          conf['useServices'], conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine'], conf['alias']);
       }
       // - Initializers
       for (var i = 0, len = initList.length; i < len; ++i) {
         conf = initList[i].conf;
-        this.initializers.register(conf['name'], initList[i].url, conf['useApplication'], null, conf['useServices'],
-          conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
+        this.initializers.register(conf['name'], this.urlMaker.toAbsUrl(initList[i].url), conf['useApplication'], null,
+          conf['useServices'], conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
         this.initializers.addForInit(this.mergedBundleName, conf['name']);
       }
       // - Components
       for (var i = 0, len = compList.length; i < len; ++i) {
         conf = compList[i].conf;
-        this.components.register(conf['name'], compList[i].url, conf['useApplication'], null, conf['useServices'],
-          conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
+        this.components.register(conf['name'], this.urlMaker.toAbsUrl(compList[i].url), conf['useApplication'], null,
+          conf['useServices'], conf['useComponents'], null, tplMap[conf['name']], conf['templateEngine']);
       }
     }
 
@@ -468,7 +478,7 @@ module Woc {
     private withMainPromise = false;
     private runCount = 0;
 
-    constructor(private libraries: Libraries) {
+    constructor(private urlMaker: WUrlMaker, private libraries: Libraries) {
     }
 
     public add(thingName: string, baseUrl: string, relUrls: string[], useLibraries: string[] = []) {
@@ -556,7 +566,7 @@ module Woc {
       ++this.runCount;
       this.promises.push(relUrls.reduce((sequence: Promise<void>, relUrl) => {
         return sequence.then(() => {
-          return WScriptLoader.addScriptToDOM(baseUrl + '/' + relUrl);
+          return WScriptLoader.addScriptToDOM(this.urlMaker.toUrl(baseUrl + '/' + relUrl));
         });
       }, Promise.resolve<void>()).then(() => {
         if (libName)
@@ -615,7 +625,7 @@ module Woc {
     private urlValidator = new WUniqueUrlValidator();
     private promises = [];
 
-    constructor() {
+    constructor(private urlMaker: WUrlMaker) {
     }
 
     public add(thingName: string, baseUrl: string, relUrls: string[]) {
@@ -623,7 +633,7 @@ module Woc {
         return;
       this.urlValidator.add(baseUrl, relUrls);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {
-        return Loader.addCssLinkToDOM(baseUrl + '/' + relUrl);
+        return Loader.addCssLinkToDOM(this.urlMaker.toUrl(baseUrl + '/' + relUrl));
       })).catch((e: Error) => {
         throw Error('Fail to load CSS of "' + thingName + '": ' + e.message);
       }));
@@ -643,7 +653,7 @@ module Woc {
     private compNames = [];
     private promises = [];
 
-    constructor(private ajax: Woc.Ajax) {
+    constructor(private ajax: Woc.Ajax, private urlMaker: WUrlMaker) {
     }
 
     public add(compName: string, baseUrl: string, relUrls: string[]) {
@@ -652,7 +662,7 @@ module Woc {
       this.urlValidator.add(baseUrl, relUrls);
       this.compNames.push(compName);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {
-        return this.ajax.get(baseUrl + '/' + relUrl, {'rDataType': 'text'});
+        return this.ajax.get(this.urlMaker.toUrl(baseUrl + '/' + relUrl), {'rDataType': 'text'});
       })).then((arr: string[]) => {
         return arr.join('\n');
       }, (e: Error) => {
@@ -685,6 +695,66 @@ module Woc {
           throw Error('URL "' + url + '" cannot be included twice');
         this.urlSet[url] = true;
       }
+    }
+  }
+
+  // ##
+  // ## CoreWUrlMaker
+  // ##
+
+  interface WUrlMaker {
+    toUrl(relUrl: string): string;
+    toAbsUrl(relUrl: string): string;
+  }
+
+  class WUrlMakerProvider {
+    private static wUrlMaker: WUrlMaker;
+    private static makePromise: Promise<WUrlMaker>;
+
+    public static getWUrlMaker(wocUrl: string, ajax: Woc.Ajax): Promise<WUrlMaker> {
+      if (WUrlMakerProvider.wUrlMaker)
+        return Promise.resolve(WUrlMakerProvider.wUrlMaker);
+      if (!WUrlMakerProvider.makePromise)
+        WUrlMakerProvider.makePromise = WUrlMakerProvider.makeWUrlMaker(wocUrl, ajax);
+      return WUrlMakerProvider.makePromise.then((urlMaker: WUrlMaker) => {
+        return urlMaker;
+      });
+    }
+
+    private static makeWUrlMaker(wocUrl: string, ajax: Woc.Ajax): Promise<WUrlMaker> {
+      if (Woc['coreWUrlMaker']) {
+        var urlMaker: WUrlMaker = Woc['coreWUrlMaker'];
+        delete Woc['coreWUrlMaker'];
+        return Promise.resolve(urlMaker);
+      }
+      var defNoCache = encodeURIComponent((new Date()).toISOString());
+      var create = (map, hasCache = true) => {
+        return WUrlMakerProvider.wUrlMaker = { // Common code with w.ts
+          toUrl: (relUrl: string) => {
+            if (map[relUrl])
+              return wocUrl + '/' + relUrl + '?_=' + encodeURIComponent(map[relUrl]);
+            if (hasCache)
+              WUrlMakerProvider.log('Unsynchronized resource: ' + relUrl);
+            return wocUrl + '/' + relUrl + '?_=' + defNoCache;
+          },
+          toAbsUrl: (relUrl: string) => {
+            return wocUrl + '/' + relUrl;
+          }
+        };
+      };
+      var wSyncUrl = wocUrl + '/w-sync.json';
+      return ajax.get(wocUrl + '?_=' + defNoCache).then(create, () => {
+        WUrlMakerProvider.log('[Cache disabled] Cannot load the working sync file "' + wSyncUrl +
+          '", please run "node _woctools/woc-w-service" on the server.');
+        create({}, false);
+      });
+    }
+
+    private static log(msg: string): void {
+      if (typeof console === 'undefined')
+        alert(msg);
+      else
+        console.log(msg);
     }
   }
 }

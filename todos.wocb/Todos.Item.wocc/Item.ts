@@ -60,7 +60,7 @@ module Todos {
     public refresh() {
       if (!this.insert) {
         this.task = this.model.getTask(this.task.id);
-        if (this.task) // test is exists (the view sync can be differed)
+        if (this.task) // test if exists (the view sync can be differed)
           this.tplData.title = this.task.title;
       }
     }

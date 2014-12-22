@@ -3,7 +3,8 @@
 'use strict';
 
 (function () {
-  function reportStartingError(err: any) {
+  // - Reports
+  function reportStartErr(err: any) {
     var errStr, stack;
     if (typeof err === 'object') {
       if (err.message !== undefined)
@@ -91,15 +92,14 @@
   function onReady() {
     try {
       startCore().catch((e) => {
-        reportStartingError(e);
+        reportStartErr(e);
       });
     } catch (e) {
-      reportStartingError(e);
+      reportStartErr(e);
     }
   }
 
-  if (Woc && Woc['CORE_W_READY']) {
-    delete Woc['CORE_W_READY'];
+  if (Woc && Woc['coreWUrlMaker']) {
     onReady();
   } else {
     if (document.addEventListener)

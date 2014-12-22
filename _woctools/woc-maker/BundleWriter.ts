@@ -7,9 +7,7 @@ import path = require("path");
 import rsvp = require('es6-promise');
 var Promise = rsvp.Promise;
 
-import fsext = require('./fsext');
-var fsp = fsext.fsp;
-var fsl = fsext.fsl;
+import fsp = require('../lib/fsp');
 import minifiers = require('./minifiers');
 import Project = require('./Project');
 import Common = require('./Common');
@@ -244,7 +242,7 @@ class BundleWriter {
         if (st.isDirectory())
           return this.copyOtherDir(inputRelPath, inputFullPath, outputFullPath, this.project, dirMerge);
         else
-          return fsl.copyFile(inputFullPath, outputFullPath);
+          return fsp.ext.copyFile(inputFullPath, outputFullPath);
       });
     };
     var allP: Promise<void>[] = [];
@@ -295,7 +293,7 @@ class BundleWriter {
         if (st.isDirectory())
           return this.copyOrMergeOtherDir(inRelChildPath, inChildPath, outChildPath, project);
         else if (project.canIncludeOtherFile(childName))
-          return fsl.copyFile(inChildPath, outChildPath);
+          return fsp.ext.copyFile(inChildPath, outChildPath);
       };
     };
     return this.otherDirContainsSomething(inputRelPath, inputDirPath, project).then((b): any => {

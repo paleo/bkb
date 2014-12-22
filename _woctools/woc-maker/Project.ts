@@ -6,9 +6,7 @@ import path = require("path");
 import rsvp = require('es6-promise');
 var Promise = rsvp.Promise;
 
-import fsext = require('./fsext');
-var fsp = fsext.fsp;
-var fsl = fsext.fsl;
+import fsp = require('../lib/fsp');
 import minifiers = require('./minifiers');
 
 class Project {
@@ -125,7 +123,7 @@ class Project {
 
   public clearOutputDir(relDirPath): Promise<void> {
     var fullPath = path.join(this.opt['outProjectPath'], relDirPath);
-    return fsl.rmRecursive(fullPath, false).catch<void>(() => {
+    return fsp.ext.rmRecursive(fullPath, false).catch<void>(() => {
       throw Error('Cannot clear the directory: ' + relDirPath);
     });
   }

@@ -1,10 +1,16 @@
 'use strict';
-var Woc;
-(Woc || {}).CORE_W_READY = false;
+
+interface WUrlMaker {
+  toUrl(relUrl: string): string;
+  toAbsUrl(relUrl: string): string;
+}
+
+module Woc {
+  export var coreWUrlMaker: WUrlMaker;
+}
 
 (function () {
-  // - Parameters
-  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'ajax.js'];
+  // - Reports
   function reportStartErr(err: any) {
     var errStr, stack;
     if (typeof err === 'object') {
@@ -26,20 +32,68 @@ var Woc;
         console.log(stack);
     }
   }
+
+  // - WUrlMaker
+  function makeWUrlMaker(wocUrl: string, defNoCache: string, hasCache: boolean, map): WUrlMaker {
+    return { // Common code with loader-w.ts
+      toUrl: (relUrl: string) => {
+        if (map[relUrl])
+          return wocUrl + '/' + relUrl + '?_=' + encodeURIComponent(map[relUrl]);
+        if (hasCache)
+          reportStartErr('Unsynchronized resource: ' + relUrl);
+        return wocUrl + '/' + relUrl + '?_=' + defNoCache;
+      },
+      toAbsUrl: (relUrl: string) => {
+        return wocUrl + '/' + relUrl;
+      }
+    };
+  }
+
+  function loadWUrlMaker(wocUrl: string, wSyncUrl: string, cb: (urlMaker: WUrlMaker) => void) {
+    var defNoCache = encodeURIComponent((new Date()).toISOString());
+    var req = new XMLHttpRequest();
+    req.open('GET', wSyncUrl + '?_=' + defNoCache, true);
+    // - Handlers
+    req.onload = () => {
+      var map = {},
+        hasCache = false;
+      if (req.status < 200 || req.status >= 400) {
+        reportStartErr('[Cache disabled] Cannot load the working sync file "' + wSyncUrl + '", please run "node _woctools/woc-w-service" on the server.');
+        map = {};
+      } else {
+        var resp = req.responseText;
+        try {
+          map = JSON.parse(resp);
+        } catch (e) {
+          reportStartErr(Error('Invalid JSON, loaded from: ' + wSyncUrl + '\n' + resp));
+        }
+      }
+      cb(makeWUrlMaker(wocUrl, defNoCache, hasCache, map));
+    };
+    req.onerror = () => {
+      reportStartErr(Error('Network error when loading "' + wSyncUrl + '", error ' + req.status + ' (' + req.statusText + ')'));
+    };
+    // - Send
+    req.send();
+  }
+
+  // - Parameters
+  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'ajax.js'];
+
   // - Check if ready then start
   var waitedLoads = scripts.length, started = false;
-  var tryToStart = function (wocUrl: string) {
+  function tryToStart(urlMaker: WUrlMaker) {
     if (started || waitedLoads !== 0)
       return;
     started = true;
-    Woc.CORE_W_READY = true;
-    start(wocUrl);
-  };
-  var start = function (wocUrl: string) {
-    addScript(wocUrl + '/woc/main.js');
-  };
+    Woc.coreWUrlMaker = urlMaker;
+    start(urlMaker);
+  }
+  function start(urlMaker: WUrlMaker) {
+    addScript(urlMaker.toUrl('woc/main.js'));
+  }
   // - Add scripts in head
-  var addScript = function (url, cb: Function = null) {
+  function addScript(url, cb: Function = null) {
     var loaded = false;
     var done = function () {
       if (loaded)
@@ -62,8 +116,8 @@ var Woc;
     script.onload = done;
     script.src = url;
     head.appendChild(script);
-  };
-  var loadCore = function () {
+  }
+  function preload() {
     try {
       var wocUrl = document.documentElement.getAttribute('data-woc-url');
       if (!wocUrl) {
@@ -78,19 +132,26 @@ var Woc;
         }
         wocUrl = baseUrl;
       }
+      loadWUrlMaker(wocUrl, wocUrl + '/w-sync.json', loadCore);
+    } catch (e) {
+      reportStartErr(e);
+    }
+  }
+  function loadCore(urlMaker: WUrlMaker) {
+    try {
       for (var i = 0; i < scripts.length; ++i) {
-        addScript(wocUrl + '/woc/' + scripts[i], function () {
+        addScript(urlMaker.toUrl('woc/' + scripts[i]), function () {
           --waitedLoads;
-          tryToStart(wocUrl);
+          tryToStart(urlMaker);
         });
       }
     } catch (e) {
       reportStartErr(e);
     }
-  };
-  // - Wait until the DOM is ready
+  }
+  // - Starting point
   if (document.addEventListener)
-    document.addEventListener('DOMContentLoaded', loadCore);
+    document.addEventListener('DOMContentLoaded', preload);
   else
-    window.onload = loadCore;
+    window.onload = preload;
 })();
