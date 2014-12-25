@@ -3,8 +3,8 @@
   "encoding": "utf8",
   "templateEngine": ["WocGeneric.VueTemplateEngine"],
   "useServices": "Todos.Model",
-  "scripts": "Item.js",
-  "templates": "item.html",
-  "styleSheets": "item.css",
-  "name": "Todos.Item"
+  "scripts": "CreateTask.js",
+  "templates": "CreateTask.html",
+  "styleSheets": "CreateTask.css",
+  "name": "Todos.CreateTask"
 }

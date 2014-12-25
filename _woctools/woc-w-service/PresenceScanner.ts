@@ -21,7 +21,8 @@ class PresenceScanner {
   private includeFileRegExp: RegExp;
   private excludeRegExp: RegExp;
 
-  constructor(private rootPath: string, private syncFiles: WSyncFileMap, includeFiles: string[], exclude: string[]) {
+  constructor(private rootPath: string, private syncFiles: WSyncFileMap, includeFiles: string[], exclude: string[],
+      excludePattern: string) {
     if (includeFiles.length > 0) {
       var arr = [];
       for (var i = 0, len = includeFiles.length; i < len; ++i)
@@ -29,8 +30,11 @@ class PresenceScanner {
       this.includeFileRegExp = new RegExp('(' + arr.join('|') + ')$', 'i');
     }
     if (exclude.length > 0) {
+      var arr = [];
       for (var i = 0, len = exclude.length; i < len; ++i)
         arr.push(escRegExp(exclude[i]));
+      if (excludePattern)
+        arr.push(excludePattern);
       this.excludeRegExp = new RegExp('^(' + arr.join('|') + ')$', 'i');
     }
     this.thread = new Thread(10000, () => {
@@ -58,7 +62,6 @@ class PresenceScanner {
   }
 
   private scanRes(relPath: string, out: {}): Promise<void> {
-//console.log('scanRes "' + relPath + '"');
     var fullPath = relPath === null ? this.rootPath : path.join(this.rootPath, relPath);
     return fsp.stat(fullPath).then((st: fs.Stats) => {
       if (st.isDirectory()) {

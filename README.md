@@ -11,4 +11,6 @@ In english: [Try to use Google Translate](http://translate.google.com/translate?
 
 ## License
 
-Public domain or [CC0](http://creativecommons.org/publicdomain/zero/1.0/) of your choice.
+Public domain
+
+© 2014 Tarh Paleo; Released under the [CC0 License](http://creativecommons.org/publicdomain/zero/1.0/).

@@ -3,12 +3,10 @@
 <section class="TodosList">
   <h1 class="ob-pageTitle">Task list</h1>
   <ul class="TodosList-ul">
-    <li class="TodosList-li" v-repeat="itemProps: itemPropsList">
-      <button class="TodosList-rmBtn js-rmBtn" v-on="click: rmCb(itemProps.id)">×</button>
-<!--      <button class="TodosList-rmBtn js-rmBtn" v-on="click: itemProps.rmCb()">×</button>
-      <button class="TodosList-rmBtn js-rmBtn" v-on="click: itemProps.id | woc-cb removeItem">×</button>-->
-      <div class="TodosList-item" v-woc-component="Todos.Item : itemProps"></div><!--  | woc-call makeObj -->
+    <li class="TodosList-li" v-repeat="task: taskList">
+      <button class="TodosList-rmBtn js-rmBtn" v-on="click: rmCb(task.id)">×</button>
+      <button class="TodosList-editBtn" type="button" v-on="click: editCb(task.id)" v-text="task.title"></button>
     </li>
   </ul>
-  <div class="TodosList-new" v-woc-component="Todos.Item : newItemProps"></div>
+  <div class="TodosList-new" v-woc-component="Todos.CreateTask : createTaskProps"></div>
 </section>

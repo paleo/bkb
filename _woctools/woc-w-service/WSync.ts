@@ -21,10 +21,9 @@ class WSync {
   private resolve = null;
   private reject = null;
 
-  constructor(rootPath: string, syncFilePath: string, includeFiles: string[], exclude: string[]) {
-console.log('Init; Work on: ' + rootPath + '; output: ' + syncFilePath);
+  constructor(rootPath: string, syncFilePath: string, includeFiles: string[], exclude: string[], excludePattern: string) {
     this.syncFiles = new WSyncFileMap(rootPath, syncFilePath);
-    this.scanner = new PresenceScanner(rootPath, this.syncFiles, includeFiles, exclude);
+    this.scanner = new PresenceScanner(rootPath, this.syncFiles, includeFiles, exclude, excludePattern);
     this.watcher = new Watcher(rootPath, this.syncFiles);
   }
 

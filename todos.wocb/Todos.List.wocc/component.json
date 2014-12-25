@@ -3,7 +3,7 @@
   "encoding": "utf8",
   "templateEngine": ["WocGeneric.VueTemplateEngine"],
   "useServices": "Todos.Model",
-  "useComponents": "Todos.Item",
+  "useComponents": "Todos.CreateTask",
   "scripts": "List.js",
   "templates": "list.html",
   "styleSheets": "list.css",

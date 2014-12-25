@@ -13,12 +13,10 @@ import WSyncFileMap = require('./WSyncFileMap');
 
 class Watcher {
   private thread: Thread;
-  private watchers = {};
 
   constructor(private rootPath: string, private syncFiles: WSyncFileMap) {
-    this.thread = new Thread(1000, () => {
-      this.process();
-      return Promise.resolve<void>();
+    this.thread = new Thread(500, () => {
+      return this.controlAll();
     });
   }
 
@@ -30,51 +28,29 @@ class Watcher {
     return this.thread.stop();
   }
 
-  private process() {
-    // - List added
-    var added = {};
-    for (var file in this.syncFiles.plainMap) {
-      if (this.syncFiles.plainMap.hasOwnProperty(file) && this.watchers[file] === undefined)
-        added[file] = true;
-    }
-    // - List removed
-    var removed = {};
-    for (var file in this.watchers) {
-      if (this.watchers.hasOwnProperty(file) && this.syncFiles.plainMap[file] === undefined)
-        removed[file] = this.watchers[file];
-    }
-    // - Unwatch removed
+  private controlAll(): Promise<void> {
     var hasChange = false;
-    for (var file in removed) {
-      if (removed.hasOwnProperty(file)) {
-        removed[file].close();
-        delete this.watchers[file];
-        hasChange = true;
-//console.log('- Unwatch: ' + file);
+    var updFileTimeCb = (file: string) => {
+      return (st: fs.Stats) => {
+        var serTime = st.mtime.toISOString();
+        if (this.syncFiles.plainMap[file] !== serTime) {
+          this.syncFiles.plainMap[file] = serTime;
+          hasChange = true;
+        }
       }
-    }
-    // - Watch added
-    var makeWatchCb = (file: string) => {
-      return (event) => {
-        this.syncFiles.plainMap[file] = null;
-        this.syncFiles.delayedWrite();
-//console.log('... updated (' + event + '): ' + file);
-      };
     };
-    var watcher: fs.FSWatcher,
+    var promises = [],
       fullPath: string;
-    for (var file in added) {
-      if (added.hasOwnProperty(file)) {
-        fullPath = path.join(this.rootPath, file);
-        watcher = fs.watch(fullPath, makeWatchCb(file));
-        this.watchers[file] = watcher;
-        hasChange = true;
-//console.log('+ Watch: ' + file);
-      }
+    for (var file in this.syncFiles.plainMap) {
+      if (!this.syncFiles.plainMap.hasOwnProperty(file))
+        continue;
+      fullPath = path.join(this.rootPath, file);
+      promises.push(fsp.stat(fullPath).then(updFileTimeCb(file)));
     }
-    // - End
-    if (hasChange)
-      this.syncFiles.delayedWrite();
+    return Promise.all(promises).then<void>(() => {
+      if (hasChange)
+        return this.syncFiles.write();
+    });
   }
 }
 

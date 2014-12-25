@@ -1,0 +1,23 @@
+@charset "UTF-8";
+@import "../def";
+
+.CreateTask {
+  &-input {
+    padding: 5px;
+    width: 300px;
+  }
+  &-addBtn {
+    background-color: #BBB;
+    font-size: $f32;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    vertical-align: top;
+    width: 30px;
+    &:focus,
+    &:hover {
+      background-color: #EEE;
+    }
+  }
+}

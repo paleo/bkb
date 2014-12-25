@@ -22,7 +22,8 @@ class WocWService {
   constructor(opt: {}) {
     this.opt = WocWService.formatOptions(opt);
     Object.freeze(this.opt);
-    this.wSync = new WSync(this.opt['projectPath'], this.opt['outSyncFilePath'], this.opt['includeFiles'], this.opt['exclude']);
+    this.wSync = new WSync(this.opt['projectPath'], this.opt['outSyncFilePath'], this.opt['includeFiles'], this.opt['exclude'],
+      this.opt['excludePattern']);
   }
 
   public run(): Promise<void> {
@@ -40,7 +41,8 @@ class WocWService {
       'projectPath': opt['projectPath'],
       'outSyncFilePath': opt['outSyncFilePath'] || opt['projectPath'] + '/w-sync.json',
       'includeFiles': opt['includeFiles'] ? opt['includeFiles'].split(' ') : [],
-      'exclude': opt['exclude'] ? opt['exclude'].split(' ') : []
+      'exclude': opt['exclude'] ? opt['exclude'].split(' ') : [],
+      'excludePattern': opt['excludePattern'] || ''
     };
   }
 }

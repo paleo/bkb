@@ -29,26 +29,10 @@ class WSyncFileMap {
       return this.delayedWrite();
     this.isWriting = true;
     var ser = WSyncFileMap.copy(this.plainMap);
-    var updFileTimeCb = (file: string) => {
-      return (st: fs.Stats) => {
-        this.plainMap[file] = st.mtime.toISOString();
-        ser[file] = st.mtime.toISOString();
-      }
-    };
-    var promises = [],
-      fullPath: string;
-    for (var file in ser) {
-      if (ser.hasOwnProperty(file) && ser[file] === null) {
-        fullPath = path.join(this.rootPath, file);
-        promises.push(fsp.stat(fullPath).then(updFileTimeCb(file)));
-      }
-    }
-    return Promise.all(promises).then(() => {
-console.log('## Write!');
-      return fsp.writeFile(this.filePath, JSON.stringify(ser), {encoding: 'UTF-8'}).then(() => {
-        this.serialized = ser;
-        this.isWriting = false;
-      });
+//console.log('## Write!');
+    return fsp.writeFile(this.filePath, JSON.stringify(ser), {encoding: 'UTF-8'}).then(() => {
+      this.serialized = ser;
+      this.isWriting = false;
     });
   }
 

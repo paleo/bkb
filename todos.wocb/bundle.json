@@ -4,7 +4,7 @@
   "version": "0.9.0",
   "bundles": ["WocGeneric(w)", "Lib(w)"],
   "services": ["Todos.Start", "Todos.Model"],
-  "components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.Item", "Todos.EditPanel"],
+  "components": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.CreateTask", "Todos.EditPanel"],
   "beforeThemes": "ResetCSS",
   "themes": "Simple"
 }

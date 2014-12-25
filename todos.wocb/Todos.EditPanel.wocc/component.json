@@ -4,7 +4,6 @@
   "templateEngine": ["WocGeneric.HBTemplateEngine"],
   "useLibraries": ["jQuery"],
   "useServices": ["Todos.Model", "WocGeneric.Dialogs"],
-  "useComponents": "Todos.Item",
   "scripts": "EditPanel.js",
   "templates": "edit.html",
   "styleSheets": "edit.css",
