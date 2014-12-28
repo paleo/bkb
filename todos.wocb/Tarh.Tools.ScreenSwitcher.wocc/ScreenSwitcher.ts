@@ -2,7 +2,6 @@
 
 module Tarh.Tools {
   'use strict';
-  var $ = jQuery;
 
   export interface Screen {
     route: string;
@@ -15,23 +14,24 @@ module Tarh.Tools {
   }
 
   interface ScreenProp {
-    $sd: JQuery;
+    el: HTMLElement;
     comp: Woc.Component;
   }
 
   export class ScreenSwitcher implements Woc.Component {
-
     private router: WocGeneric.WocEasyRouter;
-    private $comp: JQuery;
+    private wrapper: HTMLElement;
     private propMap = {};
-    private $404: JQuery;
+    private el404: HTMLElement;
 
     constructor(private cc: Woc.HBComponentContext, private screens: Screen[]) {
       this.router = this.cc.getService('WocGeneric.WocEasyRouter');
     }
 
     public attachTo(el: HTMLElement): void {
-      this.$comp = $('<div class="ScreenSwitcher"></div>').appendTo(el);
+      this.wrapper = document.createElement('div');
+      this.wrapper.className = 'ScreenSwitcher';
+      el.appendChild(this.wrapper);
       for (var i = 0, len = this.screens.length; i < len; ++i)
         this.addScreen(this.screens[i]);
       this.add404Screen();
@@ -54,10 +54,13 @@ module Tarh.Tools {
         },
         title: title
       }]);
-      var $sd = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$comp);
-      comp.attachTo($sd[0]);
+      var el = document.createElement('div');
+      el.className = 'ScreenSwitcher-screen';
+      el.style.display = 'none';
+      this.wrapper.appendChild(el);
+      comp.attachTo(el);
       return this.propMap[route] = {
-        $sd: $sd,
+        el: el,
         comp: comp
       };
     }
@@ -68,18 +71,28 @@ module Tarh.Tools {
         activate: (query: EasyRouter.Query) => { this.activate404(query); },
         title: '404 Not Found'
       });
-      this.$404 = $('<div class="ScreenSwitcher-screen"></div>').appendTo(this.$comp);
+      this.el404 = document.createElement('div');
+      this.el404.className = 'ScreenSwitcher-screen';
+      this.el404.style.display = 'none';
+      this.wrapper.appendChild(this.el404);
     }
 
     private activateScreen(route: string): void {
-      var screen: ScreenProp = this.propMap[route];
-      this.$comp.children().hide();
-      screen.$sd.show();
+      var screen: ScreenProp = this.propMap[route],
+        child: HTMLElement;
+      for (var i = 0, len = this.wrapper.children.length; i < len; ++i) {
+        child = <HTMLElement>this.wrapper.children[i];
+        child.style.display = screen.el === child ? 'block' : 'none';
+      }
     }
 
     private activate404(query: EasyRouter.Query): void {
-      this.$comp.children().hide();
-      this.$404.text('Unknown page: ' + query.queryString).show();
+      var child: HTMLElement;
+      for (var i = 0, len = this.wrapper.children.length; i < len; ++i) {
+        child = <HTMLElement>this.wrapper.children[i];
+        child.style.display = this.el404 === child ? 'block' : 'none';
+      }
+      this.el404.textContent = 'Unknown page: ' + query.queryString;
     }
   }
 }
