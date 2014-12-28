@@ -58,6 +58,7 @@ class PresenceScanner {
     return this.scanRes(null, files).then(() => {
       this.isScanning = false;
       this.syncFiles.plainMap = files;
+      return this.syncFiles.write();
     });
   }
 

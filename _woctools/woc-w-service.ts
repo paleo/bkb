@@ -1,7 +1,6 @@
 /// <reference path='lib/node.d.ts' />
 'use strict';
 
-//var repl = require('repl');
 var argv: any = require('optimist').argv;
 import WocWService = require('./woc-w-service/index');
 
