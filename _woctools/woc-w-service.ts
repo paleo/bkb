@@ -26,6 +26,7 @@ var tool = new WocWService({
 
 tool.run().catch(function (err) {
   console.log(err['stack']);
+  return tool.close();
 });
 
 process.on('SIGINT', () => {

@@ -7,7 +7,10 @@ declare module Woc {
      */
     useCustomTemplateEngine: (name: string) => {};
     useDefaultTemplateEngine: () => void;
-    bindTemplate(opt: {}): void;
+    /**
+     * @return the instance of a Vue.js
+     */
+    bindTemplate(opt: {});
   }
   interface VueServiceContext extends VueContext, ServiceContext {
   }

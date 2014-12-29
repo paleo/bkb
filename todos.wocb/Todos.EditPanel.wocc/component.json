@@ -1,11 +1,10 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.HBTemplateEngine"],
-  "useLibraries": ["jQuery"],
+  "templateEngine": ["WocGeneric.VueTemplateEngine"],
   "useServices": ["Todos.Model", "WocGeneric.Dialogs"],
   "scripts": "EditPanel.js",
-  "templates": "edit.html",
-  "styleSheets": "edit.css",
+  "templates": "EditPanel.html",
+  "styleSheets": "EditPanel.css",
   "name": "Todos.EditPanel"
 }

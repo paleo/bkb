@@ -1,0 +1,22 @@
+<!-- Template: TodosEdit -->
+
+<section class="TodosEdit">
+  <h1 class="ob-pageTitle">Edition</h1>
+  <form class="Form">
+    <fieldset class="Form-fields">
+      <label class="Field">
+        <span class="Field-lbl">Title :</span>
+        <input class="Field-input" type="text" v-model="task.title">
+      </label>
+      <label class="Field">
+        <span class="Field-lbl top">Description :</span>
+        <textarea class="Field-textarea" v-model="task.description"></textarea>
+      </label>
+    </fieldset>
+    <div class="Form-btnBar">
+      <button class="Form-btn ob-btn" value="save" v-on="click: save">Save</button>
+      <button class="Form-btn ob-btn" value="rm" v-on="click: remove">Remove</button>
+      <button class="Form-btn ob-btn" value="close" v-on="click: cancel">Cancel</button>
+    </div>
+  </form>
+</section>

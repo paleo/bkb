@@ -95,13 +95,13 @@ module WocGeneric {
         useDefaultTemplateEngine: function (): void {
           that.WocVue = that.parent['DefaultWocVue']; // direct access to the private member
         },
-        bindTemplate: function (opt = {}): void {
-          that.bind(opt, this, this.getOwner());
+        bindTemplate: function (opt = {}) {
+          return that.bind(opt, this, this.getOwner());
         }
       };
     }
 
-    private bind(opt, context, inst): void {
+    private bind(opt, context, inst) {
       try {
         var copy: any = {
           wocContext: context,
@@ -116,7 +116,7 @@ module WocGeneric {
             throw Error('Unknown template "' + opt.wocTemplate + '"');
           copy.template = this.tplMap[opt.wocTemplate];
         }
-        new this.WocVue(copy);
+        return new this.WocVue(copy);
       } catch (e) {
         throw Error('Vue.js error when rendering in "' + this.prop.name + '": ' + (e['message'] ? e['message'] : e));
       }

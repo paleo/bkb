@@ -10,7 +10,7 @@ module Todos {
     private tplData;
 
     constructor(private cc: Woc.VueComponentContext, props: {}) {
-      this.model = cc.getService<Todos.Model>('Todos.Model');
+      this.model = cc.getService('Todos.Model');
       this.refreshCb = props['refreshCb'];
       this.task = this.model.newTask();
     }

@@ -39,13 +39,21 @@ class Watcher {
         }
       }
     };
+    var rmFileTimeCb = (file: string) => {
+      return (err) => {
+        if (!err || err.code !== 'ENOENT')
+          throw err;
+        delete this.syncFiles.plainMap[file];
+        hasChange = true;
+      }
+    };
     var promises = [],
       fullPath: string;
     for (var file in this.syncFiles.plainMap) {
       if (!this.syncFiles.plainMap.hasOwnProperty(file))
         continue;
       fullPath = path.join(this.rootPath, file);
-      promises.push(fsp.stat(fullPath).then(updFileTimeCb(file)));
+      promises.push(fsp.stat(fullPath).then(updFileTimeCb(file), rmFileTimeCb(file)));
     }
     return Promise.all(promises).then<void>(() => {
       if (hasChange)

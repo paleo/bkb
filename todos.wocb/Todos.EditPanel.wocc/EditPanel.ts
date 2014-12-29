@@ -8,60 +8,45 @@ module Todos {
     private dialogs: WocGeneric.Dialogs;
     private router: Woc.Router;
     private model: Todos.Model;
+    private vm;
+    private tplData = { task: null };
 
-    private $title: JQuery;
-    private $description: JQuery;
-    private $form: JQuery;
-    private curTask: ModelTask;
-
-    constructor(private cc: Woc.HBComponentContext) {
-      this.log = cc.getService<Woc.Log>('Woc.Log');
-      this.dialogs = cc.getService<WocGeneric.Dialogs>('WocGeneric.Dialogs');
-      this.router = cc.getService<Woc.Router>('Woc.Router');
-      this.model = cc.getService<Todos.Model>('Todos.Model');
+    constructor(private cc: Woc.VueComponentContext) {
+      this.log = cc.getService('Woc.Log');
+      this.dialogs = cc.getService('WocGeneric.Dialogs');
+      this.router = cc.getService('Woc.Router');
+      this.model = cc.getService('Todos.Model');
     }
 
     public attachTo(el: HTMLElement): void {
-      var $comp = $(this.cc.render('TodosEdit')).appendTo(el);
-      this.$title = $comp.find('.js-title');
-      this.$description = $comp.find('.js-description');
-      this.$form = $comp.find('.js-form');
-      this.$form.submit((e) => {
-        e.preventDefault();
-      });
-      var that = this;
-      this.$form.find('button').each(function () {
-        var $btn = $(this);
-        $btn.click(() => that.log.wrap(() => that.action($btn.val())));
+      this.vm = this.cc.bindTemplate({
+        el: el,
+        wocTemplate: 'TodosEdit',
+        data: this.tplData,
+        methods: {
+          save: (e) => this.cc.logWrap(() => {
+            e.preventDefault();
+            this.save();
+            this.close();
+          }),
+          remove: (e) => this.cc.logWrap(() => {
+            e.preventDefault();
+            this.askThenRemove();
+          }),
+          cancel: (e) => this.cc.logWrap(() => {
+            e.preventDefault();
+            this.askThenClose();
+          })
+        }
       });
     }
 
     public destruct() {
-      this.$form.find('button').off();
-      this.$form.off();
+      this.vm.$destroy();
     }
 
     public setTask(taskId: number) {
-      this.curTask = this.model.getTask(taskId, true);
-      this.$title.val(this.curTask.title);
-      this.$description.val(this.curTask.description);
-    }
-
-    private action(type: string) {
-      switch (type) {
-        case 'save':
-          this.save();
-          this.close();
-          break;
-        case 'rm':
-          this.askThenRemove();
-          break;
-        case 'close':
-          this.askThenClose();
-          break;
-        default:
-          throw Error('Invalid type "' + type + '"');
-      }
+      this.tplData.task = this.model.getTask(taskId, true);
     }
 
     private askThenRemove() {
@@ -77,8 +62,8 @@ module Todos {
           isDefault: true
         }
       ]).then((val) => this.log.wrap(() => {
-        if (val) {
-          this.model.rmTask(this.curTask.id);
+        if (val && this.tplData.task) {
+          this.model.rmTask(this.tplData.task.id);
           this.dialogs.showInfo('Task is removed!');
           this.close();
         }
@@ -115,9 +100,10 @@ module Todos {
     }
 
     private save() {
-      this.syncTask();
-      this.model.updateTask(this.curTask);
-      this.dialogs.showInfo('Task is saved!');
+      if (this.tplData.task) {
+        this.model.updateTask(this.tplData.task);
+        this.dialogs.showInfo('Task is saved!');
+      }
     }
 
     private close() {
@@ -125,13 +111,7 @@ module Todos {
     }
 
     private isChanged(): boolean {
-      this.syncTask();
-      return this.model.isChanged(this.curTask);
-    }
-
-    private syncTask() {
-      this.curTask.title = this.$title.val();
-      this.curTask.description = this.$description.val();
+      return this.tplData.task ? this.model.isChanged(this.tplData.task) : false;
     }
   }
 }

@@ -21,12 +21,12 @@ module Todos {
     constructor(private sc: Woc.ServiceContext) {
       this.addTask({
         title: 'First task',
-        description: 'Text of the first task…',
+        description: 'This is the first task…',
         id: null
       });
       this.addTask({
         title: 'Second task',
-        description: 'Text of the second task…',
+        description: 'This is the second task…',
         id: null
       });
     }

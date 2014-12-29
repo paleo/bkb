@@ -5,7 +5,7 @@
   "useServices": "Todos.Model",
   "useComponents": "Todos.CreateTask",
   "scripts": "List.js",
-  "templates": "list.html",
-  "styleSheets": "list.css",
+  "templates": "List.html",
+  "styleSheets": "List.css",
   "name": "Todos.List"
 }
