@@ -34,6 +34,9 @@ module WocGeneric {
       };
     }
 
+    public destruct(): void {
+    }
+
     private render(name: string, data = {}): string {
       try {
         if (this.map[name] === undefined)

@@ -40,6 +40,9 @@ module WocGeneric {
       };
     }
 
+    public destruct(): void {
+    }
+
     private fillPlaceholders(el, elMap: {}) {
       var list = [], all = el.getElementsByTagName('span'), marker, name;
       for (var i = 0, len = all.length; i < len; ++i) {

@@ -215,21 +215,22 @@ module Woc {
         'templateEngine': templateEngine,
         'eval': false,
         'CC': null,
-        'Cl': null
+        'Cl': null,
+        'tplProc': null
       };
     }
 
-    public create(name: string, props: {}, compTreeArg: CompTreeArg): Component {
+    public create(name: string, props: {}, parent: CompTreeArg): Component {
       var prop = this.map[name];
       if (prop === undefined)
         throw Error('Unknown component "' + name + '"');
-      var id = this.compTree.newPlaceholder(name, compTreeArg);
+      var id = this.compTree.newPlaceholder(name, parent);
       this.makeReady(name, prop);
       var cc = new prop['CC'](id);
       var Cl = prop['Cl'];
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
       cc['_wocOwner'] = c;
-      this.compTree.setComp(id, c);
+      this.compTree.setComp(id, c, cc, prop['tplProc']);
       return c;
     }
 
@@ -251,10 +252,11 @@ module Woc {
       var methods;
       if (prop['templateEngine']) {
         var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);
-        methods = tplEng.makeProcessor(prop['tplStr'], {
+        prop['tplProc'] = tplEng.makeProcessor(prop['tplStr'], {
           'name': name,
           'baseUrl': prop['baseUrl']
-        }).getContextMethods();
+        });
+        methods = prop['tplProc'].getContextMethods();
       } else
         methods = null;
       prop['CC'] = Components.mergeTraits(
@@ -522,7 +524,7 @@ module Woc {
     private getCompTreeArg(): CompTreeArg {
       return {
         from: 'S',
-        sc: this
+        context: <any>this
       }
     }
   }
@@ -541,8 +543,8 @@ module Woc {
     private getCompTreeArg(): CompTreeArg {
       return {
         from: 'C',
-        id: this.compId,
-        cc: this
+        context: <any>this,
+        id: this.compId
       };
     }
   }

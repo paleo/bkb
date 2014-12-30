@@ -32,10 +32,6 @@ module Todos {
       });
     }
 
-    public destruct() {
-      console.log('CreateTask: DESTRUCT ' + (this.task ? '' + this.task.id : 'NULL'));
-    }
-
     private add() {
       this.task.title = this.tplData.title;
       this.model.addTask(this.task);

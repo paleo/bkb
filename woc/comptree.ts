@@ -4,15 +4,11 @@
 module Woc {
   export interface CompTreeArg {
     from: string;
-  }
-
-  export interface ServiceCompTreeArg extends CompTreeArg {
-    sc: ServiceContext;
+    context: EmbedContext;
   }
 
   export interface ComponentCompTreeArg extends CompTreeArg {
     id: number;
-    cc: ComponentContext;
   }
 
   export class ComponentTree {
@@ -21,12 +17,12 @@ module Woc {
     private tree = {};
     private list = [];
 
-    public newPlaceholder(cName: string, compTreeArg: CompTreeArg): number {
-      switch (compTreeArg.from) {
+    public newPlaceholder(cName: string, parent: CompTreeArg): number {
+      switch (parent.from) {
         case 'S':
-          return this.addFromRoot(cName, 's(' + (<ServiceCompTreeArg>compTreeArg).sc.getName() + ')');
+          return this.addFromRoot(cName, 's(' + parent.context.getName() + ')');
         case 'C':
-          var parentId = (<ComponentCompTreeArg>compTreeArg).id;
+          var parentId = (<ComponentCompTreeArg>parent).id;
           if (parentId === null)
             return this.addFromRoot(cName, 'c(' + cName + ')'); // Case of a call from component static init
           if (this.list[parentId] === undefined)
@@ -34,15 +30,17 @@ module Woc {
           var item = this.list[parentId];
           return this.addItem(cName, item['children']);
         default:
-          throw Error('Unknown from "' + compTreeArg.from + '"');
+          throw Error('Unknown from "' + parent.from + '"');
       }
     }
 
-    public setComp(id: number, c: Component): void {
+    public setComp(id: number, c: Component, cc: ComponentContext, tplProc: TemplateProcessor): void {
       var item = this.list[id];
       if (item === undefined)
         throw Error('Unknown component "' + id + '"');
       item['comp'] = c;
+      item['cc'] = cc;
+      item['tplProc'] = tplProc;
       c[ComponentTree.ID_PROP] = id;
     }
 
@@ -53,8 +51,8 @@ module Woc {
         this.destructItem(c[ComponentTree.ID_PROP], removeFromDOM);
     }
 
-    public getChildComponents(compTreeArg: CompTreeArg): Component[] {
-      var children = this.getChildIdList(compTreeArg),
+    public getChildComponents(parent: CompTreeArg): Component[] {
+      var children = this.getChildIdList(parent),
         res = [];
       for (var childId in children) {
         if (children.hasOwnProperty(childId) && this.list[childId] !== undefined && this.list[childId]['comp'])
@@ -63,8 +61,8 @@ module Woc {
       return res;
     }
 
-    public callChildComponents(compTreeArg: CompTreeArg, methodName, args: any[]): any[] {
-      var children = this.getChildIdList(compTreeArg),
+    public callChildComponents(parent: CompTreeArg, methodName, args: any[]): any[] {
+      var children = this.getChildIdList(parent),
         comp,
         res = [];
       for (var childId in children) {
@@ -97,7 +95,8 @@ module Woc {
           empty = false;
           copy[id] = {
             'name': items[id]['name'],
-            'comp': items[id]['comp']
+            'comp': items[id]['comp'],
+            'cc': items[id]['cc']
           };
           children = ComponentTree.copyItems(items[id]['children']);
           if (children !== null)
@@ -111,6 +110,8 @@ module Woc {
       var item = this.list[id];
       if (item === undefined)
         throw Error('Unknown component "' + id + '" (already removed?)');
+      if (item['tplProc'])
+        item['tplProc'].destruct(item['cc']);
       if (item['comp'] === null)
         throw Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
       if (removeFromDOM && item['comp']['destructInDOM'] !== undefined)
@@ -137,6 +138,8 @@ module Woc {
       var id = this.list.length;
       this.list.push(children[id] = {
         'comp': null,
+        'cc': null,
+        'tplProc': null,
         'name': cName,
         'children': {},
         'parentMap': children
@@ -144,16 +147,16 @@ module Woc {
       return id;
     }
 
-    private getChildIdList(compTreeArg: CompTreeArg) {
+    private getChildIdList(parent: CompTreeArg) {
       var list: number[];
-      switch (compTreeArg.from) {
+      switch (parent.from) {
         case 'S':
-          list = this.tree['s(' + (<ServiceCompTreeArg>compTreeArg).sc.getName() + ')'] || [];
+          list = this.tree['s(' + parent.context.getName() + ')'] || [];
           break;
         case 'C':
-          var parentId = (<ComponentCompTreeArg>compTreeArg).id;
+          var parentId = (<ComponentCompTreeArg>parent).id;
           if (parentId === null)
-            list = this.tree['c(' + (<ComponentCompTreeArg>compTreeArg).cc.getName() + ')'] || []; // Case of a call from component static init
+            list = this.tree['c(' + parent.context.getName() + ')'] || []; // Case of a call from component static init
           else {
             if (this.list[parentId] === undefined)
               throw Error('Unknown parent component "' + parentId + '"');
@@ -161,7 +164,7 @@ module Woc {
           }
           break;
         default:
-          throw Error('Unknown from "' + compTreeArg.from + '"');
+          throw Error('Unknown from "' + parent.from + '"');
       }
       return list;
     }

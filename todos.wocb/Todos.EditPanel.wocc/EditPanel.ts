@@ -8,7 +8,6 @@ module Todos {
     private dialogs: WocGeneric.Dialogs;
     private router: Woc.Router;
     private model: Todos.Model;
-    private vm;
     private tplData = { task: null };
 
     constructor(private cc: Woc.VueComponentContext) {
@@ -19,7 +18,7 @@ module Todos {
     }
 
     public attachTo(el: HTMLElement): void {
-      this.vm = this.cc.bindTemplate({
+      this.cc.bindTemplate({
         el: el,
         wocTemplate: 'TodosEdit',
         data: this.tplData,
@@ -39,10 +38,6 @@ module Todos {
           })
         }
       });
-    }
-
-    public destruct() {
-      this.vm.$destroy();
     }
 
     public setTask(taskId: number) {

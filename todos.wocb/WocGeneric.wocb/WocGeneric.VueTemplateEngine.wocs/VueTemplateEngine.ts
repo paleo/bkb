@@ -101,7 +101,15 @@ module WocGeneric {
       };
     }
 
-    private bind(opt, context, inst) {
+    public destruct(context: Woc.ComponentContext): void {
+      if (context['_vueVmList']) {
+        for (var i = 0, len = context['_vueVmList'].length; i < len; ++i)
+          context['_vueVmList'][i].$destroy();
+        context['_vueVmList'] = null;
+      }
+    }
+
+    private bind(opt, context: Woc.EmbedContext, inst) {
       try {
         var copy: any = {
           wocContext: context,
@@ -116,7 +124,11 @@ module WocGeneric {
             throw Error('Unknown template "' + opt.wocTemplate + '"');
           copy.template = this.tplMap[opt.wocTemplate];
         }
-        return new this.WocVue(copy);
+        var vm = new this.WocVue(copy);
+        if (!context['_vueVmList'])
+          context['_vueVmList'] = [];
+        context['_vueVmList'].push(vm);
+        return vm;
       } catch (e) {
         throw Error('Vue.js error when rendering in "' + this.prop.name + '": ' + (e['message'] ? e['message'] : e));
       }

@@ -52,6 +52,7 @@ module Woc {
    */
   export interface TemplateProcessor {
     getContextMethods(): {[index: string]: Function};
+    destruct(context: Woc.ComponentContext): void;
   }
 
   /**
