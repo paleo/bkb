@@ -743,10 +743,10 @@ module Woc {
         };
       };
       var wSyncUrl = wocUrl + '/w-sync.json';
-      return ajax.get(wocUrl + '?_=' + defNoCache).then(create, () => {
+      return ajax.get(wSyncUrl + '?_=' + defNoCache).then(create, () => {
         WUrlMakerProvider.log('[Cache disabled] Cannot load the working sync file "' + wSyncUrl +
           '", please run "node _woctools/woc-w-service" on the server.');
-        create({}, false);
+        return create({}, false);
       });
     }
 

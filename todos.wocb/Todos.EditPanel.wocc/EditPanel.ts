@@ -5,14 +5,14 @@ module Todos {
 
   export class EditPanel implements Woc.Component {
     private log: Woc.Log;
-    private dialogs: WocGeneric.Dialogs;
+    private dialogs: WocTeam.Dialogs;
     private router: Woc.Router;
     private model: Todos.Model;
     private tplData = { task: null };
 
     constructor(private cc: Woc.VueComponentContext) {
       this.log = cc.getService('Woc.Log');
-      this.dialogs = cc.getService('WocGeneric.Dialogs');
+      this.dialogs = cc.getService('WocTeam.Dialogs');
       this.router = cc.getService('Woc.Router');
       this.model = cc.getService('Todos.Model');
     }
@@ -106,7 +106,10 @@ module Todos {
     }
 
     private isChanged(): boolean {
-      return this.tplData.task ? this.model.isChanged(this.tplData.task) : false;
+      if (!this.tplData.task)
+        return false;
+      var orig = this.model.getTask(this.tplData.task.id);
+      return (orig.title !== this.tplData.task.title || orig.description !== this.tplData.task.description)
     }
   }
 }

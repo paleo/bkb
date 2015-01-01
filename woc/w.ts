@@ -121,17 +121,13 @@ module Woc {
     try {
       var wocUrl = document.documentElement.getAttribute('data-woc-url');
       if (!wocUrl) {
-        var baseUrl = document.documentElement.getAttribute('data-woc-base');
-        if (!baseUrl) {
-          var bases = document.getElementsByTagName('base');
-          baseUrl = bases.length > 0 ? bases[0].href : null;
-          if (!baseUrl)
-            throw Error('An element "base" or a parameter "data-woc-base" is required');
-          if (baseUrl.length > 1 && baseUrl[baseUrl.length -1] === '/')
-            baseUrl = baseUrl.slice(0, baseUrl.length -1);
-        }
-        wocUrl = baseUrl;
+        var bases = document.getElementsByTagName('base');
+        wocUrl = bases.length > 0 ? bases[0].href : null;
+        if (!wocUrl)
+          throw Error('An element "base" or a parameter "data-woc-url" is required');
       }
+      if (wocUrl.length > 1 && wocUrl[wocUrl.length - 1] === '/')
+        wocUrl = wocUrl.slice(0, -1);
       loadWUrlMaker(wocUrl, wocUrl + '/w-sync.json', loadCore);
     } catch (e) {
       reportStartErr(e);

@@ -1,0 +1,8 @@
+{
+  "woc": "0.9",
+  "encoding": "utf8",
+  "useServices": ["Woc.Router"],
+  "scripts": ["dialog-polyfill.js", "Dialogs.js"],
+  "styleSheets": ["dialog-polyfill.css", "Dialogs.css"],
+  "name": "WocTeam.Dialogs"
+}

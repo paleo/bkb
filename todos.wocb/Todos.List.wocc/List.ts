@@ -36,28 +36,16 @@ module Todos {
             this.removeItem(id);
           },
           editCb: (id) => {
-            this.cc.getService<Woc.Router>('Woc.Router').navigate('todos/' + id);
+            this.router.navigate('todos/' + id);
           }
         }
       });
     }
 
     public refresh(): void {
-      var list = this.model.listTasks(),
-        taskList = [],
-        changed = false;
-      for (var i = 0, len = list.length; i < len; ++i) {
-        if (!changed && !List.eqTask(this.tplData.taskList[i], list[i]))
-          changed = true;
-        taskList.push({
-          id: list[i].id,
-          title: list[i].title
-        });
-      }
-      if (!changed && this.tplData.taskList[i])
-        changed = true;
-      if (changed)
-        this.tplData.taskList = taskList;
+      var list = this.model.listTasks(true);
+      if (!List.eqList(list, this.tplData.taskList))
+        this.tplData.taskList = list;
       this.cc.callChildComponents('refresh');
     }
 
@@ -66,10 +54,14 @@ module Todos {
       this.refresh();
     }
 
-    private static eqTask(task1, task2) {
-      if (!task1 || !task2)
+    private static eqList(list1, list2) {
+      if (list1.length !== list2.length)
         return false;
-      return task1.id === task2.id && task1.title === task2.title;
+      for (var i = 0, len = list1.length; i < len; ++i) {
+        if (!list2[i] || list1[i].id !== list2[i].id || list1[i].title !== list2[i].title)
+          return false;
+      }
+      return true;
     }
   }
 }

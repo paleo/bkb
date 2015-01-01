@@ -1,8 +1,8 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.VueTemplateEngine"],
-  "useServices": ["Todos.Model", "WocGeneric.Dialogs"],
+  "templateEngine": ["WocTeam.VueTemplateEngine"],
+  "useServices": ["Woc.Router", "WocTeam.Dialogs", "Todos.Model"],
   "scripts": "EditPanel.js",
   "templates": "EditPanel.html",
   "styleSheets": "EditPanel.css",

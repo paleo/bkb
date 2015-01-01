@@ -1,7 +1,7 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.VueTemplateEngine"],
+  "templateEngine": ["WocTeam.VueTemplateEngine"],
   "useServices": "Todos.Model",
   "scripts": "CreateTask.js",
   "templates": "CreateTask.html",

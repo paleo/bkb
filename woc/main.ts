@@ -42,16 +42,20 @@
   function startCore(): Promise<void> {
     // - Make the application context
     var baseUrl = document.documentElement.getAttribute('data-woc-base');
-    if (!baseUrl) {
-      var bases = document.getElementsByTagName('base');
-      baseUrl = bases.length > 0 ? bases[0].href : null;
-      if (!baseUrl)
-        throw Error('An element "base" or a parameter "data-woc-base" is required');
+    if (!baseUrl)
+      baseUrl = document.location.pathname + document.location.search; // Case of hash routes
+    else {
       var prefix = window.location.protocol + '//' + window.location.host;
       if (strStartsWith(baseUrl, prefix))
         baseUrl = baseUrl.slice(prefix.length);
     }
-    var wocUrl = document.documentElement.getAttribute('data-woc-url') || baseUrl;
+    var wocUrl = document.documentElement.getAttribute('data-woc-url');
+    if (!wocUrl) {
+      var bases = document.getElementsByTagName('base');
+      wocUrl = bases.length > 0 ? bases[0].href : null;
+      if (!wocUrl)
+        throw Error('An element "base" or a parameter "data-woc-url" is required');
+    }
     if (wocUrl.length > 1 && wocUrl[wocUrl.length - 1] === '/')
       wocUrl = wocUrl.slice(0, -1);
     var ac = Woc.makeApplicationContext({

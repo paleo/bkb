@@ -1,8 +1,8 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "useServices": ["WocGeneric.WocEasyRouter", "Todos.Model"],
-  "useComponents": ["Tarh.Tools.ScreenSwitcher", "Todos.List", "Todos.EditPanel"],
+  "useServices": ["WocTeam.WocEasyRouter", "Todos.Model"],
+  "useComponents": ["Public.ScreenRouter", "Todos.List", "Todos.EditPanel"],
   "scripts": "Start.js",
   "name": "Todos.Start"
 }

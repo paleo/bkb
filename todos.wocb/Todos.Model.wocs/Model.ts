@@ -18,7 +18,7 @@ module Todos {
   export class Model {
     private tasks: ModelTask[] = [];
 
-    constructor(private sc: Woc.ServiceContext) {
+    constructor() {
       this.addTask({
         title: 'First task',
         description: 'This is the first task…',
@@ -71,15 +71,6 @@ module Todos {
       if (!t)
         return undefined;
       return copy ? Model.cloneTask(t, false, false) : t;
-    }
-
-    public isChanged(t: ModelTask): boolean {
-      if (t.id === null)
-        return Model.cleanString(t.title) !== null || Model.cleanString(t.description) !== null;
-      var cur = this.tasks[t.id];
-      if (!cur)
-        return true;
-      return Model.cleanString(t.title) !== cur.title || Model.cleanString(t.description) !== cur.description;
     }
 
     private static cleanString(val: string): string {

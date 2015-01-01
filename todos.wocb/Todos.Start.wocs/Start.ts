@@ -4,14 +4,15 @@ module Todos {
   'use strict';
 
   export class Start implements Woc.StartingPoint {
+    private model: Todos.Model;
 
     constructor(private sc: Woc.ServiceContext) {
+      this.model = this.sc.getService('Todos.Model');
     }
 
     public start(el: HTMLElement) {
       el.classList.add('AppWrapper');
-      var model: Todos.Model = this.sc.getService('Todos.Model');
-      this.sc.createComponent('Tarh.Tools.ScreenSwitcher', [
+      this.sc.createComponent('Public.ScreenRouter', [
         {
           route: '',
           comp: this.sc.createComponent('Todos.List'),
@@ -25,7 +26,7 @@ module Todos {
           comp: this.sc.createComponent('Todos.EditPanel'),
           title: (query: EasyRouter.Query) => {
             var id = parseInt(query.routeParams['taskId'], 10);
-            return model.getTask(id).title + ' | Edition';
+            return this.model.getTask(id).title + ' | Edition';
           },
           activate: (query: EasyRouter.Query, comp: Todos.EditPanel) => {
             var id = parseInt(query.routeParams['taskId'], 10);

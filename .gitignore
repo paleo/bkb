@@ -1,6 +1,9 @@
 .idea
 node_modules
 *.js
+!*.min.js
+!*-min.js
+woc*.min.js
 *.map
 *.css
 _wocscripts/releases
@@ -17,5 +20,7 @@ _wocscripts/releases
 !handlebars*
 !vue*.js
 
-todos.wocb/Lib.wocb/jQueryUI.wocl/smoothness
 !ready_to_be_included/jQueryUI.wocl/smoothness/*.css
+
+w-sync.json
+index?*.html

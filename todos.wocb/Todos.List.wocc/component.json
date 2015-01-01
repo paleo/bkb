@@ -1,8 +1,8 @@
 {
   "woc": "0.9",
   "encoding": "utf8",
-  "templateEngine": ["WocGeneric.VueTemplateEngine"],
-  "useServices": "Todos.Model",
+  "templateEngine": ["WocTeam.VueTemplateEngine"],
+  "useServices": ["Woc.Router", "Todos.Model"],
   "useComponents": "Todos.CreateTask",
   "scripts": "List.js",
   "templates": "List.html",
