@@ -1,5 +1,5 @@
 {
-  "woc": "0.9",
+  "woc": "0.10",
   "services": ["WocTeam.Log", "WocTeam.WocEasyRouter", "WocTeam.Dialogs", "WocTeam.VueTemplateEngine", "WocTeam.HBTemplateEngine",
     "WocTeam.FirstTemplateEngine"],
   "components": ["Public.ScreenRouter"],

@@ -1,5 +1,5 @@
 {
-  "woc": "0.9",
+  "woc": "0.10",
   "encoding": "utf8",
   "useServices": ["WocTeam.WocEasyRouter", "Todos.Model"],
   "useComponents": ["Public.ScreenRouter", "Todos.List", "Todos.EditPanel"],

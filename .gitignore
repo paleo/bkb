@@ -8,7 +8,7 @@ woc*.min.js
 *.css
 _wocscripts/releases
 
-/*-?.?.?
+/*-?.??.?
 /*.wocb
 !/woc
 !/ready_to_be_included
