@@ -4,13 +4,13 @@ module WocTeam {
   'use strict';
 
   export enum LogType {
-    Error, Info, Warning, Trace
+    Log, Error, Info, Warning, Trace
   }
 
-  export class Log {
+  export class Log implements Woc.Log {
 
     // --
-    // -- Fields, Initialisation
+    // -- Initialisation
     // --
 
     private hasConsole: boolean;
@@ -24,19 +24,23 @@ module WocTeam {
     // -- Public
     // --
 
+    public log(something: any): void {
+      this.fireEvent(LogType.Log, something);
+    }
+
     public error(err: any): void {
       this.fireEvent(LogType.Error, err);
+    }
+
+    public warn(msg: any): void {
+      this.fireEvent(LogType.Warning, msg);
     }
 
     public info(msg: any): void {
       this.fireEvent(LogType.Info, msg);
     }
 
-    public warning(msg: any): void {
-      this.fireEvent(LogType.Warning, msg);
-    }
-
-    public trace(msg: any): void {
+    public debug(msg: any): void {
       this.fireEvent(LogType.Trace, msg);
     }
 
@@ -51,7 +55,7 @@ module WocTeam {
     /**
      * @param cb This function must return TRUE if the message is successfully logged
      */
-    public addListener(cb: (type: LogType, msgStr: string, stack: string[]) => boolean): void {
+    public addListener(cb: (type: LogType, msg: any, stack: string[]) => boolean): void {
       this.listeners.push(cb);
     }
 
@@ -59,35 +63,51 @@ module WocTeam {
     // -- Private
     // --
 
-    private fireEvent(type: LogType, msg: string) {
-console.log('log msg: ' + msg);
-      var msgStr, stack = null;
-      switch (typeof msg) {
+    private fireEvent(type: LogType, something: any) {
+      if (type === LogType.Log)
+        this.fireEventLogSomething(type, something);
+      else
+        this.fireEventStringMsg(type, something);
+    }
+
+    private fireEventLogSomething(type: LogType, something: any) {
+      var inConsole = this.hasConsole;
+      for (var i = 0, len = this.listeners.length; i < len; ++i) {
+        if (this.listeners[i](type, something, null) === true)
+          inConsole = false;
+      }
+      if (inConsole)
+        console.log(something);
+    }
+
+    private fireEventStringMsg(type: LogType, something: any) {
+      var msgStr,
+        stack = null;
+      switch (typeof something) {
         case 'string':
-          msgStr = msg;
+          msgStr = something;
           break;
         case 'object':
-          if (msg['message'] !== undefined)
-            msgStr = msg['message'];
+          if (something['message'] !== undefined)
+            msgStr = something['message'];
           else
-            msgStr = msg.toString();
-          if (msg['stack'] !== undefined)
-            stack = msg['stack'];
+            msgStr = something.toString();
+          if (something['stack'] !== undefined)
+            stack = something['stack'];
           break;
         default:
-          msgStr = '[unknown error type] ' + (typeof msg);
+          msgStr = '[unknown error type] ' + (typeof something);
           try {
-            msgStr += ': ' + msg;
+            msgStr += ': ' + something;
           } catch (e) {
           }
       }
-      var i, len = this.listeners.length, listener, inConsole = true;
-      for (i = 0; i < len; ++i) {
-        listener = this.listeners[i];
-        if (listener(type, msgStr, stack) === true)
+      var inConsole = this.hasConsole;
+      for (var i = 0, len = this.listeners.length; i < len; ++i) {
+        if (this.listeners[i](type, msgStr, stack) === true)
           inConsole = false;
       }
-      if (this.hasConsole && inConsole) {
+      if (inConsole) {
         console.log('[' + LogType[type] + '] ' + msgStr);
         if (stack !== null)
           console.log(stack);

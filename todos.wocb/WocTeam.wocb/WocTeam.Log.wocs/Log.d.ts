@@ -5,10 +5,11 @@ declare module WocTeam {
     Error, Info, Warning, Trace
   }
   interface Log {
+    log(something: any): void;
     error(err: any): void;
+    warn(msg: any): void;
     info(msg: any): void;
-    warning(msg: any): void;
-    trace(msg: any): void;
+    debug(msg: any): void;
     wrap(cb: () => any): any;
     /**
      * @param cb This function must return TRUE if the message is successfully logged

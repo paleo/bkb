@@ -28,7 +28,7 @@ module WocTeam {
         log.error(err);
       };
       this.onUnknownRouteCb = function (query: EasyRouter.Query) {
-        log.warning('Unknown route: "' + query.queryString + '"');
+        log.warn('Unknown route: "' + query.queryString + '"');
       };
       this.root = this.createRouter();
     }
