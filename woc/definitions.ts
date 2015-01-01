@@ -92,6 +92,7 @@ module Woc {
   }
 
   export interface AppConfig extends AppProperties {
+    encoding: string;
     /**
      * The relative URL of the application page to open first
      */
@@ -166,66 +167,32 @@ module Woc {
   // -- The Ajax service
   // --
 
+  export interface AjaxConfig {
+    method?: string;
+    url?: string;
+    data?: any;
+    headers?: { [index: string]: any };
+    timeout?: number;
+    /**
+     * See https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#responseType
+     */
+    responseType?: string;
+  }
+
+  export interface AjaxResponse {
+    data?: any;
+    status: number;
+    headers: () => { [index: string]: any };
+    config: AjaxConfig;
+    statusText: string;
+  }
+
   export interface Ajax {
-    /**
-     * * method: 'GET|POST|PUT|DELETE|HEAD'
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    ajax(method: string, url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
-
-    /**
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    get(url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
-
-    /**
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    head(url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
-
-    /**
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    post(url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
-
-    /**
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    put(url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
-
-    /**
-     * * rDataType: 'json|script|text' [default: 'json']
-     * * sAsJson: contains the parameter name
-     */
-    delete(url: string, opt?: {
-          sData?: {};
-          rDataType?: string;
-          sAsJson?: string;
-        }): Promise<any>;
+    ajax(config: AjaxConfig): Promise<AjaxResponse>;
+    get(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
+    head(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
+    post(url: string, data: any, config?: AjaxConfig): Promise<AjaxResponse>;
+    put(url: string, data: any, config?: AjaxConfig): Promise<AjaxResponse>;
+    delete(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
   }
 }

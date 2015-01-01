@@ -95,8 +95,9 @@ module Woc {
       if (opt.version)
         dir += '-' + opt.version;
       var bundleUrl = parentUrl + '/' + dir;
-      var mainProm = this.ajax.get(bundleUrl + '/' + opt.name + '.json').then((bundleData) => {
-        var p;
+      var mainProm = this.ajax.get(bundleUrl + '/' + opt.name + '.json').then((resp) => {
+        var bundleData = resp.data,
+          p;
         if (bundleData['preload']) {
           p = Promise.all(bundleData['preload'].map((optStr) => {
             var opt = parseBundleLoadingOptions(optStr);

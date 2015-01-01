@@ -61,6 +61,7 @@
     var ac = Woc.makeApplicationContext({
       'wocUrl': wocUrl,
       'baseUrl': baseUrl,
+      'encoding': document.characterSet || document.charset || document.defaultCharset,
       'firstRelUrl': document.documentElement.getAttribute('data-woc-first') || null
     });
     // - Load bundles

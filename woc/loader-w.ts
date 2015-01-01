@@ -29,10 +29,6 @@ module Woc {
   }
 
   // ##
-  // ## Common
-  // ##
-
-  // ##
   // ## WLoader
   // ##
 
@@ -114,7 +110,8 @@ module Woc {
     // --
 
     private loadBundleConfRecursive(bundlePath, bundleEmbedPath, bundleUrl): Promise<void> {
-      return this.ajax.get(this.urlMaker.toUrl(bundleUrl + '/bundle.json')).then<void>((bundleConf) => {
+      return this.ajax.get(this.urlMaker.toUrl(bundleUrl + '/bundle.json')).then<void>((resp) => {
+        var bundleConf = resp.data;
         WLoader.cleanConf(bundleConf);
         if (bundleConf['preload']) {
           Array.prototype.push.apply(this.preloads, bundleConf['preload'].map((optStr) => {
@@ -208,14 +205,16 @@ module Woc {
     public loadAll(): Promise<void> {
       return Promise.all(this.thingList.map((prop) => {
         return this.ajax.get(this.urlMaker.toUrl(prop.confUrl));
-      })).then((confList) => {
+      })).then((respList) => {
+        var conf;
         for (var i = 0, len = this.thingList.length; i < len; ++i) {
-          WLoader.cleanConf(confList[i]);
-          if (this.thingList[i].name !== confList[i]['name']) {
+          conf = respList[i].data;
+          WLoader.cleanConf(conf);
+          if (this.thingList[i].name !== conf['name']) {
             throw Error('In bundle "' + this.mergedBundleName + '", inconsistent names "' + this.thingList[i].name + '" and' +
-              ' "' + confList[i]['name'] + '"');
+              ' "' + conf['name'] + '"');
           }
-          this.thingList[i].conf = confList[i];
+          this.thingList[i].conf = conf;
         }
         return this.loadBeforeThemesThenFillFileLoaders();
       }).then((tplMap) => {
@@ -316,7 +315,8 @@ module Woc {
         // - Normal case
         var dir = WThingLoader.toDir(nameOrObj, WEmbedType.Theme);
         var dirUrl = relThemeUrl ? relThemeUrl + '/' + dir : dir;
-        return this.ajax.get(this.urlMaker.toUrl(thingUrl + '/' + dirUrl + '/theme.json')).then((conf): any => {
+        return this.ajax.get(this.urlMaker.toUrl(thingUrl + '/' + dirUrl + '/theme.json')).then((resp): any => {
+          var conf = resp.data;
           WLoader.cleanConf(conf);
           if (!conf['themes'])
             return WThingLoader.toResList(conf['styleSheets'], dirUrl);
@@ -662,9 +662,12 @@ module Woc {
       this.urlValidator.add(baseUrl, relUrls);
       this.compNames.push(compName);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {
-        return this.ajax.get(this.urlMaker.toUrl(baseUrl + '/' + relUrl), {'rDataType': 'text'});
-      })).then((arr: string[]) => {
-        return arr.join('\n');
+        return this.ajax.get(this.urlMaker.toUrl(baseUrl + '/' + relUrl), {responseType: 'text'});
+      })).then((arr: AjaxResponse[]) => {
+        var tplList = [];
+        for (var i = 0, len = arr.length; i < len; ++i)
+          tplList.push(arr[i].data);
+        return tplList.join('\n');
       }, (e: Error) => {
         throw Error('Fail to load templates in "' + compName + '": ' + e.message);
       }));
@@ -728,7 +731,7 @@ module Woc {
         return Promise.resolve(urlMaker);
       }
       var defNoCache = encodeURIComponent((new Date()).toISOString());
-      var create = (map, hasCache = true) => {
+      var create = (map, hasCache: boolean) => {
         return WUrlMakerProvider.wUrlMaker = { // Common code with w.ts
           toUrl: (relUrl: string) => {
             if (map[relUrl])
@@ -743,7 +746,9 @@ module Woc {
         };
       };
       var wSyncUrl = wocUrl + '/w-sync.json';
-      return ajax.get(wSyncUrl + '?_=' + defNoCache).then(create, () => {
+      return ajax.get(wSyncUrl + '?_=' + defNoCache).then((resp) => {
+        return create(resp.data, true)
+      }, () => {
         WUrlMakerProvider.log('[Cache disabled] Cannot load the working sync file "' + wSyncUrl +
           '", please run "node _woctools/woc-w-service" on the server.');
         return create({}, false);
