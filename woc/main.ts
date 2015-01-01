@@ -65,13 +65,13 @@
       'firstRelUrl': document.documentElement.getAttribute('data-woc-first') || null
     });
     // - Load bundles
-    var preload = document.documentElement.getAttribute('data-woc-preload');
-    var p = preload ? preloadBundles(ac, preload) : Promise.resolve<void>();
+    var load = document.documentElement.getAttribute('data-woc-load');
+    var p = load ? loadBundles(ac, load) : Promise.resolve<void>();
     return p.then(() => startAll(ac));
   }
 
   // ext(w) shop-hep(2.3.5)
-  function preloadBundles(ac: Woc.ApplicationContext, preloadStr: string): Promise<void> {
+  function loadBundles(ac: Woc.ApplicationContext, preloadStr: string): Promise<void> {
     var arr = preloadStr.split(' '), // TODO accept spaces in parenthesis
       optList: Woc.BundleLoadingOptions[] = [];
     for (var i = 0, len = arr.length; i < len; ++i)
@@ -83,11 +83,11 @@
     function startCaller(el: HTMLElement) {
       return () => ac.start(el, el.getAttribute('data-woc-start'));
     }
-    var el, preload, p, matches = document.querySelectorAll('[data-woc-start]'), pList = [];
+    var el, load, p, matches = document.querySelectorAll('[data-woc-start]'), pList = [];
     for (var i = 0, len = matches.length; i < len; ++i) {
       el = matches[i];
-      preload = el.getAttribute('data-woc-preload');
-      p = preload ? preloadBundles(ac, preload) : Promise.resolve<void>();
+      load = el.getAttribute('data-woc-load');
+      p = load ? loadBundles(ac, load) : Promise.resolve<void>();
       pList.push(p.then(startCaller(el)));
     }
     return <any>Promise.all(pList);
