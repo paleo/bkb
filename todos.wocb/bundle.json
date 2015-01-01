@@ -2,9 +2,8 @@
   "woc": "0.9",
   "encoding": "utf8",
   "version": "0.9.0",
-  "bundles": ["WocTeam(w)"],
+  "bundles": ["Misc(w)"],
   "services": ["Todos.Start", "Todos.Model"],
-  "components": ["Public.ScreenRouter", "Todos.List", "Todos.CreateTask", "Todos.EditPanel"],
-  "beforeThemes": "ResetCSS",
+  "components": ["Todos.List", "Todos.CreateTask", "Todos.EditPanel"],
   "themes": "Simple"
 }

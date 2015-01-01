@@ -1,4 +1,4 @@
-/// <reference path='../WocTeam.wocb/WocTeam.d.ts' />
+/// <reference path='../Misc.d.ts' />
 
 module Public {
   'use strict';

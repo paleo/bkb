@@ -1,4 +1,0 @@
-{
-  "woc": "0.9",
-  "services": ["WocTeam.Log", "WocTeam.WocEasyRouter", "WocTeam.Dialogs", "WocTeam.VueTemplateEngine", "WocTeam.HBTemplateEngine", "WocTeam.FirstTemplateEngine"]
-}
