@@ -18,8 +18,9 @@ module Woc {
     if (strict) {
       var tag = document.createElement('script');
       tag.text = script;
-      document.head.appendChild(tag);
-      document.head.removeChild(tag);
+      var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0]; // IE8
+      head.appendChild(tag);
+      head.removeChild(tag);
     } else {
       // Thanks to https://weblogs.java.net/blog/driscoll/archive/2009/09/08/eval-javascript-global-context
       var glo = window || this;

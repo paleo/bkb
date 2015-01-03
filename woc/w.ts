@@ -51,17 +51,17 @@ module Woc {
 
   function loadWUrlMaker(wocUrl: string, wSyncUrl: string, cb: (urlMaker: WUrlMaker) => void) {
     var defNoCache = encodeURIComponent((new Date()).toISOString());
-    var req = new XMLHttpRequest();
-    req.open('GET', wSyncUrl + '?_=' + defNoCache, true);
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', wSyncUrl + '?_=' + defNoCache, true);
     // - Handlers
-    req.onload = () => {
+    xhr.onload = () => {
       var map = {},
         hasCache = false;
-      if (req.status < 200 || req.status >= 400) {
+      if (xhr.status < 200 || xhr.status >= 400) {
         reportStartErr('[Cache disabled] Cannot load the working sync file "' + wSyncUrl + '", please run "node _woctools/woc-w-service" on the server.');
         map = {};
       } else {
-        var resp = req.responseText;
+        var resp = xhr.responseText;
         try {
           map = JSON.parse(resp);
         } catch (e) {
@@ -70,11 +70,11 @@ module Woc {
       }
       cb(makeWUrlMaker(wocUrl, defNoCache, hasCache, map));
     };
-    req.onerror = () => {
-      reportStartErr(Error('Network error when loading "' + wSyncUrl + '", error ' + req.status + ' (' + req.statusText + ')'));
+    xhr.onerror = () => {
+      reportStartErr(Error('Network error when loading "' + wSyncUrl + '", error ' + xhr.status + ' (' + xhr.statusText + ')'));
     };
     // - Send
-    req.send();
+    xhr.send();
   }
 
   // - Parameters
@@ -107,10 +107,10 @@ module Woc {
         }
       }
     };
-    var head = document.head || document.getElementsByTagName('head')[0];
+    var head = document.head || document.getElementsByTagName('head')[0]; // IE8
     var script = document.createElement('script');
-    script.onreadystatechange = function () {
-      if (script.readyState === 'complete')
+    script.onreadystatechange = function ()  { // IE8
+      if (script.readyState === 'loaded' || script.readyState === 'complete')
         done();
     };
     script.onload = done;

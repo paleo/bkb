@@ -19,8 +19,8 @@ class WocMaker {
    * <pre><code>opt: {
    *   'inProjectPath': dir,
    *   'outProjectPath': dir,
-   *   'defaultEncoding': 'utf8',
-   *   'outEncoding': 'utf8',
+   *   'defaultEncoding': 'UTF-8',
+   *   'outEncoding': 'UTF-8',
    *   'includeFiles': 'png gif',
    *   'minifyJs': true,
    *   'minifyCss': true,
@@ -55,8 +55,8 @@ class WocMaker {
     return {
       'inProjectPath': opt['inProjectPath'],
       'outProjectPath': opt['outProjectPath'] || opt['inProjectPath'],
-      'defaultEncoding': opt['defaultEncoding'] || 'utf8',
-      'outEncoding': opt['outEncoding'] || opt['defaultEncoding'] || 'utf8',
+      'defaultEncoding': opt['defaultEncoding'] || 'UTF-8',
+      'outEncoding': opt['outEncoding'] || opt['defaultEncoding'] || 'UTF-8',
       'includeFiles': opt['includeFiles'] ? opt['includeFiles'].split(' ') : [],
       'minifyJs': opt['minifyJs'] === undefined ? true : (opt['minifyJs'] ? true : false),
       'minifyCss': opt['minifyCss'] === undefined ? true : (opt['minifyCss'] ? true : false),

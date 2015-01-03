@@ -3,6 +3,7 @@ node_modules
 *.js
 !*.min.js
 !*-min.js
+!ie8-shim.js
 woc*.min.js
 *.map
 *.css
@@ -14,6 +15,7 @@ _wocscripts/releases
 !/ready_to_be_included
 !/ext.wocb
 !/todos.wocb
+!/ie8-test.wocb
 
 !woc/lib/*
 !dialog-polyfill*

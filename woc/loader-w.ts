@@ -575,7 +575,7 @@ module Woc {
           this.libMap[libName] = true;
         --this.runCount;
         this.runWaited();
-      }).catch((err) => {
+      })['catch']((err) => {
         this.mainError = err;
         if (this.mainReject)
           this.mainReject(err);
@@ -597,23 +597,18 @@ module Woc {
     private static addScriptToDOM(url): Promise<void> {
       return new Promise<void>(function (resolve, reject) {
         var script = document.createElement('script');
-        if (script.onreadystatechange) { // IE8
-          script.onreadystatechange = function () {
-            if (script.readyState === 'complete')
-              resolve();
-            else
-              reject(Error('Fail to load script: ' + url));
-          };
-        } else {
-          script.onload = () => {
+        script.onreadystatechange = function ()  { // IE8
+          if (script.readyState === 'loaded' || script.readyState === 'complete')
             resolve();
-          };
-          script.onerror = () => {
-            reject(Error('Fail to load script: ' + url));
-          };
-        }
+        };
+        script.onload = () => {
+          resolve();
+        };
+        script.onerror = () => {
+          reject(Error('Fail to load script: ' + url));
+        };
         script.src = url;
-        var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0];
+        var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0]; // IE8
         head.appendChild(script);
       });
     }
@@ -636,7 +631,7 @@ module Woc {
       this.urlValidator.add(baseUrl, relUrls);
       this.promises.push(Promise.all(relUrls.map((relUrl) => {
         return Loader.addCssLinkToDOM(this.urlMaker.toUrl(baseUrl + '/' + relUrl));
-      })).catch((e: Error) => {
+      }))['catch']((e: Error) => {
         throw Error('Fail to load CSS of "' + thingName + '": ' + e.message);
       }));
     }

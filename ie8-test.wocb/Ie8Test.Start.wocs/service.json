@@ -1,0 +1,7 @@
+{
+  "woc": "0.10",
+  "encoding": "UTF-8",
+  "useComponents": ["Ie8Test.HelloWorld"],
+  "scripts": "Start.js",
+  "name": "Ie8Test.Start"
+}

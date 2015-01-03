@@ -1,3 +1,21 @@
+(function () {
+  //$http uses onload instead of onreadystatechange. Need shimming as IE8 doesn't have onload.
+  if (new XMLHttpRequest().onload === undefined) {
+    var orig = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function () {
+      var self = this;
+      if (!this.onreadystatechange && this.onload) {
+        this.onreadystatechange = function () {
+          if (self.readyState === 4) {
+            self.onload();
+          }
+        };
+      }
+      orig.apply(self, arguments);
+    };
+  }
+})();
+
 /*!
  * https://github.com/es-shims/es5-shim
  * @license es5-shim Copyright 2009-2014 by contributors, MIT License

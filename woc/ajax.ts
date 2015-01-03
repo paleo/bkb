@@ -39,10 +39,7 @@ module Woc {
       return CoreAjax.doXHR(completed, config);
     }
 
-    public delete(url: string, config: AjaxConfig = null): Promise<AjaxResponse> {
-      var completed = this.makeCompleteConfig(config, 'DELETE', url);
-      return CoreAjax.doXHR(completed, config);
-    }
+    public delete: (url: string, config?: AjaxConfig) => Promise<AjaxResponse>;
 
     // --
     // -- Private - Handle AJAX events - Loadings
@@ -168,4 +165,10 @@ module Woc {
       return headers;
     }
   }
+
+  // IE8
+  CoreAjax.prototype['delete'] = function (url, config: AjaxConfig = null): Promise<AjaxResponse> {
+    var completed = this.makeCompleteConfig(config, 'DELETE', url);
+    return CoreAjax['doXHR'](completed, config);
+  };
 }

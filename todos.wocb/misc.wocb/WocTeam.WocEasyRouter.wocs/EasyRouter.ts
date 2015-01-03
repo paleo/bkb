@@ -5,7 +5,7 @@
  * @license
  */
 
-/// <reference path='../es6-promise.d.ts' />
+/// <reference path='../defs/es6-promise.d.ts' />
 
 module EasyRouter {
   'use strict';
@@ -487,11 +487,11 @@ module EasyRouter {
       }
       this.curActivator = activator;
       this.curQuery = query;
-      this.fireListeners('leave', undefined, false).catch((err) => {
+      this.fireListeners('leave', undefined, false)['catch']((err) => {
         this.onAsyncErrCb(err);
       });
       if (query) {
-        this.fireListeners('navigate', query, false).catch((err) => {
+        this.fireListeners('navigate', query, false)['catch']((err) => {
           this.onAsyncErrCb(err);
         });
       }

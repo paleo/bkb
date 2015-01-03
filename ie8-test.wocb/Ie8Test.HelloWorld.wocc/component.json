@@ -1,0 +1,8 @@
+{
+  "woc": "0.10",
+  "encoding": "UTF-8",
+  "scripts": "HelloWorld.js",
+  "templates": "HelloWorld.html",
+  "styleSheets": "HelloWorld.css",
+  "name": "Ie8Test.HelloWorld"
+}

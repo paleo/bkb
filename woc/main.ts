@@ -96,7 +96,7 @@
   // - Wait until the DOM is ready
   function onReady() {
     try {
-      startCore().catch((e) => {
+      startCore()['catch']((e) => {
         reportStartErr(e);
       });
     } catch (e) {

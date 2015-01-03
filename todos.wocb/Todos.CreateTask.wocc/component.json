@@ -1,6 +1,6 @@
 {
   "woc": "0.10",
-  "encoding": "utf8",
+  "encoding": "UTF-8",
   "templateEngine": ["WocTeam.VueTemplateEngine"],
   "useServices": "Todos.Model",
   "scripts": "CreateTask.js",

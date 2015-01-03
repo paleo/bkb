@@ -1,6 +1,6 @@
 {
   "woc": "0.10",
-  "encoding": "utf8",
+  "encoding": "UTF-8",
   "useServices": ["Woc.Router"],
   "scripts": ["dialog-polyfill.js", "Dialogs.js"],
   "styleSheets": ["dialog-polyfill.css", "Dialogs.css"],

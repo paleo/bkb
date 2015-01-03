@@ -9,7 +9,7 @@ if (argv['h'] || argv['help'] || argv['_'].length === 0) {
     '\t-h --help\n' +
     '\t-i --in-project-path path-to-input-dir (default is current)\n' +
     '\t-o --out-project-path path-to-output-dir (default is value from -i)\n' +
-    '\t-e --default-encoding the default enconding (default utf8)\n' +
+    '\t-e --default-encoding the default enconding (default UTF-8)\n' +
     '\t-l --include-files "list of extensions" (default is "png gif jpg jpeg")\n' +
     '\t-j --minify-js true|false (default is true)\n' +
     '\t-c --minify-css true|false (default is true)\n' +
@@ -28,7 +28,7 @@ var toBool = function (v: any, def: boolean): boolean {
 var tool = new WocMaker({
   'inProjectPath': inPath,
   'outProjectPath': argv['o'] || argv['out-project-path'] || inPath,
-  'defaultEncoding': argv['e'] || argv['default-encoding'] || 'utf8',
+  'defaultEncoding': argv['e'] || argv['default-encoding'] || 'UTF-8',
   'includeFiles': argv['l'] || argv['include-files'] || 'png gif jpg jpeg',
   'minifyJs': toBool(argv['j'] || argv['minify-js'], true),
   'minifyCss': toBool(argv['c'] || argv['minify-css'], true),

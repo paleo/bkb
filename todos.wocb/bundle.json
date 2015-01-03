@@ -1,6 +1,6 @@
 {
   "woc": "0.10",
-  "encoding": "utf8",
+  "encoding": "UTF-8",
   "version": "0.10.0",
   "bundles": ["misc(w)"],
   "services": ["Todos.Start", "Todos.Model"],

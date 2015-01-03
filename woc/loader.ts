@@ -82,7 +82,8 @@ module Woc {
       elem.rel = 'stylesheet';
       elem.type = 'text/css';
       elem.href = url;
-      document.head.appendChild(elem);
+      var head: HTMLHeadElement = document.head || document.getElementsByTagName('head')[0]; // IE8
+      head.appendChild(elem);
       return Promise.resolve<void>();
     }
 
