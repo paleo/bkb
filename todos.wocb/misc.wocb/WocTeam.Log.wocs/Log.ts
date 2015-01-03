@@ -24,6 +24,17 @@ module WocTeam {
     // -- Public
     // --
 
+    /**
+     * @param cb This function must return TRUE if the message is successfully logged
+     */
+    public addListener(cb: (type: LogType, msg: any, stack: string[]) => boolean): void {
+      this.listeners.push(cb);
+    }
+
+    // --
+    // -- Woc.Log
+    // --
+
     public log(something: any): void {
       this.fireEvent(LogType.Log, something);
     }
@@ -42,21 +53,6 @@ module WocTeam {
 
     public debug(msg: any): void {
       this.fireEvent(LogType.Trace, msg);
-    }
-
-    public wrap(cb: () => any): any {
-      try {
-        return cb();
-      } catch (e) {
-        this.error(e);
-      }
-    }
-
-    /**
-     * @param cb This function must return TRUE if the message is successfully logged
-     */
-    public addListener(cb: (type: LogType, msg: any, stack: string[]) => boolean): void {
-      this.listeners.push(cb);
     }
 
     // --

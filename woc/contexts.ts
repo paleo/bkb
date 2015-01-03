@@ -1,6 +1,7 @@
 /// <reference path="definitions.ts" />
 /// <reference path="comptree.ts" />
 /// <reference path="loader.ts" />
+/// <reference path="log.ts" />
 'use strict';
 
 module Woc {
@@ -69,15 +70,16 @@ module Woc {
     private ac: ImplApplicationContext;
     private map = {};
     private byBundle: {};
+    private log: CoreLog;
 
     constructor(ac: any, private label: string) {
       this.ac = ac;
-      this.coreRegister('Woc.Ajax', 'Woc.CoreAjax');
+      this.coreRegister('Woc.Ajax', 'Woc.CoreAjax', true);
     }
 
     public register(name: string, baseUrl: string, useApp: boolean, useLibraries: string[], useServices: string[],
                     useComponents: string[], scripts: string, tplStr: string, templateEngine: string, alias: string[] = null) {
-      if (this.map[name] !== undefined)
+      if (this.map[name] !== undefined || name === 'Woc.Log')
         throw Error('The ' + this.label + ' "' + name + '" is already declared');
       var prop = {
         'name': name,
@@ -94,9 +96,13 @@ module Woc {
       };
       if (alias) {
         for (var i = 0, len = alias.length; i < len; ++i) {
-          if (this.map[alias[i]] !== undefined)
-            throw Error('The ' + this.label + ' "' + name + '" cannot declare the alias "' + alias[i] + '": already used');
-          this.map[alias[i]] = prop;
+          if (alias[i] === 'Woc.Log')
+            (<Woc.CoreLog>this.get('Woc.Log')).add(name);
+          else {
+            if (this.map[alias[i]] !== undefined)
+              throw Error('The ' + this.label + ' "' + name + '" cannot declare the alias "' + alias[i] + '": already used');
+            this.map[alias[i]] = prop;
+          }
         }
       }
       this.map[name] = prop;
@@ -122,13 +128,18 @@ module Woc {
     }
 
     public get(name: string): any {
+      if (name === 'Woc.Log') {
+        if (!this.log)
+          this.log = new CoreLog(this);
+        return this.log;
+      }
       this.makeReady(name);
       return this.map[name]['inst'];
     }
 
-    public getContext<U>(name: string): U {
-      this.makeReady(name);
-      return this.map[name]['context'];
+    public evalSingleton(name: string): void {
+      if (name !== 'Woc.Log')
+        this.makeReady(name);
     }
 
     private makeReady(name: string) {
@@ -160,8 +171,8 @@ module Woc {
       prop['context']['_wocOwner'] = prop['inst'];
     }
 
-    private coreRegister(name: string, coreClass: string) {
-      this.register(name, null, true, null, null, null, null, null, null);
+    private coreRegister(name: string, coreClass: string, useApp: boolean) {
+      this.register(name, null, useApp, null, null, null, null, null, null);
       this.map[name]['coreClass'] = coreClass;
     }
 
@@ -173,6 +184,7 @@ module Woc {
       };
       SingletonContext.prototype['ac'] = ac;
       SingletonContext.prototype['appConfig'] = ac.appConfig;
+      SingletonContext.prototype['log'] = ac.getService('Woc.Log');
       ContextHelper.copyMembers(ThingContextTrait.prototype, SingletonContext.prototype);
       ContextHelper.copyMembers(SingletonContextTrait.prototype, SingletonContext.prototype);
       if (methods)
@@ -287,6 +299,7 @@ module Woc {
       ThingContextTrait.call(CompContext.prototype, name, baseUrl, useLibraries, useServices, useComponents, restrictedAccess);
       CompContext.prototype['ac'] = ac;
       CompContext.prototype['appProperties'] = ac.appProperties;
+      CompContext.prototype['log'] = ac.getService('Woc.Log');
       ContextHelper.copyMembers(ComponentContextTrait.prototype, CompContext.prototype);
       ContextHelper.copyMembers(ThingContextTrait.prototype, CompContext.prototype);
       if (methods)
@@ -370,14 +383,6 @@ module Woc {
       return this.components.getComponentTree().callChildComponents(compTreeArg, methodName, args);
     }
 
-    //public createComponentFromServ(serviceName: string, props: {}, sc: ServiceContext): any {
-    //  return this.components.create(serviceName, props, {'from': 'S', 'sc': sc}); // TODO
-    //}
-    //
-    //public createComponentFromComp(componentName: string, props: {}, compId: number): any {
-    //  return this.components.create(componentName, props, {'from': 'C', 'id': compId});
-    //}
-
     public removeComponent(c: any, fromDOM = false): void {
       var compTree = this.components.getComponentTree();
       if (Array.isArray(c)) {
@@ -408,10 +413,10 @@ module Woc {
 
     public evalService(serviceName: any): void {
       if (typeof serviceName === 'string')
-        this.services.getContext<ServiceContext>(serviceName);
+        this.services.evalSingleton(serviceName);
       else {
         for (var i = 0, len = serviceName.length; i < len; ++i)
-          this.services.getContext<ServiceContext>(serviceName[i]);
+          this.services.evalSingleton(serviceName[i]);
       }
     }
 
@@ -435,6 +440,7 @@ module Woc {
     private authServices: {};
     private authComponents: {};
     private _wocOwner;
+    public log: Log;
 
     constructor(private name: string, private baseUrl: string, useLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
@@ -443,12 +449,12 @@ module Woc {
       this.authComponents = ContextHelper.toSet(useComponents, name);
     }
 
-    public logError(err: any): void {
-      (<Woc.Log>this.ac.getService('Woc.Log')).error(err);
-    }
-
     public logWrap(cb: () => any): any {
-      return (<Woc.Log>this.ac.getService('Woc.Log')).wrap(cb);
+      try {
+        return cb();
+      } catch (e) {
+        this.log.error(e);
+      }
     }
 
     public getService(serviceName: string): any {

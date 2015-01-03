@@ -56,7 +56,7 @@ module Todos {
           returnValue: true,
           isDefault: true
         }
-      ]).then((val) => this.log.wrap(() => {
+      ]).then((val) => this.cc.logWrap(() => {
         if (val && this.tplData.task) {
           this.model.rmTask(this.tplData.task.id);
           this.dialogs.showInfo('Task is removed!');
@@ -85,7 +85,7 @@ module Todos {
           label: 'Discard',
           returnValue: 'discard'
         }
-      ]).then((val) => this.log.wrap(() => {
+      ]).then((val) => this.cc.logWrap(() => {
         if (val === 'save') {
           this.save();
           this.close();

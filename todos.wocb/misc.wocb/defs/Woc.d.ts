@@ -37,7 +37,6 @@ declare module Woc {
     warn(msg: any): void;
     info(msg: any): void;
     debug(msg: any): void;
-    wrap(cb: () => any): any;
   }
 
   interface TemplateEngine {
@@ -117,7 +116,7 @@ declare module Woc {
   }
 
   export interface EmbedContext {
-    logError(err: any): void;
+    log: Log;
     logWrap(cb: () => any): any;
     getService(serviceName: string): any;
     getService<S>(serviceName: string): S;

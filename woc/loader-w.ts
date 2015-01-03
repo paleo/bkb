@@ -40,7 +40,8 @@ module Woc {
 
     private bundlePath: string;
     private bundleUrl: string;
-    private ajax: Woc.Ajax;
+    private log: Log;
+    private ajax: Ajax;
     private urlMaker: WUrlMaker;
     private embedBundleList: WBundleProp[] = [];
     private mergedBundleConf: {};
@@ -51,6 +52,7 @@ module Woc {
                 private opt: BundleLoadingOptions) {
       this.bundlePath = WLoader.toBundleDir(opt.name);
       this.bundleUrl = this.bundlePath;
+      this.log = this.services.get('Woc.Log');
       this.ajax = this.services.get('Woc.Ajax');
     }
 
@@ -59,7 +61,7 @@ module Woc {
     // --
 
     public loadWBundle(): Promise<void> {
-      return WUrlMakerProvider.getWUrlMaker(this.wocUrl, this.ajax).then((urlMaker: WUrlMaker) => {
+      return WUrlMakerProvider.getWUrlMaker(this.wocUrl, this.ajax, this.log).then((urlMaker: WUrlMaker) => {
         this.urlMaker = urlMaker;
         return this.loadBundleConfRecursive(this.bundlePath, null, this.bundleUrl).then(() => {
           this.initMergedBundleConf();
@@ -196,7 +198,7 @@ module Woc {
     private thingList: WThingProp[];
 
     constructor(private libraries: Libraries, private services: Singletons, private initializers: Singletons,
-                private components: Components, private ajax: Woc.Ajax, private urlMaker: WUrlMaker, private bundlePath: string,
+                private components: Components, private ajax: Ajax, private urlMaker: WUrlMaker, private bundlePath: string,
                 private bundleUrl: string, private embedBundleList: WBundleProp[], private mergedBundleConf: {},
                 private mergedBundleName: string) {
       this.initThingList();
@@ -653,7 +655,7 @@ module Woc {
     private compNames = [];
     private promises = [];
 
-    constructor(private ajax: Woc.Ajax, private urlMaker: WUrlMaker) {
+    constructor(private ajax: Ajax, private urlMaker: WUrlMaker) {
     }
 
     public add(compName: string, baseUrl: string, relUrls: string[]) {
@@ -714,17 +716,17 @@ module Woc {
     private static wUrlMaker: WUrlMaker;
     private static makePromise: Promise<WUrlMaker>;
 
-    public static getWUrlMaker(wocUrl: string, ajax: Woc.Ajax): Promise<WUrlMaker> {
+    public static getWUrlMaker(wocUrl: string, ajax: Ajax, log: Log): Promise<WUrlMaker> {
       if (WUrlMakerProvider.wUrlMaker)
         return Promise.resolve(WUrlMakerProvider.wUrlMaker);
       if (!WUrlMakerProvider.makePromise)
-        WUrlMakerProvider.makePromise = WUrlMakerProvider.makeWUrlMaker(wocUrl, ajax);
+        WUrlMakerProvider.makePromise = WUrlMakerProvider.makeWUrlMaker(wocUrl, ajax, log);
       return WUrlMakerProvider.makePromise.then((urlMaker: WUrlMaker) => {
         return urlMaker;
       });
     }
 
-    private static makeWUrlMaker(wocUrl: string, ajax: Woc.Ajax): Promise<WUrlMaker> {
+    private static makeWUrlMaker(wocUrl: string, ajax: Ajax, log: Log): Promise<WUrlMaker> {
       if (Woc['coreWUrlMaker']) {
         var urlMaker: WUrlMaker = Woc['coreWUrlMaker'];
         delete Woc['coreWUrlMaker'];
@@ -737,7 +739,7 @@ module Woc {
             if (map[relUrl])
               return wocUrl + '/' + relUrl + '?_=' + encodeURIComponent(map[relUrl]);
             if (hasCache)
-              WUrlMakerProvider.log('Unsynchronized resource: ' + relUrl);
+              log.warn('Unsynchronized resource: ' + relUrl);
             return wocUrl + '/' + relUrl + '?_=' + defNoCache;
           },
           toAbsUrl: (relUrl: string) => {
@@ -749,17 +751,10 @@ module Woc {
       return ajax.get(wSyncUrl + '?_=' + defNoCache).then((resp) => {
         return create(resp.data, true)
       }, () => {
-        WUrlMakerProvider.log('[Cache disabled] Cannot load the working sync file "' + wSyncUrl +
+        log.warn('[Cache disabled] Cannot load the working sync file "' + wSyncUrl +
           '", please run "node _woctools/woc-w-service" on the server.');
         return create({}, false);
       });
-    }
-
-    private static log(msg: string): void {
-      if (typeof console === 'undefined')
-        alert(msg);
-      else
-        console.log(msg);
     }
   }
 }
