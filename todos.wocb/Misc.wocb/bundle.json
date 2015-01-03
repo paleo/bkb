@@ -1,7 +1,0 @@
-{
-  "woc": "0.10",
-  "services": ["WocTeam.Log", "WocTeam.WocEasyRouter", "WocTeam.Dialogs", "WocTeam.VueTemplateEngine", "WocTeam.HBTemplateEngine",
-    "WocTeam.FirstTemplateEngine"],
-  "components": ["Public.ScreenRouter"],
-  "beforeThemes": "ResetCSS"
-}

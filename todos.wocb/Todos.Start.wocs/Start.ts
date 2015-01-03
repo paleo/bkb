@@ -1,4 +1,4 @@
-/// <reference path='../Todos.d.ts' />
+/// <reference path='../defs/Todos.d.ts' />
 
 module Todos {
   'use strict';
@@ -24,9 +24,14 @@ module Todos {
         {
           route: 'todos/:taskId',
           comp: this.sc.createComponent('Todos.EditPanel'),
-          title: (query: EasyRouter.Query) => {
+          canActivate: (query: EasyRouter.Query) => {
             var id = parseInt(query.routeParams['taskId'], 10);
-            return this.model.getTask(id).title + ' | Edition';
+            return this.model.getTask(id) ? true : false;
+          },
+          title: (query: EasyRouter.Query) => {
+            var id = parseInt(query.routeParams['taskId'], 10),
+              task = this.model.getTask(id);
+            return task.title + ' | Edition';
           },
           activate: (query: EasyRouter.Query, comp: Todos.EditPanel) => {
             var id = parseInt(query.routeParams['taskId'], 10);

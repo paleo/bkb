@@ -1,0 +1,69 @@
+@charset "UTF-8";
+@import "../defs/defs";
+
+.ob-pageTitle {
+  font-size: $f25;
+  font-weight: bold;
+  margin-bottom: $gap;
+  text-align: center;
+}
+
+.ob-btn {
+  @include gradient(#AAA);
+  color: #FFF;
+  font-weight: bold;
+  min-height: 26px;
+  min-width: 80px;
+  text-align: center;
+}
+
+body {
+  background-color: #DED;
+}
+
+dialog {
+  border: 1px solid rgba(0, 0, 0, .3);
+  border-radius: 6px;
+  box-shadow: 0 3px 7px rgba(0, 0, 0, .3);
+}
+
+.AppWrapper {
+  background-color: #FFF;
+  margin: 0 auto;
+  max-width: $c6;
+  min-height: $r10;
+  padding: $r2 $c1g;
+}
+
+.Form {
+  &-fields {
+
+  }
+  &-btnBar {
+    margin-top: $smallGap;
+    text-align: center;
+  }
+}
+
+.Field {
+  display: block;
+  margin-bottom: $smallGap;
+  &-lbl {
+    display: inline-block;
+    margin-right: $g;
+    &.top {
+      display: block;
+      margin: 0 0 4px 0;
+    }
+  }
+  &-input {
+    min-width: $c4;
+  }
+  &-textarea {
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+  }
+}

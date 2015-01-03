@@ -2,8 +2,8 @@
   "woc": "0.10",
   "encoding": "utf8",
   "version": "0.10.0",
-  "bundles": ["Misc(w)"],
+  "bundles": ["misc(w)"],
   "services": ["Todos.Start", "Todos.Model"],
   "components": ["Todos.List", "Todos.CreateTask", "Todos.EditPanel"],
-  "themes": "Simple"
+  "themes": "SimpleTheme"
 }

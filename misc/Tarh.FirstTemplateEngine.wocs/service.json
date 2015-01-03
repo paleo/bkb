@@ -1,0 +1,6 @@
+{
+  "woc": "0.10",
+  "encoding": "utf8",
+  "scripts": ["FirstTemplateEngine.js"],
+  "name": "Tarh.FirstTemplateEngine"
+}

@@ -1,0 +1,6 @@
+{
+  "woc": "0.10",
+  "services": ["WocTeam.Log", "WocTeam.WocEasyRouter", "WocTeam.Dialogs", "WocTeam.VueTemplateEngine"],
+  "components": ["Public.ScreenRouter"],
+  "beforeThemes": "ResetCSS"
+}

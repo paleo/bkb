@@ -1,4 +1,4 @@
-/// <reference path='../Todos.d.ts' />
+/// <reference path='../defs/Todos.d.ts' />
 
 module Todos {
   'use strict';
@@ -12,7 +12,7 @@ module Todos {
     private router: Woc.Router;
     private tplData;
 
-    constructor(private cc: Woc.VueComponentContext) {
+    constructor(private cc: WocTeam.VueComponentContext) {
       this.model = cc.getService('Todos.Model');
       this.router = cc.getService('Woc.Router');
     }

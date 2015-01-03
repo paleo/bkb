@@ -1,4 +1,4 @@
-/// <reference path='../Todos.d.ts' />
+/// <reference path='../defs/Todos.d.ts' />
 
 module Todos {
   'use strict';
@@ -9,7 +9,7 @@ module Todos {
     private task: ModelTask;
     private tplData;
 
-    constructor(private cc: Woc.VueComponentContext, props: {}) {
+    constructor(private cc: WocTeam.VueComponentContext, props: {}) {
       this.model = cc.getService('Todos.Model');
       this.refreshCb = props['refreshCb'];
       this.task = this.model.newTask();

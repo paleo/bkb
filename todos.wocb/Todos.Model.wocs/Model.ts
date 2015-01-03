@@ -1,4 +1,4 @@
-/// <reference path='../Todos.d.ts' />
+/// <reference path='../defs/Todos.d.ts' />
 
 module Todos {
   'use strict';
