@@ -12,7 +12,7 @@ _wocscripts/releases
 /*-?.??.?
 /*.wocb
 !/woc
-!/ready_to_be_included
+!/misc
 !/ext.wocb
 !/todos.wocb
 !/ie8-test.wocb
@@ -22,7 +22,7 @@ _wocscripts/releases
 !handlebars*
 !vue*.js
 
-!ready_to_be_included/jQueryUI.wocl/smoothness/*.css
+!misc/jQueryUI.wocl/smoothness/*.css
 
 w-sync.json
 index?*.html
