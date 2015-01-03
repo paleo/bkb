@@ -2,9 +2,9 @@
 @import "../defs/defs";
 
 .ob-pageTitle {
-  font-size: $f25;
+  font-size: 1.5em;
   font-weight: bold;
-  margin-bottom: $gap;
+  margin-bottom: $space2;
   text-align: center;
 }
 
@@ -30,9 +30,9 @@ dialog {
 .AppWrapper {
   background-color: #FFF;
   margin: 0 auto;
-  max-width: $c6;
-  min-height: $r10;
-  padding: $r2 $c1g;
+  max-width: 500px;
+  min-height: 200px;
+  padding: 50px 80px;
 }
 
 .Form {
@@ -40,24 +40,24 @@ dialog {
 
   }
   &-btnBar {
-    margin-top: $smallGap;
+    margin-top: $space1;
     text-align: center;
   }
 }
 
 .Field {
   display: block;
-  margin-bottom: $smallGap;
+  margin-bottom: $space1;
   &-lbl {
     display: inline-block;
-    margin-right: $g;
+    margin-right: 20px;
     &.top {
       display: block;
       margin: 0 0 4px 0;
     }
   }
   &-input {
-    min-width: $c4;
+    min-width: 320px;
   }
   &-textarea {
     -moz-box-sizing: border-box;

@@ -34,10 +34,10 @@ module Todos {
         methods: {
           rmCb: (id) => {
             this.removeItem(id);
-          },
-          editCb: (id) => {
-            this.router.navigate('todos/' + id);
           }
+          //editCb: (id) => {
+          //  this.router.navigate('todos/' + id);
+          //}
         }
       });
     }

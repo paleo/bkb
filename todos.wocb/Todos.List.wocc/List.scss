@@ -3,10 +3,10 @@
 
 .TodosList {
   &-li {
-    background-color: #BBB;
+    @include gradient(#BBB);
     border-bottom: #EEE;
     color: #FFF;
-    height: $r2;
+    height: 40px;
     padding-left: 30px;
     position: relative;
     &:nth-child(even) {
@@ -20,22 +20,28 @@
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     display: block;
-    font-size: $f20;
+    font-size: 1.25em;
     font-weight: bold;
     height: 100%;
+    line-height: 38px;
     padding: 2px 8px;
     width: 100%;
     &:focus,
     &:hover {
       background-color: rgba(255, 255, 255, .4);
     }
+    &,
+    &:visited {
+      color: inherit;
+      text-decoration: none;
+    }
   }
   &-rmBtn {
-    font-size: $f32;
+    font-size: 2em;
     font-weight: bold;
     height: 100%;
     left: 0;
-    line-height: $r2;
+    line-height: 40px;
     position: absolute;
     text-align: center;
     top: 0;
@@ -46,6 +52,6 @@
     }
   }
   &-new {
-    margin-top: $gap;
+    margin-top: $space2;
   }
 }
