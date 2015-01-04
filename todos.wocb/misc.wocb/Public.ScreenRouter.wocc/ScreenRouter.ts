@@ -1,4 +1,4 @@
-/// <reference path='../defs/Misc.d.ts' />
+/// <reference path='../defs/misc.d.ts' />
 
 module Public {
   'use strict';
