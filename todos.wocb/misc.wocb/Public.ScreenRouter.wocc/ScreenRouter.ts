@@ -1,4 +1,5 @@
-/// <reference path='../defs/misc.d.ts' />
+/// <reference path='../defs/Woc.d.ts' />
+/// <reference path='../WocTeam.WocEasyRouter.wocs/WocEasyRouter.d.ts' />
 
 module Public {
   'use strict';
