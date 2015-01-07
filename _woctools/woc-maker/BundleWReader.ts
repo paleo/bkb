@@ -34,11 +34,12 @@ class BundleWReader {
       return project.readInputJsonFile(path.join(bundleRelPath, 'bundle.json'), project.getDefaultEncoding());
     }).then((conf: {}) => {
       BundleWReader.cleanConf(conf);
-      return new BundleWReader(project, bundleRelPath, conf);
+      return new BundleWReader(project, bundleRelPath, bundleName, conf, parentRelPath === null);
     });
   }
 
-  constructor(private project: Project, private bundleRelPath: string, private conf: {}) {
+  constructor(private project: Project, private bundleRelPath: string, private bundleName: string, private conf: {},
+              private isRoot: boolean) {
     this.encoding = this.conf['encoding'] || project.getDefaultEncoding();
     this.bundleVersion = this.conf['version'] || null;
   }
@@ -53,16 +54,16 @@ class BundleWReader {
 
   public process(writer: BundleWriter): Promise<void> {
     var p = Promise.resolve<void>(),
-      excludedSet: {[index: string]: boolean} = {'bundle.json': true}
+      excludedSet: {[index: string]: boolean} = {'bundle.json': true};
     // - Bundle
     if (!Project.isEmpty(this.conf['preload']))
       writer.putBundleVal('preload', Project.cloneData(this.conf['preload']));
-    p = p.then(() => this.processBundleThemes(writer, false, excludedSet));
-    p = p.then(() => this.processBundleThemes(writer, true, excludedSet));
     // - Embed bundles
     p = p.then<void>(() => {
       return this.processEmbedBundles(writer);
     });
+    // - Bundle themes
+    p = p.then(() => this.processBundleThemes(writer, excludedSet));
     // - Embed things
     p = p.then<void>(() => {
       return Promise.all([
@@ -91,26 +92,9 @@ class BundleWReader {
     });
   }
 
-  private processBundleThemes(writer: BundleWriter, before: boolean, excludedSet: {[index: string]: boolean}): Promise<void> {
-    var confKey = before ? 'beforeThemes' : 'themes';
-    BundleWReader.appendThemeDirectoriesToSet(excludedSet, this.conf[confKey]);
-    return this.readThemeConf(
-      writer,
-      this.bundleRelPath,
-      this.bundleRelPath,
-      this.conf[confKey]
-    ).then<void>((cssList): any => {
-      return writer.appendBundleCss(
-        this.makeFileArr(this.bundleRelPath, cssList),
-        before,
-        this.getEmbedBundleName()
-      );
-    });
-  }
-
-  private getEmbedBundleName(): string {
-    var pos = this.bundleRelPath.indexOf('/');
-    return pos === -1 ? null : this.bundleRelPath.slice(pos + 1).replace(/\.wocb/g, '');
+  private processBundleThemes(writer: BundleWriter, excludedSet: {[index: string]: boolean}): Promise<void> {
+    BundleWReader.appendThemeDirectoriesToSet(excludedSet, this.conf['themes']);
+    return this.readBundleThemeConf(writer, this.conf['themes']);
   }
 
   // --
@@ -175,7 +159,7 @@ class BundleWReader {
       if (conf['name'] === undefined)
         throw Error('Missing "name" in ' + jsonPath);
       // - Read the theme configuration
-      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
+      return this.readThingThemeConf(writer, dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
           writer.addLibrary(
@@ -206,7 +190,7 @@ class BundleWReader {
       if (Project.isEmpty(conf['scripts']))
         throw Error('Missing "scripts" in ' + jsonPath);
       // - Read the theme configuration
-      return this.readThemeConf(writer, conf['name'], dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
+      return this.readThingThemeConf(writer, dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
           writer.addContextThing(
@@ -293,10 +277,30 @@ class BundleWReader {
   // -- Private - Read theme configuration
   // --
 
-  private readThemeConf(writer: BundleWriter, thingName: string, thingRelPath: string, themesVal: any[], cssList: string[] = []): Promise<string[]> {
-    if (!themesVal) {
+  private readBundleThemeConf(writer: BundleWriter, themesVal: any[]): Promise<void> {
+    if (!themesVal)
+      return Promise.resolve<void>();
+    return <any>Promise.all(themesVal.map((nameOrObj: any): any => {
+      if (typeof nameOrObj !== 'string')
+        throw Error('Invalid theme name');
+      var dir = Common.toWDir(nameOrObj, Common.EmbedType.Theme);
+      var completePath = path.join(this.bundleRelPath, dir);
+      return this.project.readInputJsonFile(path.join(completePath, 'theme.json'), this.encoding).then((conf): any => {
+        BundleWReader.cleanConf(conf);
+        var priority = conf['priority'] || {},
+          channelName = priority['channel'] || '',
+          level = priority['level'] || 1;
+        return this.readThemeConfRecursive(writer, this.bundleRelPath, null, [nameOrObj]).then((cssList: string[]) => {
+          var css = this.makeFileArr(this.bundleRelPath, cssList);
+          return writer.addBundleTheme(css, channelName, level, nameOrObj);
+        });
+      });
+    }));
+  }
+
+  private readThingThemeConf(writer: BundleWriter, thingRelPath: string, themesVal: any[], cssList: string[] = []): Promise<string[]> {
+    if (!themesVal)
       return Promise.resolve<string[]>(cssList);
-    }
     return this.readThemeConfRecursive(writer, thingRelPath, null, themesVal).then((list: string[]) => {
       Array.prototype.push.apply(list, cssList);
       return list;
@@ -431,7 +435,6 @@ class BundleWReader {
     cleanArr('useComponents');
     cleanArr('scripts');
     cleanArr('themes');
-    cleanArr('beforeThemes');
     cleanArr('styleSheets');
     cleanArr('templates');
     cleanArr('alias');

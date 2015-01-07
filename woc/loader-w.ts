@@ -130,7 +130,6 @@ module Woc {
           url: bundleUrl,
           conf: bundleConf
         };
-        this.flatBundles.push(cur);
         if (parent === null)
           this.bundleTree = cur;
         else {
@@ -138,8 +137,9 @@ module Woc {
             parent.children = [];
           parent.children.push(cur);
         }
+        var prom;
         if (bundleConf['bundles'] !== undefined) {
-          return Promise.all(bundleConf['bundles'].map((optStr) => {
+          prom = Promise.all(bundleConf['bundles'].map((optStr) => {
             var opt = Woc.parseBundleLoadingOptions(optStr);
             if (!opt.w)
               throw Error('The embed bundle should be in working mode: "' + optStr + '"');
@@ -147,7 +147,11 @@ module Woc {
             var childEmbedPath = bundleEmbedPath === null ? dir : bundleEmbedPath + '/' + bundleEmbedPath;
             return this.loadBundleConfRecursive(bundlePath + '/' + dir, childEmbedPath, bundleUrl + '/' + dir, cur);
           }));
-        }
+        } else
+          prom = Promise.resolve<void>();
+        return prom.then(() => {
+          this.flatBundles.push(cur);
+        });
       });
     }
 
@@ -624,16 +628,15 @@ module Woc {
           var conf = resp.data;
           WLoader.cleanConf(conf);
           this.cacheConfMap[confUrl] = conf;
-          var priority = conf['priority'] || {
-            channel: '',
-            level: 1
-          };
-          var channel = this.channels[priority['channel']];
+          var priority = conf['priority'] || {},
+            channelName = priority['channel'] || '',
+            level = priority['level'] || 1,
+            channel = this.channels[channelName];
           if (!channel)
-            channel = this.channels[priority['channel']] = {};
-          if (!channel[priority['level']])
-            channel[priority['level']] = [];
-          channel[priority['level']].push(themeName);
+            channel = this.channels[channelName] = {};
+          if (!channel[level])
+            channel[level] = [];
+          channel[level].push(themeName);
         };
       };
       var nameOrObj: any,
@@ -642,8 +645,8 @@ module Woc {
         promises = [];
       for (var i = 0, len = this.bundleThemesVal.length; i < len; ++i) {
         nameOrObj = this.bundleThemesVal[i];
-        if (typeof nameOrObj === 'object')
-          continue;
+        if (typeof nameOrObj !== 'string')
+          throw Error('Invalid theme name');
         dir = WThingLoader.toDir(nameOrObj, WEmbedType.Theme);
         confUrl = this.urlMaker.toUrl(this.bundleUrl + '/' + dir + '/theme.json');
         promises.push(this.ajax.get(confUrl).then(makeCb(confUrl, nameOrObj)));

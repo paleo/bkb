@@ -26,9 +26,8 @@ class BundleWriter {
   private bundleProp = {};
   private libraries = {};
   private contextThings;
-  private bundleCss: string = null;
-  private bundleBeforeCss: string = null;
-  private css: string[] = [];
+  private bundleCssChannels = {};
+  private thingCssList: string[] = [];
   private otherFiles = {};
 
   constructor(private project: Project, private bundleName: string, bundleVersion: string) {
@@ -47,20 +46,19 @@ class BundleWriter {
     this.bundleProp[key] = val;
   }
 
-  public appendBundleCss(css: {}[], before: boolean, embedName: string = null): Promise<void> {
+  public addBundleTheme(css: {}[], priorityChannel: string, priorityLevel: number, themeName: string): Promise<void> {
     if (!css)
       return Promise.resolve<void>();
-    // - Make title
-    var title = embedName ? 'Bundle ' + embedName : 'Main bundle';
-    if (before)
-      title += ' (before)';
+    var channel = this.bundleCssChannels[priorityChannel];
+    if (!channel)
+      channel = this.bundleCssChannels[priorityChannel] = {};
+    var byLevelCss = channel[priorityLevel]
+    if (!byLevelCss)
+      byLevelCss = channel[priorityLevel] = [];
     // - Concat files
-    return BundleWriter.concatFiles(title, css, this.cssMinifier, 'css').
+    return BundleWriter.concatFiles(themeName, css, this.cssMinifier, 'css').
       then((content: string): void => {
-        if (before)
-          this.bundleBeforeCss = this.bundleBeforeCss ? this.bundleBeforeCss + '\n' + content : content;
-        else
-          this.bundleCss = this.bundleCss ? this.bundleCss + '\n' + content : content;
+        byLevelCss.push(content);
       });
   }
 
@@ -80,7 +78,7 @@ class BundleWriter {
       if (css.length > 0) {
         p = p.then(() => {
           return BundleWriter.concatFiles('Library ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
-            this.css.push(content);
+            this.thingCssList.push(content);
           });
         });
       }
@@ -123,7 +121,7 @@ class BundleWriter {
     if (css !== null) {
       if (css.length > 0) {
         pList.push(BundleWriter.concatFiles(title, css, this.cssMinifier, 'css').then((content: string): void => {
-          this.css.push(content);
+          this.thingCssList.push(content);
         }));
       }
     }
@@ -158,13 +156,13 @@ class BundleWriter {
         return false;
       var p: Promise<any> = this.writeFile(this.bundleName + '.json', JSON.stringify(this.makeData()));
       if (this.hasCss()) {
-        var cssMeta = '@charset "' + this.project.getDefaultEncoding() + '";\n',
-          beforeCss = this.bundleBeforeCss ? this.bundleBeforeCss + '\n' : '',
-          afterCss = this.bundleCss ? '\n' + this.bundleCss : '',
-          cssP = this.writeFile(
-            this.bundleName + '.css',
-            cssMeta + beforeCss + this.css.join('\n') + afterCss
-          );
+        var cssArr = [];
+        cssArr.push('@charset "' + this.project.getDefaultEncoding() + '";');
+        Array.prototype.push.apply(cssArr, this.makeBundleCssBychannel('before'));
+        Array.prototype.push.apply(cssArr, this.thingCssList);
+        Array.prototype.push.apply(cssArr, this.makeBundleCssBychannel(''));
+        Array.prototype.push.apply(cssArr, this.makeBundleCssBychannel('after'));
+        var cssP = this.writeFile(this.bundleName + '.css',cssArr.join('\n'));
         p = Promise.all([p, cssP]);
       }
       return p.then(() => {
@@ -187,6 +185,22 @@ class BundleWriter {
     return false;
   }
 
+  private makeBundleCssBychannel(channelName: string): string[] {
+    var channel = this.bundleCssChannels[channelName];
+    if (!channel)
+      return [];
+    var levels = [];
+    for (var k in channel) {
+      if (channel.hasOwnProperty(k))
+        levels.push(k);
+    }
+    levels.sort();
+    var arr = [];
+    for (var i = 0, len = levels.length; i < len; ++i)
+      Array.prototype.push.apply(arr, channel[levels[i]]);
+    return arr;
+  }
+
   private cleanOutputDir(rmDestination: boolean): Promise<boolean> {
     return fsp.exists(this.bundlePath).then((b): any => {
       var p: Promise<any>;
@@ -205,7 +219,7 @@ class BundleWriter {
   }
 
   private hasCss(): boolean {
-    return this.css.length > 0;
+    return this.thingCssList.length > 0;
   }
 
   private makeData() {
