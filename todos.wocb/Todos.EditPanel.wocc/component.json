@@ -1,5 +1,5 @@
 {
-  "woc": "0.10",
+  "woc": "0.11",
   "encoding": "UTF-8",
   "templateEngine": ["WocTeam.VueTemplateEngine"],
   "useServices": ["Woc.Router", "WocTeam.Dialogs", "Todos.Model"],
