@@ -1,0 +1,8 @@
+{
+  "woc": "0.11",
+  "encoding": "UTF-8",
+  "useServices": ["WocTeam.WocEasyRouter", "Test.Model"],
+  "useComponents": ["Public.ScreenRouter", "Test.List", "Test.EditPanel"],
+  "scripts": "Start.js",
+  "name": "Test.Start"
+}

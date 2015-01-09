@@ -12,17 +12,16 @@ _wocscripts/releases
 /*-?.??.?
 /*.wocb
 !/woc
-!/misc
-!/ext.wocb
-!/todos.wocb
+!/test.wocb
 !/ie8-test.wocb
+!/myproject.wocb
 
 !woc/lib/*
 !dialog-polyfill*
 !handlebars*
 !vue*.js
 
-!misc/jQueryUI.wocl/smoothness/*.css
+!test.wocb/lib.wocb/jQueryUI.wocl/smoothness/*.css
 
 w-sync.json
 index?*.html

@@ -7,7 +7,7 @@
 module Woc {
 
   /**
-   * examples: todos(w,0.5,css) ext(w) ext2(0.432.43,css)
+   * examples: test(w,0.5,css) ext(w) ext2(0.432.43,css)
    */
   export function parseBundleLoadingOptions(s: string): Woc.BundleLoadingOptions {
     var cleanArgs = function (s) {

@@ -1,0 +1,57 @@
+@charset "UTF-8";
+@import "../defs/defs";
+
+.TestList {
+  &-li {
+    @include gradient(#BBB);
+    border-bottom: #EEE;
+    color: #FFF;
+    height: 40px;
+    padding-left: 30px;
+    position: relative;
+    &:nth-child(even) {
+      background-color: #CCC;
+    }
+  }
+  &-editBtn {
+    -moz-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    -o-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    display: block;
+    font-size: 1.25em;
+    font-weight: bold;
+    height: 100%;
+    line-height: 38px;
+    padding: 2px 8px;
+    width: 100%;
+    &:focus,
+    &:hover {
+      background-color: rgba(255, 255, 255, .4);
+    }
+    &,
+    &:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+  &-rmBtn {
+    font-size: 2em;
+    font-weight: bold;
+    height: 100%;
+    left: 0;
+    line-height: 40px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 30px;
+    &:focus,
+    &:hover {
+      background-color: rgba(255, 255, 255, .4);
+    }
+  }
+  &-new {
+    margin-top: $space2;
+  }
+}

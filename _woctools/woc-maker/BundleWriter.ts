@@ -26,6 +26,7 @@ class BundleWriter {
   private bundleProp = {};
   private libraries = {};
   private contextThings;
+  private hasBundleCss = false;
   private bundleCssChannels = {};
   private thingCssList: string[] = [];
   private otherFiles = {};
@@ -49,6 +50,7 @@ class BundleWriter {
   public addBundleTheme(css: {}[], priorityChannel: string, priorityLevel: number, themeName: string): Promise<void> {
     if (!css)
       return Promise.resolve<void>();
+    this.hasBundleCss = true;
     var channel = this.bundleCssChannels[priorityChannel];
     if (!channel)
       channel = this.bundleCssChannels[priorityChannel] = {};
@@ -219,7 +221,7 @@ class BundleWriter {
   }
 
   private hasCss(): boolean {
-    return this.thingCssList.length > 0;
+    return this.hasBundleCss || this.thingCssList.length > 0;
   }
 
   private makeData() {

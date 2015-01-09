@@ -1,0 +1,3 @@
+/// <reference path='Woc.d.ts' />
+/// <reference path='../WocTeam.Log.wocs/Log.d.ts' />
+

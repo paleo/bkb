@@ -1,9 +1,0 @@
-{
-  "woc": "0.11",
-  "encoding": "UTF-8",
-  "version": "0.11.0",
-  "bundles": ["misc(w)"],
-  "services": ["Todos.Start", "Todos.Model"],
-  "components": ["Todos.List", "Todos.CreateTask", "Todos.EditPanel"],
-  "themes": "SimpleTheme"
-}

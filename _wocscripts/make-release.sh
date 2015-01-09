@@ -38,7 +38,7 @@ cd $SRC_DIR
 $DIR/make-woc-min.sh || exit 1;
 ls -l woc*.min.js
 
-# Make directory
+# Make the target directory
 
 echo "Make releases/$RELEASE_DIRNAME/"
 if [ ! -d "$DIR/releases" ]; then
@@ -48,17 +48,33 @@ cd $DIR/releases || exit 1;
 
 mkdir $RELEASE_DIRNAME || exit 1;
 
-cp -r -t $RELEASE_DIRNAME $SRC_DIR/index.html $SRC_DIR/ie8-test.html $SRC_DIR/ie8-shim.js $SRC_DIR/woc.min.js $SRC_DIR/woc-w.min.js $SRC_DIR/todos.wocb $SRC_DIR/ie8-test.wocb $SRC_DIR/misc $SRC_DIR/_woctools || exit 1;
-rm -f -r $RELEASE_DIRNAME/_woctools/node_modules
+# Fill the target directory
 
-echo "Edit index.html: switch to \"w\" mode and use \"woc-w.min.js\""
-read -p "Press [Enter] key to edit..."
-vim $RELEASE_DIRNAME/index.html || exit 1;
-echo "Edit ie8-test.html: switch to \"w\" mode and use \"woc-w.min.js\""
-read -p "Press [Enter] key to edit..."
-vim $RELEASE_DIRNAME/ie8-test.html || exit 1;
+cp -r -t $RELEASE_DIRNAME $SRC_DIR/{woc.min.js,woc-w.min.js,myproject.wocb,_woctools} || exit 1;
+cp $SRC_DIR/myproject.html $RELEASE_DIRNAME/index.html || exit 1
 
-# Make archive
+rm -f -r $RELEASE_DIRNAME/_woctools/node_modules || exit 1
+find $RELEASE_DIRNAME/_woctools/ -name "*.ts" -delete || exit 1
+
+mv $RELEASE_DIRNAME/myproject.wocb/defs/myproject.d.ts-boilerplate $RELEASE_DIRNAME/myproject.wocb/defs/myproject.d.ts || exit 1
+mv $RELEASE_DIRNAME/myproject.wocb/lib.wocb/defs/lib.d.ts-boilerplate $RELEASE_DIRNAME/myproject.wocb/lib.wocb/defs/lib.d.ts || exit 1
+mv $RELEASE_DIRNAME/myproject.wocb/MyProject.Start.wocs/Start.ts-boilerplate $RELEASE_DIRNAME/myproject.wocb/MyProject.Start.wocs/Start.ts || exit 1
+
+cp -r -t $RELEASE_DIRNAME/myproject.wocb/lib.wocb $SRC_DIR/test.wocb/lib.wocb/{WocTeam.Log.wocs,ResetCSS.woct} || exit 1
+cp -r -t $RELEASE_DIRNAME/myproject.wocb/lib.wocb/defs $SRC_DIR/test.wocb/lib.wocb/defs/{Woc.d.ts,es6-promise.d.ts} || exit 1
+
+# Compile the boilerplate Start.ts
+
+tsc $RELEASE_DIRNAME/myproject.wocb/MyProject.Start.wocs/Start.ts || exit 1
+
+# Make woclib
+
+mkdir $RELEASE_DIRNAME/woclib || exit 1
+cp -t $RELEASE_DIRNAME/woclib/ $SRC_DIR/ie8-shim.js || exit 1
+cp -r -t $RELEASE_DIRNAME/woclib $SRC_DIR/test.wocb/lib.wocb/{*.woc?,defs} || exit 1
+rm $RELEASE_DIRNAME/woclib/defs/lib.d.ts || exit 1
+
+# Make the archive
 
 echo "Make releases/$RELEASE_FILENAME"
 tar -cz -f $RELEASE_FILENAME $RELEASE_DIRNAME || exit 1;
@@ -70,5 +86,4 @@ echo "... Done. Test the release:"
 echo "> http://localhost:8080/wocreleases/$RELEASE_DIRNAME/"
 echo "> cd $DIR/releases/$RELEASE_DIRNAME/"
 echo "> npm install --prefix _woctools/"
-echo "> node _woctools/woc-make.js -r true todos"
-
+echo "> node _woctools/woc-make.js -r true myproject"

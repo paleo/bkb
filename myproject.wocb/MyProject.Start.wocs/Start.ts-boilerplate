@@ -1,0 +1,14 @@
+/// <reference path='../defs/myproject.d.ts' />
+
+module MyProject {
+  'use strict';
+
+  export class Start implements Woc.StartingPoint {
+    constructor(private sc: Woc.ServiceContext) {
+    }
+
+    public start(el: HTMLElement) {
+      el.innerHTML = '<h1>Hello, World!</h1>';
+    }
+  }
+}

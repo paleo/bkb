@@ -1,0 +1,10 @@
+{
+  "woc": "0.11",
+  "encoding": "UTF-8",
+  "templateEngine": ["WocTeam.VueTemplateEngine"],
+  "useServices": ["Woc.Router", "WocTeam.Dialogs", "Test.Model"],
+  "scripts": "EditPanel.js",
+  "templates": "EditPanel.html",
+  "styleSheets": "EditPanel.css",
+  "name": "Test.EditPanel"
+}

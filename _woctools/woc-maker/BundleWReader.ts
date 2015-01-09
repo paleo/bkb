@@ -238,7 +238,7 @@ class BundleWReader {
   }
 
   /**
-   * examples: todos(w,0.5,css) ext(w) ext2(0.432.43,css)
+   * examples: test(w,0.5,css) ext(w) ext2(0.432.43,css)
    */
   private static parseBundleLoadingOptions(s: string): BundleLoadingOptions {
     var cleanArgs = function (s) {
