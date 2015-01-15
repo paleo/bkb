@@ -12,7 +12,11 @@ module Test {
     constructor(private cc: WocTeam.VueComponentContext, props: {}) {
       this.model = cc.getService('Test.Model');
       this.refreshCb = props['refreshCb'];
-      this.task = this.model.newTask();
+      this.task = {
+        title: null,
+        description: null,
+        date: null
+      };
     }
 
     public attachTo(el: HTMLElement): void {
@@ -35,7 +39,11 @@ module Test {
     private add() {
       this.task.title = this.tplData.title;
       this.model.addTask(this.task);
-      this.task = this.model.newTask();
+      this.task = {
+        title: null,
+        description: null,
+        date: null
+      };
       this.tplData.title = this.task.title;
       this.refreshCb();
     }

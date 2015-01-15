@@ -27,11 +27,13 @@ module WocTeam {
   // --
 
   export class VueTemplateEngine implements Woc.TemplateEngine {
+    private log: Woc.Log;
     private DefaultWocVue;
     private customs = {};
 
-    constructor() {
-      this.DefaultWocVue = VueTemplateEngine.createWocVue();
+    constructor(sc: Woc.ServiceContext) {
+      this.log = sc.log;
+      this.DefaultWocVue = this.createWocVue();
     }
 
     public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
@@ -43,27 +45,36 @@ module WocTeam {
      */
     public getCustom(name: string) {
       if (!this.customs[name])
-        this.customs[name] = VueTemplateEngine.createWocVue();
+        this.customs[name] = this.createWocVue();
       return this.customs[name];
     }
 
-    private static createWocVue() {
-      var WocVue = Vue.extend();
+    private createWocVue() {
+      var self = this,
+        WocVue = Vue.extend();
       WocVue.directive('woc-component', {
         bind: function () {
         },
         update: function (value) {
-          var context = VueTemplateEngine.getWocParam(this.vm, 'wocContext');
-          if (this.wocCur)
-            context.removeComponent(this.wocCur);
-          this.wocCur = context.createComponent(this.arg, value);
-          this.wocCur.attachTo(this.el);
+          try {
+            var context = VueTemplateEngine.getWocParam(this.vm, 'wocContext');
+            if (this.wocCur)
+              context.removeComponent(this.wocCur);
+            this.wocCur = context.createComponent(this.arg || this.expression, value);
+            this.wocCur.attachTo(this.el);
+          } catch (e) {
+            self.log.error(e);
+          }
         },
         unbind: function () {
           if (this.wocCur) {
-            var context = VueTemplateEngine.getWocParam(this.vm, 'wocContext');
-            context.removeComponent(this.wocCur);
-            this.wocCur = null;
+            try {
+              var context = VueTemplateEngine.getWocParam(this.vm, 'wocContext');
+              context.removeComponent(this.wocCur);
+              this.wocCur = null;
+            } catch (e) {
+              self.log.error(e);
+            }
           }
         }
       });

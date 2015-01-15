@@ -21,7 +21,7 @@ _wocscripts/releases
 !handlebars*
 !vue*.js
 
-!test.wocb/lib.wocb/jQueryUI.wocl/smoothness/*.css
+!test.wocb/lib.wocb/jQueryUI.woce/smoothness/*.css
 
 w-sync.json
 index?*.html

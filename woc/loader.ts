@@ -47,7 +47,7 @@ module Woc {
     private ajax: Woc.Ajax;
     private bundlePromMap: {[index:string]: Promise<void>} = {};
 
-    constructor(private ac: ApplicationContext, private libraries: Libraries, private services: Singletons,
+    constructor(private ac: ApplicationContext, private externLibs: ExternLibs, private services: Singletons,
                 private initializers: Singletons, private components: Components) {
       this.wocUrl = ac.appConfig.wocUrl;
       this.ajax = this.services.get('Woc.Ajax');
@@ -62,7 +62,7 @@ module Woc {
       if (opt.w) {
         if (!WLoader)
           throw Error('Cannot load bundle "' + JSON.stringify(opt) + '" in working mode, please use woc-w.min.js');
-        var wLoader = new WLoader(this.libraries, this.services, this.initializers, this.components, this, this.wocUrl, opt);
+        var wLoader = new WLoader(this.externLibs, this.services, this.initializers, this.components, this, this.wocUrl, opt);
         p = wLoader.loadWBundle();
       } else
         p = this.loadNormalBundle(this.wocUrl, opt);
@@ -119,14 +119,14 @@ module Woc {
 
     private registerNormalBundle(bundleUrl, bundleData: {}): Promise<void> {
       var name, data, promList = [];
-      // - Register libraries
-      var libMap = bundleData['libraries'];
+      // - Register externLibs
+      var libMap = bundleData['externLibs'];
       if (libMap) {
         for (name in libMap) {
           if (!libMap.hasOwnProperty(name))
             continue;
           data = libMap[name];
-          this.libraries.register(name, data['useLibraries'], data['js']);
+          this.externLibs.register(name, data['useExternLibs'], data['js']);
           if (data['css'])
             promList.push(Loader.addCssLinks(data['css'], bundleUrl));
         }
@@ -138,7 +138,7 @@ module Woc {
           if (!servMap.hasOwnProperty(name))
             continue;
           data = servMap[name];
-          this.services.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
+          this.services.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
             data['useComponents'], data['js'], data['templates'], data['templateEngine'], data['alias']);
         }
       }
@@ -149,7 +149,7 @@ module Woc {
           if (!initMap.hasOwnProperty(name))
             continue;
           data = initMap[name];
-          this.initializers.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
+          this.initializers.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
             data['useComponents'], data['js'], data['templates'], data['templateEngine']);
         }
       }
@@ -160,7 +160,7 @@ module Woc {
           if (!compMap.hasOwnProperty(name))
             continue;
           data = compMap[name];
-          this.components.register(name, bundleUrl, data['useApplication'], data['useLibraries'], data['useServices'],
+          this.components.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
             data['useComponents'], data['js'], data['templates'], data['templateEngine']);
           if (data['css'])
             promList.push(Loader.addCssLinks(data['css'], bundleUrl));

@@ -8,7 +8,7 @@ declare module WocTeam {
      */
     wocTemplate?: string;
     template?: string;
-    data: any;
+    data?: any;
     methods?: {
       [index: string]: Function;
     }

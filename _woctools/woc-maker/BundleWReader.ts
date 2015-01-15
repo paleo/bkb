@@ -67,7 +67,7 @@ class BundleWReader {
     // - Embed things
     p = p.then<void>(() => {
       return Promise.all([
-        this.processEmbedThings(writer, Common.EmbedType.Library),
+        this.processEmbedThings(writer, Common.EmbedType.ExternLib),
         this.processEmbedThings(writer, Common.EmbedType.Service),
         this.processEmbedThings(writer, Common.EmbedType.Initializer),
         this.processEmbedThings(writer, Common.EmbedType.Component)
@@ -132,8 +132,8 @@ class BundleWReader {
   private processEmbedThing(writer: BundleWriter, name: string, type: Common.EmbedType): Promise<void> {
     var dirName = Common.toWDir(name, type);
     switch (type) {
-      case Common.EmbedType.Library:
-        return this.processLibrary(writer, dirName);
+      case Common.EmbedType.ExternLib:
+        return this.processExternLib(writer, dirName);
         break;
       case Common.EmbedType.Service:
         return this.processContextThing(writer, type, dirName, 'service.json');
@@ -149,10 +149,10 @@ class BundleWReader {
     }
   }
 
-  private processLibrary(writer: BundleWriter, dirName: string): Promise<void> {
+  private processExternLib(writer: BundleWriter, dirName: string): Promise<void> {
     // - Read the configuration
     var dirRelPath = path.join(this.bundleRelPath, dirName);
-    var jsonPath = path.join(dirRelPath, 'library.json');
+    var jsonPath = path.join(dirRelPath, 'externlib.json');
     return this.project.readInputJsonFile(jsonPath, this.encoding).then<void>((conf: {}) => {
       BundleWReader.cleanConf(conf);
       this.checkEncoding(dirName, conf['encoding']);
@@ -162,16 +162,16 @@ class BundleWReader {
       return this.readThingThemeConf(writer, dirRelPath, conf['themes'], conf['styleSheets']).then((cssList) => {
         // - Add into the writer
         return Promise.all([
-          writer.addLibrary(
+          writer.addExternLib(
             conf['name'],
-            BundleWReader.arrayOrNull(conf['useLibraries']),
+            BundleWReader.arrayOrNull(conf['useExternLibs']),
             this.makeFileArr(dirRelPath, conf['scripts']),
             this.makeFileArr(dirRelPath, cssList)
           ),
           this.includeOtherFiles(
             writer,
             dirRelPath,
-            BundleWReader.appendThemeDirectoriesToSet({'library.json': true}, conf['themes'])
+            BundleWReader.appendThemeDirectoriesToSet({'externlib.json': true}, conf['themes'])
           )
         ]);
       });
@@ -197,7 +197,7 @@ class BundleWReader {
             type,
             conf['name'],
             conf['useApplication'] === true,
-            BundleWReader.arrayOrNull(conf['useLibraries']),
+            BundleWReader.arrayOrNull(conf['useExternLibs']),
             BundleWReader.arrayOrNull(conf['useServices']),
             BundleWReader.arrayOrNull(conf['useComponents']),
             this.makeFileArr(dirRelPath, conf['scripts']),
@@ -222,8 +222,8 @@ class BundleWReader {
 
   private static toBundleConfKey(type: Common.EmbedType): string {
     switch (type) {
-      case Common.EmbedType.Library:
-        return 'libraries';
+      case Common.EmbedType.ExternLib:
+        return 'externLibs';
       case Common.EmbedType.Service:
         return 'services';
       case Common.EmbedType.Initializer:
@@ -430,7 +430,7 @@ class BundleWReader {
         conf[arrName] = [conf[arrName]];
     };
     cleanArr('preload');
-    cleanArr('useLibraries');
+    cleanArr('useExternLibs');
     cleanArr('useServices');
     cleanArr('useComponents');
     cleanArr('scripts');
