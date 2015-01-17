@@ -4,13 +4,13 @@
 
 VER=$1
 if [[ -z $VER ]]; then
-	echo "Usage: _wocscripts/make-release.sh <version> [--force]"
+	echo "Usage: _scripts/make-release.sh <version> [--force]"
 	exit 1
 fi
 FORCE=0
 if [[ ! -z $2 ]]; then
 	if [[ $2 != "--force" ]]; then
-		echo "Usage: _wocscripts/make-release.sh <version> [--force]"
+		echo "Usage: _scripts/make-release.sh <version> [--force]"
 		exit 1
 	fi
 	FORCE=1

@@ -10,7 +10,7 @@ if (argv['h'] || argv['help']) {
     '\t-p --project-path path-to-project-directory (default is current)\n' +
     '\t-o --out-sync-file-path path-to-output-file (default is in the project directory)\n' +
     '\t-i --include-files (default is "js css html png gif jpeg json map")\n' +
-    '\t-x --exclude (default is "_wocscripts _woctools node_modules w-sync.json")\n' +
+    '\t-x --exclude (default is "_scripts _woctools node_modules w-sync.json")\n' +
     '\t-X --excludePattern (default is "__jb_.+__", JetBrains temporary files)'
   );
   process.exit(0);
@@ -20,7 +20,7 @@ var tool = new WocWService({
   'projectPath': argv['p'] || argv['project-path'] || process.cwd(),
   'outSyncFilePath': argv['o'] || argv['out-sync-file-path'],
   'includeFiles': argv['i'] || argv['include-files'] || 'js css html png gif jpeg json map',
-  'exclude': argv['e'] || argv['exclude'] || '_wocscripts _woctools node_modules w-sync.json',
+  'exclude': argv['e'] || argv['exclude'] || '_scripts _woctools node_modules w-sync.json',
   'excludePattern': argv['E'] || argv['exclude-pattern'] || '__jb_.+__'
 });
 
