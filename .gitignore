@@ -10,6 +10,7 @@ woc*.min.js
 _scripts/releases
 
 /*-?.??.?
+/*-0.0
 /*.wocb
 !/woc
 !/test.wocb

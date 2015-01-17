@@ -10,7 +10,7 @@ import fsp = require('../lib/fsp');
 import minifiers = require('./minifiers');
 
 class Project {
-  private static WOC_VERSION = '0.11';
+  private static WOC_VERSION = '0.12';
   private jsMinifier: minifiers.JsMinifier;
   private cssMinifier: minifiers.CssMinifier;
   private htmlMinifier: minifiers.HtmlMinifier;

@@ -1,7 +1,7 @@
 {
-  "woc": "0.11",
+  "woc": "0.12",
   "encoding": "UTF-8",
-  "version": "0.11.0",
+  "version": "0.0",
   "services": ["Ie8Test.Start"],
   "components": ["Ie8Test.HelloWorld"],
   "themes": "Ie8Theme"
