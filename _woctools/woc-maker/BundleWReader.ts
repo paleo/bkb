@@ -391,7 +391,7 @@ class BundleWReader {
   private includeOtherFiles(writer: BundleWriter, dirRelPath: string, excludeNames: {}): Promise<void> {
     var dir = this.project.makeInputFsPath(dirRelPath);
     return fsp.readdir(dir).then<void>((list) => {
-      return list.reduce((sequence: Promise<void>, childName: string) => {
+      return list.reduce((sequence, childName: string) => {
         if (excludeNames[childName] || BundleWriter.mustExcludeFromOtherFile(childName))
           return sequence;
         return sequence.then(() => {

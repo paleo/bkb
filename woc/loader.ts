@@ -47,6 +47,8 @@ module Woc {
     private ajax: Woc.Ajax;
     private bundlePromMap: {[index:string]: Promise<void>} = {};
 
+    public static WOC_VERSION = '0.12';
+
     constructor(private ac: ApplicationContext, private externLibs: ExternLibs, private services: Singletons,
                 private initializers: Singletons, private components: Components) {
       this.wocUrl = ac.appConfig.wocUrl;
@@ -99,6 +101,8 @@ module Woc {
       var mainProm = this.ajax.get(bundleUrl + '/' + opt.name + '.json').then((resp) => {
         var bundleData = resp.data,
           p;
+        if (bundleData['woc'] !== Loader.WOC_VERSION)
+          throw Error('Bad Woc version "' + bundleData['woc'] + '", required: ' + Loader.WOC_VERSION);
         if (bundleData['preload']) {
           p = Promise.all(bundleData['preload'].map((optStr) => {
             var opt = parseBundleLoadingOptions(optStr);
@@ -106,10 +110,10 @@ module Woc {
               throw Error('Cannot preload bundle in working mode in bundle.json: "' + optStr + '"');
             return this.loadBundle(opt);
           })).then(() => {
-            return this.registerNormalBundle(bundleUrl, bundleData);
+            return this.registerNormalBundle(opt.name, bundleUrl, bundleData);
           });
         } else
-          p = this.registerNormalBundle(bundleUrl, bundleData);
+          p = this.registerNormalBundle(opt.name, bundleUrl, bundleData);
         if (!opt.autoLoadCss && bundleData['css'])
           return Promise.all([p, Loader.addCssLinkToDOM(bundleUrl + '/' + opt.name + '.css')]);
         return p;
@@ -117,7 +121,7 @@ module Woc {
       return opt.autoLoadCss ? <any>Promise.all([mainProm, Loader.addCssLinkToDOM(bundleUrl + '/' + opt.name + '.css')]) : mainProm;
     }
 
-    private registerNormalBundle(bundleUrl, bundleData: {}): Promise<void> {
+    private registerNormalBundle(bundleName: string, bundleUrl: string, bundleData: {}): Promise<void> {
       var name, data, promList = [];
       // - Register externLibs
       var libMap = bundleData['externLibs'];
@@ -151,6 +155,7 @@ module Woc {
           data = initMap[name];
           this.initializers.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
             data['useComponents'], data['js'], data['templates'], data['templateEngine']);
+          this.initializers.addForInit(bundleName, name);
         }
       }
       // - Register components

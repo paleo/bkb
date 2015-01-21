@@ -5,7 +5,7 @@ declare var Handlebars;
 module WocTeam {
   'use strict';
 
-  export class HBTemplateEngine implements Woc.TemplateEngine {
+  export class HandlebarsTemplateEngine implements Woc.TemplateEngine {
     public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
       return new Processor(tplStr, prop);
     }

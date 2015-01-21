@@ -223,29 +223,29 @@ module WocTeam {
 
     private initShortDialogs() {
       var el = document.createElement('div');
-      el.innerHTML = '<dialog class="SmallDialog info ob-dialog">\
+      el.innerHTML = '<dialog class="SmallDialog info">\
   <p class="SmallDialog-msg"></p>\
 </dialog>\
-<dialog class="SmallDialog warn ob-dialog">\
+<dialog class="SmallDialog warn">\
   <p class="SmallDialog-msg"></p>\
 </dialog>\
-<dialog class="SmallDialog err ob-dialog">\
+<dialog class="SmallDialog err">\
   <form method="dialog">\
     <p class="SmallDialog-msg"></p>\
     <div class="SmallDialog-btnBar js-buttons">\
-      <button class="ob-btn" value="ok" autofocus>OK</button>\
+      <button class="Btn" value="ok" autofocus>OK</button>\
     </div>\
   </form>\
 </dialog>\
-<dialog class="SmallDialog confirm ob-dialog">\
+<dialog class="SmallDialog confirm">\
   <form method="dialog">\
     <p class="SmallDialog-msg"></p>\
     <div class="SmallDialog-btnBar js-buttons">\
-      <button value="0" class="ob-btn" style="display: none"></button>\
-      <button value="1" class="ob-btn" style="display: none"></button>\
-      <button value="2" class="ob-btn" style="display: none"></button>\
-      <button value="3" class="ob-btn" style="display: none"></button>\
-      <button value="4" class="ob-btn" style="display: none"></button>\
+      <button value="0" class="Btn" style="display: none"></button>\
+      <button value="1" class="Btn" style="display: none"></button>\
+      <button value="2" class="Btn" style="display: none"></button>\
+      <button value="3" class="Btn" style="display: none"></button>\
+      <button value="4" class="Btn" style="display: none"></button>\
     </div>\
   </form>\
 </dialog>';

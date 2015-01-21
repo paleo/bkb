@@ -89,6 +89,8 @@ module Woc {
     }
 
     static cleanConf(conf: {}): void {
+      if (conf['woc'] !== Loader.WOC_VERSION)
+        throw Error('Bad Woc version "' + conf['woc'] + '", required: ' + Loader.WOC_VERSION);
       var cleanArr = (arrName: string) => {
         if (conf[arrName] === undefined)
           return;

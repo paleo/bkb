@@ -1,7 +1,7 @@
 {
   "woc": "0.12",
   "useExternLibs": ["jQuery"],
-  "scripts": ["jquery-ui-1.10.4.custom.min.js", "datepicker-fr.js"],
+  "scripts": ["jquery-ui-1.10.4.custom.min.js"],
   "themes": [{
     "name": "smoothness",
     "styleSheets": "jquery-ui-1.10.4.custom.min.css"
