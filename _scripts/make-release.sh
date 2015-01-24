@@ -72,8 +72,9 @@ tsc $RELEASE_DIRNAME/myproject.wocb/MyProject.Start.wocs/Start.ts || exit 1
 mkdir $RELEASE_DIRNAME/woclib || exit 1
 cp -t $RELEASE_DIRNAME/woclib/ $SRC_DIR/ie8-shim.js || exit 1
 cp -r -t $RELEASE_DIRNAME/woclib $SRC_DIR/test.wocb/lib.wocb/{*.woc?,defs} || exit 1
-find $RELEASE_DIRNAME/woclib/ ! -name 'Woc.d.ts' ! -name 'es6-promise.d.ts' -name "*.ts" -delete || exit 1
-find $RELEASE_DIRNAME/woclib/ -name "*.scss" -delete || exit 1
+rm $RELEASE_DIRNAME/woclib/defs/lib.d.ts
+#find $RELEASE_DIRNAME/woclib/ ! -name '*.d.ts' -name "*.ts" -delete || exit 1
+#find $RELEASE_DIRNAME/woclib/ -name "*.scss" -delete || exit 1
 
 # Make the archive
 
