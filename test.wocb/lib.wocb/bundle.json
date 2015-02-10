@@ -1,6 +1,6 @@
 {
   "woc": "0.12",
-  "externLibs": ["CookiesHelper", "jQuery", "jQueryUI", "Modernizr"],
+  "externalLibraries": ["CookiesHelper", "jQuery", "jQueryUI", "Modernizr"],
   "services": ["WocTeam.Log", "WocTeam.WocEasyRouter", "WocTeam.Dialogs", "WocTeam.VueTemplateEngine"],
   "components": ["Public.ScreenRouter"],
   "themes": ["ResetCSS"]

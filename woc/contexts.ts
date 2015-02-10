@@ -15,10 +15,10 @@ module Woc {
   }
 
   // ##
-  // ## ExternLibs
+  // ## ExternalLibraries
   // ##
 
-  export class ExternLibs {
+  export class ExternalLibraries {
     private ac: ImplApplicationContext;
     private map = {};
 
@@ -26,11 +26,11 @@ module Woc {
       this.ac = ac;
     }
 
-    public register(libName: string, useExternLibs: string[], scripts: string) {
+    public register(libName: string, useExternalLibraries: string[], scripts: string) {
       if (this.map[libName] !== undefined)
         throw Error('The lib "' + libName + '" is already declared');
       this.map[libName] = {
-        'useExternLibs': useExternLibs,
+        'useExternalLibraries': useExternalLibraries,
         'scripts': scripts,
         'loading': false
       };
@@ -49,11 +49,11 @@ module Woc {
       }
       if (prop === true)
         return true;
-      if (prop['useExternLibs']) {
+      if (prop['useExternalLibraries']) {
         if (prop['loading'])
-          throw Error('A loop is detected in useExternLibs for "' + libName + '"');
+          throw Error('A loop is detected in useExternalLibraries for "' + libName + '"');
         prop['loading'] = true;
-        this.ac.evalExternLib(prop['useExternLibs']);
+        this.ac.evalExternalLibrary(prop['useExternalLibraries']);
       }
       if (prop['scripts'] !== null)
         globalEval(prop['scripts']);
@@ -77,7 +77,7 @@ module Woc {
       this.coreRegister('Woc.HttpClient', 'Woc.CoreHttpClient', true);
     }
 
-    public register(name: string, baseUrl: string, useApp: boolean, useExternLibs: string[], useServices: string[],
+    public register(name: string, baseUrl: string, useApp: boolean, useExternalLibraries: string[], useServices: string[],
                     useComponents: string[], scripts: string, tplStr: string, contextPlugins: string, alias: string[] = null,
                     isContextPluginProvider: boolean = false) {
       if (this.map[name] !== undefined || name === 'Woc.Log')
@@ -86,7 +86,7 @@ module Woc {
         'name': name,
         'baseUrl': baseUrl,
         'useApplication': useApp,
-        'useExternLibs': useExternLibs,
+        'useExternalLibraries': useExternalLibraries,
         'useServices': useServices,
         'useComponents': useComponents,
         'scripts': scripts,
@@ -157,8 +157,8 @@ module Woc {
         throw Error('Unknown ' + this.label + ' "' + name + '"');
       if (prop['context'] !== null)
         return;
-      if (prop['useExternLibs'])
-        this.ac.evalExternLib(prop['useExternLibs']);
+      if (prop['useExternalLibraries'])
+        this.ac.evalExternalLibrary(prop['useExternalLibraries']);
       if (prop['scripts'] !== null)
         globalEval(prop['scripts']);
       var cl = toClass(prop['coreClass'] || prop['name']);
@@ -182,7 +182,7 @@ module Woc {
         methods = null;
       // - Make the context instance
       var ImplContext = Singletons.mergeTraits(this.ac, methods);
-      prop['context'] = new ImplContext(prop['name'], prop['baseUrl'], prop['useExternLibs'], prop['useServices'],
+      prop['context'] = new ImplContext(prop['name'], prop['baseUrl'], prop['useExternalLibraries'], prop['useServices'],
         prop['useComponents'], prop['coreClass'] ? false : true);
       prop['inst'] = prop['useApplication'] ? new cl(this.ac, prop['context']) : new cl(prop['context']);
       prop['context']['_wocOwner'] = prop['inst'];
@@ -194,9 +194,9 @@ module Woc {
     }
 
     private static mergeTraits(ac: ImplApplicationContext, methods: {}[]): any {
-      var SingletonContext = function (name: string, baseUrl: string, useExternLibs: string[], useServices: string[],
+      var SingletonContext = function (name: string, baseUrl: string, useExternalLibraries: string[], useServices: string[],
                             useComponents: string[], restrictedAccess: boolean) {
-        ThingContextTrait.call(this, name, baseUrl, useExternLibs, useServices, useComponents, restrictedAccess);
+        ThingContextTrait.call(this, name, baseUrl, useExternalLibraries, useServices, useComponents, restrictedAccess);
         SingletonContextTrait.call(this);
       };
       SingletonContext.prototype['ac'] = ac;
@@ -231,14 +231,14 @@ module Woc {
       return this.compTree;
     }
 
-    public register(name: string, componentBaseUrl: string, useApp: boolean, useExternLibs: string[], useServices: string[],
+    public register(name: string, componentBaseUrl: string, useApp: boolean, useExternalLibraries: string[], useServices: string[],
                     useComponents: string[], scripts: string, tplStr: string, contextPlugins: string) {
       if (this.map[name] !== undefined)
         throw Error('Conflict for component "' + name + '"');
       this.map[name] = {
         'baseUrl': componentBaseUrl,
         'useApplication': useApp,
-        'useExternLibs': useExternLibs,
+        'useExternalLibraries': useExternalLibraries,
         'useServices': useServices,
         'useComponents': useComponents,
         'scripts': scripts,
@@ -276,8 +276,8 @@ module Woc {
       if (prop['eval'])
         return;
       prop['eval'] = true;
-      if (prop['useExternLibs'])
-        this.ac.evalExternLib(prop['useExternLibs']);
+      if (prop['useExternalLibraries'])
+        this.ac.evalExternalLibrary(prop['useExternalLibraries']);
       if (prop['scripts'] !== null)
         globalEval(prop['scripts']);
       var methods;
@@ -305,7 +305,7 @@ module Woc {
         methods,
         name,
         prop['baseUrl'],
-        prop['useExternLibs'],
+        prop['useExternalLibraries'],
         prop['useServices'],
         prop['useComponents'],
         true
@@ -320,12 +320,12 @@ module Woc {
       }
     }
 
-    private static mergeTraits(ac: ImplApplicationContext, methods: {}[], name: string, baseUrl: string, useExternLibs: string[],
+    private static mergeTraits(ac: ImplApplicationContext, methods: {}[], name: string, baseUrl: string, useExternalLibraries: string[],
                                useServices: string[], useComponents: string[], restrictedAccess: boolean): any {
       var CompContext = function (compId: number) {
         ComponentContextTrait.call(this, compId);
       };
-      ThingContextTrait.call(CompContext.prototype, name, baseUrl, useExternLibs, useServices, useComponents, restrictedAccess);
+      ThingContextTrait.call(CompContext.prototype, name, baseUrl, useExternalLibraries, useServices, useComponents, restrictedAccess);
       CompContext.prototype['ac'] = ac;
       CompContext.prototype['appProperties'] = ac.appProperties;
       CompContext.prototype['log'] = ac.getService('Woc.Log');
@@ -346,7 +346,7 @@ module Woc {
 
   class ImplApplicationContext implements ApplicationContext {
 
-    private externLibs: ExternLibs;
+    private externalLibraries: ExternalLibraries;
     private services: Singletons;
     private initializers: Singletons;
     private components: Components;
@@ -361,11 +361,11 @@ module Woc {
       };
       ContextHelper.freeze(appConfig);
       ContextHelper.freeze(this.appProperties);
-      this.externLibs = new ExternLibs(this);
+      this.externalLibraries = new ExternalLibraries(this);
       this.services = new Singletons(this, 'service');
       this.initializers = new Singletons(this, 'initializer');
       this.components = new Components(this);
-      this.loader = new Loader(this, this.externLibs, this.services, this.initializers, this.components);
+      this.loader = new Loader(this, this.externalLibraries, this.services, this.initializers, this.components);
     }
 
     // --
@@ -427,22 +427,22 @@ module Woc {
         compTree.destruct(c, fromDOM);
     }
 
-    public hasExternLib(libName: any): boolean {
+    public hasExternalLibrary(libName: any): boolean {
       if (typeof libName === 'string')
-        return this.externLibs.has(libName);
+        return this.externalLibraries.has(libName);
       for (var i = 0, len = libName.length; i < len; ++i) {
-        if (!this.externLibs.has(libName))
+        if (!this.externalLibraries.has(libName))
           return false;
       }
       return true;
     }
 
-    public evalExternLib(libName: any): void {
+    public evalExternalLibrary(libName: any): void {
       if (typeof libName === 'string')
-        this.externLibs.load(libName, true);
+        this.externalLibraries.load(libName, true);
       else {
         for (var i = 0, len = libName.length; i < len; ++i)
-          this.externLibs.load(libName[i], true);
+          this.externalLibraries.load(libName[i], true);
       }
     }
 
@@ -471,15 +471,15 @@ module Woc {
 
   class ThingContextTrait {
     private ac: ImplApplicationContext;
-    private authExternLibs: {};
+    private authExternalLibraries: {};
     private authServices: {};
     private authComponents: {};
     private _wocOwner;
     public log: Log;
 
-    constructor(private name: string, private baseUrl: string, useExternLibs: string[], useServices: string[],
+    constructor(private name: string, private baseUrl: string, useExternalLibraries: string[], useServices: string[],
                 useComponents: string[], private restrictedAccess: boolean) {
-      this.authExternLibs = ContextHelper.toSet(useExternLibs, name);
+      this.authExternalLibraries = ContextHelper.toSet(useExternalLibraries, name);
       this.authServices = ContextHelper.toSet(useServices, name, 'Woc.Log');
       this.authComponents = ContextHelper.toSet(useComponents, name);
     }
@@ -516,16 +516,16 @@ module Woc {
       return this.ac.callChildComponents(this.getCompTreeArg(), methodName, args);
     }
 
-    public hasExternLib(libName: any): boolean {
-      if (this.restrictedAccess && !this.authExternLibs[libName])
+    public hasExternalLibrary(libName: any): boolean {
+      if (this.restrictedAccess && !this.authExternalLibraries[libName])
         throw Error('In "' + this.name + '", unauthorized access to the external library "' + libName + '"');
-      return this.ac.hasExternLib(libName);
+      return this.ac.hasExternalLibrary(libName);
     }
 
-    public evalExternLib(libName: any): void {
-      if (this.restrictedAccess && !this.authExternLibs[libName])
+    public evalExternalLibrary(libName: any): void {
+      if (this.restrictedAccess && !this.authExternalLibraries[libName])
         throw Error('In "' + this.name + '", unauthorized access to the external library "' + libName + '"');
-      this.ac.evalExternLib(libName);
+      this.ac.evalExternalLibrary(libName);
     }
 
     public evalService(serviceName: any): void {

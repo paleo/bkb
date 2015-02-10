@@ -26,7 +26,7 @@ module Woc {
   }
 
   enum WEmbedType {
-    ExternLib, Service, Initializer, Component, Theme
+    ExternalLibrary, Service, Initializer, Component, Theme
   }
 
   // ##
@@ -49,7 +49,7 @@ module Woc {
     private mergedBundleConf: {};
     private preloads: Promise<void>[] = [];
 
-    constructor(private externLibs: ExternLibs, private services: Singletons, private initializers: Singletons,
+    constructor(private externalLibraries: ExternalLibraries, private services: Singletons, private initializers: Singletons,
                 private components: Components, private loader: Loader, private wocUrl: string,
                 private opt: BundleLoadingOptions) {
       this.bundlePath = WLoader.toBundleDir(opt.name);
@@ -70,7 +70,7 @@ module Woc {
           return Promise.all(this.preloads);
         });
       }).then(() => {
-        var thingLoader = new WThingLoader(this.externLibs, this.services, this.initializers, this.components, this.http,
+        var thingLoader = new WThingLoader(this.externalLibraries, this.services, this.initializers, this.components, this.http,
           this.urlMaker, this.bundlePath, this.bundleUrl, this.flatBundles, this.mergedBundleConf, this.opt.name);
         return thingLoader.loadAll();
       }).then(() => {
@@ -100,7 +100,7 @@ module Woc {
           conf[arrName] = [conf[arrName]];
       };
       cleanArr('preload');
-      cleanArr('useExternLibs');
+      cleanArr('useExternalLibraries');
       cleanArr('useServices');
       cleanArr('useComponents');
       cleanArr('scripts');
@@ -219,7 +219,7 @@ module Woc {
   class WThingLoader {
     private thingList: WThingProp[];
 
-    constructor(private externLibs: ExternLibs, private services: Singletons, private initializers: Singletons,
+    constructor(private externalLibraries: ExternalLibraries, private services: Singletons, private initializers: Singletons,
                 private components: Components, private http: HttpClient, private urlMaker: WUrlMaker, private bundlePath: string,
                 private bundleUrl: string, private flatBundles: WBundleNode[], private mergedBundleConf: {},
                 private mergedBundleName: string) {
@@ -253,15 +253,15 @@ module Woc {
       // - Bundle theme
       var themeLoader = new WThemeLoader(this.http, this.urlMaker, this.bundlePath, this.bundleUrl, this.mergedBundleConf['themes']);
       // - Things
-      var scriptLoader = new WScriptLoader(this.urlMaker, this.externLibs),
+      var scriptLoader = new WScriptLoader(this.urlMaker, this.externalLibraries),
         tplLoader = new WTplLoader(this.http, this.urlMaker);
-      // - ExternLibs, Services, Components
+      // - ExternalLibraries, Services, Components
       var prop: WThingProp;
       for (var i = 0, len = this.thingList.length; i < len; ++i) {
         prop = this.thingList[i];
         switch(prop.type) {
-          case WEmbedType.ExternLib:
-            scriptLoader.addLib(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useExternLibs']);
+          case WEmbedType.ExternalLibrary:
+            scriptLoader.addLib(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useExternalLibraries']);
             themeLoader.addThingTheme(
               prop.conf['name'],
               prop.url,
@@ -272,7 +272,7 @@ module Woc {
           case WEmbedType.Service:
           case WEmbedType.Initializer:
           case WEmbedType.Component:
-            scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useExternLibs']);
+            scriptLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['scripts']), prop.conf['useExternalLibraries']);
             tplLoader.add(prop.conf['name'], prop.url, WThingLoader.toResList(prop.conf['templates']));
             themeLoader.addThingTheme(
               prop.conf['name'],
@@ -300,7 +300,7 @@ module Woc {
       var bundleNode: WBundleNode;
       for (var i = 0, len = this.flatBundles.length; i < len; ++i) {
         bundleNode = this.flatBundles[i];
-        this.addThing(bundleNode, WEmbedType.ExternLib, 'externLibs');
+        this.addThing(bundleNode, WEmbedType.ExternalLibrary, 'externalLibraries');
         this.addThing(bundleNode, WEmbedType.Service, 'services');
         this.addThing(bundleNode, WEmbedType.Initializer, 'initializers');
         this.addThing(bundleNode, WEmbedType.Component, 'components');
@@ -338,7 +338,7 @@ module Woc {
       for (var i = 0, len = this.thingList.length; i < len; ++i) {
         prop = this.thingList[i];
         switch (prop.type) {
-          case WEmbedType.ExternLib:
+          case WEmbedType.ExternalLibrary:
             libList.push(prop);
             break;
           case WEmbedType.Service:
@@ -355,9 +355,9 @@ module Woc {
         }
       }
       var conf;
-      // - ExternLibs
+      // - ExternalLibraries
       for (var i = 0, len = libList.length; i < len; ++i)
-        this.externLibs.register(libList[i].conf['name'], null, null);
+        this.externalLibraries.register(libList[i].conf['name'], null, null);
       // - Services
       for (var i = 0, len = servList.length; i < len; ++i) {
         conf = servList[i].conf;
@@ -386,8 +386,8 @@ module Woc {
 
     private static getConfFileName(type: WEmbedType) {
       switch(type) {
-        case WEmbedType.ExternLib:
-          return 'externlib.json';
+        case WEmbedType.ExternalLibrary:
+          return 'externalLibrary.json';
         case WEmbedType.Service:
           return 'service.json';
         case WEmbedType.Initializer:
@@ -401,7 +401,7 @@ module Woc {
 
     public static toDir(name: string, type: WEmbedType) {
       switch (type) {
-        case WEmbedType.ExternLib:
+        case WEmbedType.ExternalLibrary:
           return name + '.woce';
         case WEmbedType.Service:
           return name + '.wocs';
@@ -441,18 +441,18 @@ module Woc {
     private withMainPromise = false;
     private runCount = 0;
 
-    constructor(private urlMaker: WUrlMaker, private externLibs: ExternLibs) {
+    constructor(private urlMaker: WUrlMaker, private externalLibraries: ExternalLibraries) {
     }
 
-    public add(thingName: string, baseUrl: string, relUrls: string[], useExternLibs: string[] = []) {
-      this.doAdd(thingName, baseUrl, relUrls, useExternLibs, null);
+    public add(thingName: string, baseUrl: string, relUrls: string[], useExternalLibraries: string[] = []) {
+      this.doAdd(thingName, baseUrl, relUrls, useExternalLibraries, null);
     }
 
-    public addLib(libName: string, baseUrl: string, relUrls: string[], useExternLibs: string[] = []) {
-      if (this.libMap[libName] === true || (this.libMap[libName] === undefined && this.externLibs.load(name, false)))
-        throw Error('ExternLib "' + libName + '" is already defined');
+    public addLib(libName: string, baseUrl: string, relUrls: string[], useExternalLibraries: string[] = []) {
+      if (this.libMap[libName] === true || (this.libMap[libName] === undefined && this.externalLibraries.load(name, false)))
+        throw Error('ExternalLibrary "' + libName + '" is already defined');
       this.libMap[libName] = false;
-      this.doAdd(libName, baseUrl, relUrls, useExternLibs, libName);
+      this.doAdd(libName, baseUrl, relUrls, useExternalLibraries, libName);
     }
 
     public getPromise(): Promise<void> {
@@ -472,25 +472,25 @@ module Woc {
       });
     }
 
-    private doAdd(thingName: string, baseUrl: string, relUrls: string[], useExternLibs: string[], libName: string) {
+    private doAdd(thingName: string, baseUrl: string, relUrls: string[], useExternalLibraries: string[], libName: string) {
       this.urlValidator.add(baseUrl, relUrls);
-      this.fillLibMap(useExternLibs);
+      this.fillLibMap(useExternalLibraries);
       this.waitList.push({
         'thingName': thingName,
         'libName': libName,
         'baseUrl': baseUrl,
         'relUrls': relUrls,
-        'useExternLibs': useExternLibs
+        'useExternalLibraries': useExternalLibraries
       });
       this.runWaited();
     }
 
-    private fillLibMap(useExternLibs: string[]) {
+    private fillLibMap(useExternalLibraries: string[]) {
       var name: string;
-      for (var i = 0, len = useExternLibs.length; i < len; ++i) {
-        name = useExternLibs[i];
+      for (var i = 0, len = useExternalLibraries.length; i < len; ++i) {
+        name = useExternalLibraries[i];
         if (this.libMap[name] === undefined)
-          this.libMap[name] = this.externLibs.load(name, false);
+          this.libMap[name] = this.externalLibraries.load(name, false);
       }
     }
 
@@ -502,7 +502,7 @@ module Woc {
         if (!this.waitList.hasOwnProperty(k))
           continue;
         prop = this.waitList[k];
-        if (this.areExternLibReady(prop['useExternLibs'])) {
+        if (this.areExternalLibraryReady(prop['useExternalLibraries'])) {
           withStarted = true;
           this.loadUrls(prop['baseUrl'], prop['relUrls'], prop['libName']);
           delete this.waitList[k];
@@ -517,9 +517,9 @@ module Woc {
       }
     }
 
-    private areExternLibReady(useExternLibs: string[]) {
-      for (var i = 0, len = useExternLibs.length; i < len; ++i) {
-        if (!this.libMap[useExternLibs[i]])
+    private areExternalLibraryReady(useExternalLibraries: string[]) {
+      for (var i = 0, len = useExternalLibraries.length; i < len; ++i) {
+        if (!this.libMap[useExternalLibraries[i]])
           return false;
       }
       return true;

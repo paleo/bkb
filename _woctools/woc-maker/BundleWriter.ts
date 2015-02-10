@@ -24,7 +24,7 @@ class BundleWriter {
   private cssMinifier: minifiers.CssMinifier;
   private htmlMinifier: minifiers.HtmlMinifier;
   private bundleProp = {};
-  private externLibs = {};
+  private externalLibraries = {};
   private contextThings;
   private hasBundleCss = false;
   private bundleCssChannels = {};
@@ -64,33 +64,33 @@ class BundleWriter {
       });
   }
 
-  public addExternLib(name: string, useExternLibs: string[], scripts: {}[], css: {}[]): Promise<void> {
-    if (this.externLibs[name] !== undefined)
-      throw Error('Conflict in bundle "' + this.bundleName + '": several externLibs "' + name + '"');
+  public addExternalLibrary(name: string, useExternalLibraries: string[], scripts: {}[], css: {}[]): Promise<void> {
+    if (this.externalLibraries[name] !== undefined)
+      throw Error('Conflict in bundle "' + this.bundleName + '": several externalLibraries "' + name + '"');
     var lib = {};
-    if (useExternLibs !== null)
-      lib['useExternLibs'] = useExternLibs;
+    if (useExternalLibraries !== null)
+      lib['useExternalLibraries'] = useExternalLibraries;
     var p = Promise.resolve<void>();
     if (scripts) {
-      p = BundleWriter.concatFiles('ExternLib ' + name, scripts, this.jsMinifier, 'js').then((content: string): void => {
+      p = BundleWriter.concatFiles('ExternalLibrary ' + name, scripts, this.jsMinifier, 'js').then((content: string): void => {
         lib['js'] = content;
       });
     }
     if (css !== null) {
       if (css.length > 0) {
         p = p.then(() => {
-          return BundleWriter.concatFiles('ExternLib ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
+          return BundleWriter.concatFiles('ExternalLibrary ' + name, css, this.cssMinifier, 'css').then((content: string): void => {
             this.thingCssList.push(content);
           });
         });
       }
     }
     return p.then(() => {
-      this.externLibs[name] = lib;
+      this.externalLibraries[name] = lib;
     });
   }
 
-  public addContextThing(type: Common.EmbedType, name: string, useApp: boolean, useExternLibs: string[], useServices: string[],
+  public addContextThing(type: Common.EmbedType, name: string, useApp: boolean, useExternalLibraries: string[], useServices: string[],
                          useComponents: string[], scripts: {}[], css: {}[], tpl: {}[], contextPlugins: string[], alias: string[],
                          isContextPluginProvider: boolean): Promise<void> {
     if (this.contextThings[type][name] !== undefined)
@@ -100,8 +100,8 @@ class BundleWriter {
     //return BundleWriter.concatFiles(title, scripts, this.jsMinifier, 'js').then((content: string): void => {
     if (useApp)
       prop['useApplication'] = true;
-    if (useExternLibs !== null)
-      prop['useExternLibs'] = useExternLibs;
+    if (useExternalLibraries !== null)
+      prop['useExternalLibraries'] = useExternalLibraries;
     if (useServices !== null)
       prop['useServices'] = useServices;
     if (useComponents !== null)
@@ -236,8 +236,8 @@ class BundleWriter {
       if (this.bundleProp.hasOwnProperty(k) && this.bundleProp[k])
         data[k] = this.bundleProp[k];
     }
-    if (!Project.isEmpty(this.externLibs))
-      data['externLibs'] = this.externLibs;
+    if (!Project.isEmpty(this.externalLibraries))
+      data['externalLibraries'] = this.externalLibraries;
     if (!Project.isEmpty(this.contextThings[Common.EmbedType.Service]))
       data['services'] = this.contextThings[Common.EmbedType.Service];
     if (!Project.isEmpty(this.contextThings[Common.EmbedType.Initializer]))

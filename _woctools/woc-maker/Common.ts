@@ -3,12 +3,12 @@
 
 module Common {
   export enum EmbedType {
-    ExternLib, Service, Initializer, Component, Theme, Bundle
+    ExternalLibrary, Service, Initializer, Component, Theme, Bundle
   }
 
   export function toWDir(name: string, type: EmbedType): string {
     switch (type) {
-      case EmbedType.ExternLib:
+      case EmbedType.ExternalLibrary:
         return name + '.woce';
       case EmbedType.Service:
         return name + '.wocs';
@@ -27,8 +27,8 @@ module Common {
 
   export function toPluralLabel(type: EmbedType) {
     switch (type) {
-      case EmbedType.ExternLib:
-        return 'externLibs';
+      case EmbedType.ExternalLibrary:
+        return 'externalLibraries';
       case EmbedType.Service:
         return 'services';
       case EmbedType.Initializer:

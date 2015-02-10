@@ -1,6 +1,6 @@
 {
   "woc": "0.12",
-  "useExternLibs": ["jQuery"],
+  "useExternalLibraries": ["jQuery"],
   "scripts": ["jquery-ui-1.10.4.custom.min.js"],
   "themes": [{
     "name": "smoothness",

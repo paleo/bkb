@@ -134,10 +134,10 @@ declare module Woc {
     removeComponent(cList: Component[], fromDOM?: boolean): void;
     getChildComponents(): Component[];
     callChildComponents(methodName, ...args: any[]): any[];
-    hasExternLib(libName: string): boolean;
-    hasExternLib(libName: string[]): boolean;
-    evalExternLib(libName: string): void;
-    evalExternLib(libName: string[]): void;
+    hasExternalLibrary(libName: string): boolean;
+    hasExternalLibrary(libName: string[]): boolean;
+    evalExternalLibrary(libName: string): void;
+    evalExternalLibrary(libName: string[]): void;
     evalService(serviceName: string): void;
     evalService(serviceName: string[]): void;
     evalComponent(componentName: string): void;
