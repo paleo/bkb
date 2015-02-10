@@ -91,7 +91,8 @@ class BundleWriter {
   }
 
   public addContextThing(type: Common.EmbedType, name: string, useApp: boolean, useExternLibs: string[], useServices: string[],
-                         useComponents: string[], scripts: {}[], css: {}[], tpl: {}[], templateEngine: string, alias: string[]): Promise<void> {
+                         useComponents: string[], scripts: {}[], css: {}[], tpl: {}[], contextPlugins: string[], alias: string[],
+                         isContextPluginProvider: boolean): Promise<void> {
     if (this.contextThings[type][name] !== undefined)
       throw Error('Conflict in bundle "' + this.bundleName + '": several ' + Common.toPluralLabel(type) + ' "' + name + '"');
     var prop = {},
@@ -105,17 +106,19 @@ class BundleWriter {
       prop['useServices'] = useServices;
     if (useComponents !== null)
       prop['useComponents'] = useComponents;
-    if (templateEngine)
-      prop['templateEngine'] = templateEngine;
+    if (contextPlugins)
+      prop['contextPlugins'] = contextPlugins;
     if (alias)
       prop['alias'] = alias;
+    if (isContextPluginProvider)
+      prop['isContextPluginProvider'] = isContextPluginProvider;
     var title = Common.EmbedType[type] +  ' ' + name;
     pList.push(BundleWriter.concatFiles(title, scripts, this.jsMinifier, 'js').then((content: string): void => {
       prop['js'] = content;
     }));
     if (tpl !== null) {
-      if (!templateEngine)
-        console.log('[Warning] ' + title + ' has templates without template engine');
+      if (!contextPlugins)
+        console.log('[Warning] ' + title + ' has templates without context plugins');
       pList.push(BundleWriter.concatFiles(title, tpl, this.htmlMinifier, 'html').then((content: string): void => {
         prop['templates'] = content;
       }));

@@ -78,7 +78,7 @@ module Woc {
   }
 
   // - Parameters
-  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'log.js', 'ajax.js'];
+  var scripts = ['lib/promise-1.0.0.min.js', 'utils.js', 'comptree.js', 'contexts.js', 'loader.js', 'loader-w.js', 'log.js', 'httpclient.js'];
 
   // - Check if ready then start
   var waitedLoads = scripts.length, started = false;

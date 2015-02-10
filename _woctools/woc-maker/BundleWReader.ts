@@ -34,12 +34,11 @@ class BundleWReader {
       return project.readInputJsonFile(path.join(bundleRelPath, 'bundle.json'), project.getDefaultEncoding());
     }).then((conf: {}) => {
       BundleWReader.cleanConf(conf);
-      return new BundleWReader(project, bundleRelPath, bundleName, conf, parentRelPath === null);
+      return new BundleWReader(project, bundleRelPath, conf);
     });
   }
 
-  constructor(private project: Project, private bundleRelPath: string, private bundleName: string, private conf: {},
-              private isRoot: boolean) {
+  constructor(private project: Project, private bundleRelPath: string, private conf: {}) {
     this.encoding = this.conf['encoding'] || project.getDefaultEncoding();
     this.bundleVersion = this.conf['version'] || null;
   }
@@ -203,8 +202,9 @@ class BundleWReader {
             this.makeFileArr(dirRelPath, conf['scripts']),
             this.makeFileArr(dirRelPath, cssList),
             this.makeFileArr(dirRelPath, conf['templates']),
-            conf['templateEngine'],
-            type === Common.EmbedType.Service ? conf['alias'] : null
+            conf['contextPlugins'],
+            type === Common.EmbedType.Service ? conf['alias'] : null,
+            type === Common.EmbedType.Service ? conf['isContextPluginProvider'] : null
           ),
           this.includeOtherFiles(
             writer,
@@ -438,6 +438,7 @@ class BundleWReader {
     cleanArr('styleSheets');
     cleanArr('templates');
     cleanArr('alias');
+    cleanArr('contextPlugins');
   }
 }
 

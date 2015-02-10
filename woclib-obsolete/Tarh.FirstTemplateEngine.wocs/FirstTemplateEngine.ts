@@ -3,13 +3,13 @@
 module Tarh {
   'use strict';
 
-  export class FirstTemplateEngine implements Woc.TemplateEngine {
-    public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
+  export class FirstTemplateEngine implements Woc.ContextPluginProvider {
+    public makeContextPlugin(tplStr: string, prop: Woc.EmbedProperties): Woc.ContextPlugin {
       return new Processor(tplStr, prop);
     }
   }
 
-  class Processor implements Woc.TemplateProcessor {
+  class Processor implements Woc.ContextPlugin {
 
     private static DATA_PH = 'data-woc-mYr4-ph';
     private templates: HTMLElement[];

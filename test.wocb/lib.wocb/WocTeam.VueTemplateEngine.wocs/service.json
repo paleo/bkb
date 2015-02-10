@@ -2,5 +2,6 @@
   "woc": "0.12",
   "encoding": "UTF-8",
   "scripts": ["vue.min.js", "VueTemplateEngine.js"],
-  "name": "WocTeam.VueTemplateEngine"
+  "name": "WocTeam.VueTemplateEngine",
+  "isContextPluginProvider": true
 }

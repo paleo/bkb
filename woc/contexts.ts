@@ -74,11 +74,12 @@ module Woc {
 
     constructor(ac: any, private label: string) {
       this.ac = ac;
-      this.coreRegister('Woc.Ajax', 'Woc.CoreAjax', true);
+      this.coreRegister('Woc.HttpClient', 'Woc.CoreHttpClient', true);
     }
 
     public register(name: string, baseUrl: string, useApp: boolean, useExternLibs: string[], useServices: string[],
-                    useComponents: string[], scripts: string, tplStr: string, templateEngine: string, alias: string[] = null) {
+                    useComponents: string[], scripts: string, tplStr: string, contextPlugins: string, alias: string[] = null,
+                    isContextPluginProvider: boolean = false) {
       if (this.map[name] !== undefined || name === 'Woc.Log')
         throw Error('The ' + this.label + ' "' + name + '" is already declared');
       var prop = {
@@ -90,7 +91,8 @@ module Woc {
         'useComponents': useComponents,
         'scripts': scripts,
         'tplStr': tplStr,
-        'templateEngine': templateEngine,
+        'contextPlugins': contextPlugins,
+        'isContextPluginProvider': isContextPluginProvider,
         'context': null,
         'inst': null
       };
@@ -137,6 +139,13 @@ module Woc {
       return this.map[name]['inst'];
     }
 
+    public isContextPluginService(name: string): boolean {
+      var prop = this.map[name];
+      if (prop === undefined)
+        throw Error('Unknown ' + this.label + ' "' + name + '"');
+      return prop['isContextPluginProvider'];
+    }
+
     public evalSingleton(name: string): void {
       if (name !== 'Woc.Log')
         this.makeReady(name);
@@ -155,12 +164,20 @@ module Woc {
       var cl = toClass(prop['coreClass'] || prop['name']);
       // - Template methods
       var methods;
-      if (prop['templateEngine']) {
-        var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);
-        methods = tplEng.makeProcessor(prop['tplStr'], {
-          'name': name,
-          'baseUrl': prop['baseUrl']
-        }).getContextMethods();
+      if (prop['contextPlugins']) {
+        methods = [];
+        var cPlugProvider: ContextPluginProvider,
+          cPlug: ContextPlugin;
+        for (var i = 0, len = prop['contextPlugins'].length; i < len; ++i) {
+          if (!this.ac.isContextPluginService(prop['contextPlugins'][i]))
+            throw Error('The service "' + prop['contextPlugins'][i] + '" is not a context plugin');
+          cPlugProvider = this.ac.getService(prop['contextPlugins'][i]);
+          cPlug = cPlugProvider.makeContextPlugin(prop['tplStr'], {
+            'name': name,
+            'baseUrl': prop['baseUrl']
+          });
+          methods.push(cPlug.getContextMethods());
+        }
       } else
         methods = null;
       // - Make the context instance
@@ -176,7 +193,7 @@ module Woc {
       this.map[name]['coreClass'] = coreClass;
     }
 
-    private static mergeTraits(ac: ImplApplicationContext, methods: {}): any {
+    private static mergeTraits(ac: ImplApplicationContext, methods: {}[]): any {
       var SingletonContext = function (name: string, baseUrl: string, useExternLibs: string[], useServices: string[],
                             useComponents: string[], restrictedAccess: boolean) {
         ThingContextTrait.call(this, name, baseUrl, useExternLibs, useServices, useComponents, restrictedAccess);
@@ -187,8 +204,10 @@ module Woc {
       SingletonContext.prototype['log'] = ac.getService('Woc.Log');
       ContextHelper.copyMembers(ThingContextTrait.prototype, SingletonContext.prototype);
       ContextHelper.copyMembers(SingletonContextTrait.prototype, SingletonContext.prototype);
-      if (methods)
-        ContextHelper.copyMembers(methods, SingletonContext.prototype);
+      if (methods) {
+        for (var i = 0, len = methods.length; i < len; ++i)
+          ContextHelper.copyMembers(methods[i], SingletonContext.prototype);
+      }
       ContextHelper.freeze(SingletonContext.prototype);
       return SingletonContext;
     }
@@ -213,7 +232,7 @@ module Woc {
     }
 
     public register(name: string, componentBaseUrl: string, useApp: boolean, useExternLibs: string[], useServices: string[],
-                    useComponents: string[], scripts: string, tplStr: string, templateEngine: string) {
+                    useComponents: string[], scripts: string, tplStr: string, contextPlugins: string) {
       if (this.map[name] !== undefined)
         throw Error('Conflict for component "' + name + '"');
       this.map[name] = {
@@ -224,11 +243,11 @@ module Woc {
         'useComponents': useComponents,
         'scripts': scripts,
         'tplStr': tplStr,
-        'templateEngine': templateEngine,
+        'contextPlugins': contextPlugins,
         'eval': false,
         'CC': null,
         'Cl': null,
-        'tplProc': null
+        'cPlugins': null
       };
     }
 
@@ -242,7 +261,7 @@ module Woc {
       var Cl = prop['Cl'];
       var c = prop['useApplication'] ? new Cl(this.ac, cc, props ? props : {}) : new Cl(cc, props ? props : {});
       cc['_wocOwner'] = c;
-      this.compTree.setComp(id, c, cc, prop['tplProc']);
+      this.compTree.setComp(id, c, cc, prop['cPlugins']);
       return c;
     }
 
@@ -262,13 +281,23 @@ module Woc {
       if (prop['scripts'] !== null)
         globalEval(prop['scripts']);
       var methods;
-      if (prop['templateEngine']) {
-        var tplEng: TemplateEngine = this.ac.getService(prop['templateEngine']);
-        prop['tplProc'] = tplEng.makeProcessor(prop['tplStr'], {
-          'name': name,
-          'baseUrl': prop['baseUrl']
-        });
-        methods = prop['tplProc'].getContextMethods();
+      if (prop['contextPlugins']) {
+        methods = [];
+        var cPlugins = [],
+          cPlugProvider: ContextPluginProvider,
+          cPlug: ContextPlugin;
+        for (var i = 0, len = prop['contextPlugins'].length; i < len; ++i) {
+          if (!this.ac.isContextPluginService(prop['contextPlugins'][i]))
+            throw Error('The service "' + prop['contextPlugins'][i] + '" is not a context plugin');
+          cPlugProvider = this.ac.getService(prop['contextPlugins'][i]);
+          cPlug = cPlugProvider.makeContextPlugin(prop['tplStr'], {
+            'name': name,
+            'baseUrl': prop['baseUrl']
+          });
+          cPlugins.push(cPlug);
+          methods.push(cPlug.getContextMethods());
+        }
+        prop['cPlugins'] = cPlugins;
       } else
         methods = null;
       prop['CC'] = Components.mergeTraits(
@@ -291,7 +320,7 @@ module Woc {
       }
     }
 
-    private static mergeTraits(ac: ImplApplicationContext, methods: {}, name: string, baseUrl: string, useExternLibs: string[],
+    private static mergeTraits(ac: ImplApplicationContext, methods: {}[], name: string, baseUrl: string, useExternLibs: string[],
                                useServices: string[], useComponents: string[], restrictedAccess: boolean): any {
       var CompContext = function (compId: number) {
         ComponentContextTrait.call(this, compId);
@@ -302,8 +331,10 @@ module Woc {
       CompContext.prototype['log'] = ac.getService('Woc.Log');
       ContextHelper.copyMembers(ComponentContextTrait.prototype, CompContext.prototype);
       ContextHelper.copyMembers(ThingContextTrait.prototype, CompContext.prototype);
-      if (methods)
-        ContextHelper.copyMembers(methods, CompContext.prototype);
+      if (methods) {
+        for (var i = 0, len = methods.length; i < len; ++i)
+          ContextHelper.copyMembers(methods[i], CompContext.prototype);
+      }
       ContextHelper.freeze(CompContext.prototype);
       return CompContext;
     }
@@ -369,6 +400,10 @@ module Woc {
 
     public getService(serviceName: string): any {
       return this.services.get(serviceName);
+    }
+
+    public isContextPluginService(serviceName: string): boolean {
+      return this.services.isContextPluginService(serviceName);
     }
 
     public createComponent(serviceName: string, props: {}, compTreeArg: CompTreeArg): any {

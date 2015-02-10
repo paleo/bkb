@@ -1,8 +1,8 @@
 {
   "woc": "0.12",
   "encoding": "UTF-8",
-  "templateEngine": ["WocTeam.VueTemplateEngine"],
-  "useServices": "Test.Model",
+  "contextPlugins": ["WocTeam.VueTemplateEngine"],
+  "useServices": ["Test.Model"],
   "scripts": "CreateTask.js",
   "templates": "CreateTask.html",
   "styleSheets": "CreateTask.css",

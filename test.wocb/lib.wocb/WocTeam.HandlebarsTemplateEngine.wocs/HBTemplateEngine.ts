@@ -5,13 +5,13 @@ declare var Handlebars;
 module WocTeam {
   'use strict';
 
-  export class HandlebarsTemplateEngine implements Woc.TemplateEngine {
-    public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
+  export class HandlebarsTemplateEngine implements Woc.ContextPluginProvider {
+    public makeContextPlugin(tplStr: string, prop: Woc.EmbedProperties): Woc.ContextPlugin {
       return new Processor(tplStr, prop);
     }
   }
   
-  class Processor implements Woc.TemplateProcessor {
+  class Processor implements Woc.ContextPlugin {
     private static hb;
     private map = {};
     private tplStrMap = {};

@@ -1,7 +1,7 @@
 {
   "woc": "0.12",
   "encoding": "UTF-8",
-  "templateEngine": ["WocTeam.VueTemplateEngine"],
+  "contextPlugins": ["WocTeam.VueTemplateEngine"],
   "useServices": ["Woc.Router", "Test.Model"],
   "useComponents": "Test.CreateTask",
   "scripts": "List.js",

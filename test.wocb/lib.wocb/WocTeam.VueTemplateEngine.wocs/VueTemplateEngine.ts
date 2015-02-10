@@ -26,7 +26,7 @@ module WocTeam {
   // -- VueTemplateEngine
   // --
 
-  export class VueTemplateEngine implements Woc.TemplateEngine {
+  export class VueTemplateEngine implements Woc.ContextPluginProvider {
     private log: Woc.Log;
     private DefaultWocVue;
     private customs = {};
@@ -36,7 +36,7 @@ module WocTeam {
       this.DefaultWocVue = this.createWocVue();
     }
 
-    public makeProcessor(tplStr: string, prop: Woc.EmbedProperties): Woc.TemplateProcessor {
+    public makeContextPlugin(tplStr: string, prop: Woc.EmbedProperties): Woc.ContextPlugin {
       return new Processor(this, this.DefaultWocVue, tplStr, prop);
     }
 
@@ -106,7 +106,7 @@ module WocTeam {
   // -- Processor
   // --
 
-  class Processor implements Woc.TemplateProcessor {
+  class Processor implements Woc.ContextPlugin {
     private tplMap = {};
 
     constructor(private parent: VueTemplateEngine, private WocVue, tplStr: string, private prop: Woc.EmbedProperties) {

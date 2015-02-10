@@ -3,7 +3,7 @@
 'use strict';
 
 module Woc {
-  export class CoreAjax implements Ajax {
+  export class CoreHttpClient implements HttpClient {
     private defaultEncoding: string;
 
     constructor(ac: ApplicationContext) {
@@ -14,48 +14,48 @@ module Woc {
     // -- Public
     // --
 
-    public ajax(config: AjaxConfig): Promise<AjaxResponse> {
+    public request(config: HttpConfig): Promise<HttpResponse> {
       var completed = this.makeCompleteConfig(config);
-      return CoreAjax.doXHR(completed, config);
+      return CoreHttpClient.doXHR(completed, config);
     }
 
-    public get(url: string, config: AjaxConfig = null): Promise<AjaxResponse> {
+    public get(url: string, config: HttpConfig = null): Promise<HttpResponse> {
       var completed = this.makeCompleteConfig(config, 'GET', url);
-      return CoreAjax.doXHR(completed, config);
+      return CoreHttpClient.doXHR(completed, config);
     }
 
-    public head(url: string, config: AjaxConfig = null): Promise<AjaxResponse> {
+    public head(url: string, config: HttpConfig = null): Promise<HttpResponse> {
       var completed = this.makeCompleteConfig(config, 'HEAD', url);
-      return CoreAjax.doXHR(completed, config);
+      return CoreHttpClient.doXHR(completed, config);
     }
 
-    public post(url: string, data: any, config: AjaxConfig = null): Promise<AjaxResponse> {
+    public post(url: string, data: any, config: HttpConfig = null): Promise<HttpResponse> {
       var completed = this.makeCompleteConfig(config, 'POST', url, data);
-      return CoreAjax.doXHR(completed, config);
+      return CoreHttpClient.doXHR(completed, config);
     }
 
-    public put(url: string, data: any, config: AjaxConfig = null): Promise<AjaxResponse> {
+    public put(url: string, data: any, config: HttpConfig = null): Promise<HttpResponse> {
       var completed = this.makeCompleteConfig(config, 'PUT', url, data);
-      return CoreAjax.doXHR(completed, config);
+      return CoreHttpClient.doXHR(completed, config);
     }
 
-    public delete: (url: string, config?: AjaxConfig) => Promise<AjaxResponse>;
+    public delete: (url: string, config?: HttpConfig) => Promise<HttpResponse>;
 
     // --
     // -- Private - Handle AJAX events - Loadings
     // --
 
-    private makeCompleteConfig(config?: AjaxConfig, method?: string, url?: string, data?: any): AjaxConfig {
+    private makeCompleteConfig(config?: HttpConfig, method?: string, url?: string, data?: any): HttpConfig {
       if (!config)
         config = {};
       if (method === undefined)
         method = config.method;
       if (!method)
-        throw Error('Ajax - Missing method');
+        throw Error('Missing HTTP method');
       if (url === undefined)
         url = config.url;
       if (!url)
-        throw Error('Ajax - Missing url');
+        throw Error('Missing HTTP url');
       return {
         method: method,
         url: url,
@@ -84,19 +84,19 @@ module Woc {
       return h;
     }
 
-    private static doXHR(completed: AjaxConfig, orig: AjaxConfig): Promise<AjaxResponse> {
-      return new Promise<AjaxResponse>((resolve, reject) => {
+    private static doXHR(completed: HttpConfig, orig: HttpConfig): Promise<HttpResponse> {
+      return new Promise<HttpResponse>((resolve, reject) => {
         var req = new XMLHttpRequest();
         req.open(completed.method, completed.url, true);
         if (completed.timeout !== undefined)
           req.timeout = completed.timeout;
         // - Handlers
-        var makeResponse = (): AjaxResponse => {
+        var makeResponse = (): HttpResponse => {
           return {
             data: req.responseText,
             status: req.status,
             headers: () => {
-              return CoreAjax.parseResponseHeaders(req.getAllResponseHeaders());
+              return CoreHttpClient.parseResponseHeaders(req.getAllResponseHeaders());
             },
             config: orig,
             statusText: req.statusText
@@ -105,7 +105,7 @@ module Woc {
         req.onload = () => {
           var response = makeResponse();
           if (req.status < 200 || req.status >= 400) {
-            reject(CoreAjax.mergeResponseError(Error('Error on server: ' + req.status), response));
+            reject(CoreHttpClient.mergeResponseError(Error('Error on server: ' + req.status), response));
             return;
           }
           switch (completed.responseType) {
@@ -118,7 +118,7 @@ module Woc {
                 response.data = JSON.parse(req.responseText);
                 resolve(response);
               } catch (e) {
-                reject(CoreAjax.mergeResponseError(Error('Invalid JSON'), response));
+                reject(CoreHttpClient.mergeResponseError(Error('Invalid JSON'), response));
                 return;
               }
               break;
@@ -127,7 +127,7 @@ module Woc {
           }
         };
         req.onerror = () => {
-          reject(CoreAjax.mergeResponseError(Error('Network error'), makeResponse()));
+          reject(CoreHttpClient.mergeResponseError(Error('Network error'), makeResponse()));
         };
         // - Send
         for (var k in completed.headers) {
@@ -138,7 +138,7 @@ module Woc {
       });
     }
 
-    private static mergeResponseError(err: Error, resp: AjaxResponse): Error {
+    private static mergeResponseError(err: Error, resp: HttpResponse): Error {
       for (var k in resp) {
         if (resp.hasOwnProperty(k))
           err[k] = resp[k];
@@ -167,8 +167,8 @@ module Woc {
   }
 
   // IE8
-  CoreAjax.prototype['delete'] = function (url, config: AjaxConfig = null): Promise<AjaxResponse> {
+  CoreHttpClient.prototype['delete'] = function (url, config: HttpConfig = null): Promise<HttpResponse> {
     var completed = this.makeCompleteConfig(config, 'DELETE', url);
-    return CoreAjax['doXHR'](completed, config);
+    return CoreHttpClient['doXHR'](completed, config);
   };
 }

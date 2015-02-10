@@ -2,5 +2,6 @@
   "woc": "0.12",
   "encoding": "UTF-8",
   "scripts": ["FirstTemplateEngine.js"],
-  "name": "Tarh.FirstTemplateEngine"
+  "name": "Tarh.FirstTemplateEngine",
+  "isContextPluginProvider": true
 }

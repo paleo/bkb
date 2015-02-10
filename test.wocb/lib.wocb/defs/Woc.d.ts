@@ -39,14 +39,14 @@ declare module Woc {
     debug(msg: any): void;
   }
 
-  interface TemplateEngine {
-    makeProcessor(tplStr: string, prop: EmbedProperties): TemplateProcessor;
+  interface ContextPluginProvider {
+    makeContextPlugin(tplStr: string, prop: EmbedProperties): ContextPlugin;
   }
 
   /**
    * constructor: function (ctc: ComponentTypeContext, tplStr: string)
    */
-  interface TemplateProcessor {
+  interface ContextPlugin {
     getContextMethods(): {[index: string]: Function};
     destruct(context: Woc.ComponentContext): void;
   }
@@ -160,10 +160,10 @@ declare module Woc {
   }
 
   // ##
-  // ## Ajax service
+  // ## HttpClient service
   // ##
 
-  interface AjaxConfig {
+  interface HttpConfig {
     method?: string;
     url?: string;
     data?: any;
@@ -175,21 +175,21 @@ declare module Woc {
     responseType?: string;
   }
 
-  interface AjaxResponse {
+  interface HttpResponse {
     data?: any;
     status: number;
     headers: () => { [index: string]: any };
-    config: AjaxConfig;
+    config: HttpConfig;
     statusText: string;
   }
 
-  interface Ajax {
-    ajax(config: AjaxConfig): Promise<AjaxResponse>;
-    get(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
-    head(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
-    post(url: string, data: any, config?: AjaxConfig): Promise<AjaxResponse>;
-    put(url: string, data: any, config?: AjaxConfig): Promise<AjaxResponse>;
-    delete(url: string, config?: AjaxConfig): Promise<AjaxResponse>;
+  interface HttpClient {
+    request(config: HttpConfig): Promise<HttpResponse>;
+    get(url: string, config?: HttpConfig): Promise<HttpResponse>;
+    head(url: string, config?: HttpConfig): Promise<HttpResponse>;
+    post(url: string, data: any, config?: HttpConfig): Promise<HttpResponse>;
+    put(url: string, data: any, config?: HttpConfig): Promise<HttpResponse>;
+    delete(url: string, config?: HttpConfig): Promise<HttpResponse>;
   }
 }
 

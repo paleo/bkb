@@ -44,7 +44,7 @@ module Woc {
 
   export class Loader {
     private wocUrl: string;
-    private ajax: Woc.Ajax;
+    private http: Woc.HttpClient;
     private bundlePromMap: {[index:string]: Promise<void>} = {};
 
     public static WOC_VERSION = '0.12';
@@ -52,7 +52,7 @@ module Woc {
     constructor(private ac: ApplicationContext, private externLibs: ExternLibs, private services: Singletons,
                 private initializers: Singletons, private components: Components) {
       this.wocUrl = ac.appConfig.wocUrl;
-      this.ajax = this.services.get('Woc.Ajax');
+      this.http = this.services.get('Woc.HttpClient');
     }
 
     public loadBundle(opt: BundleLoadingOptions): Promise<void> {
@@ -98,7 +98,7 @@ module Woc {
       if (opt.version)
         dir += '-' + opt.version;
       var bundleUrl = parentUrl + '/' + dir;
-      var mainProm = this.ajax.get(bundleUrl + '/' + opt.name + '.json').then((resp) => {
+      var mainProm = this.http.get(bundleUrl + '/' + opt.name + '.json').then((resp) => {
         var bundleData = resp.data,
           p;
         if (bundleData['woc'] !== Loader.WOC_VERSION)
@@ -143,7 +143,8 @@ module Woc {
             continue;
           data = servMap[name];
           this.services.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
-            data['useComponents'], data['js'], data['templates'], data['templateEngine'], data['alias']);
+            data['useComponents'], data['js'], data['templates'], data['contextPlugins'], data['alias'],
+            data['isContextPluginProvider']);
         }
       }
       // - Register initializers
@@ -154,7 +155,7 @@ module Woc {
             continue;
           data = initMap[name];
           this.initializers.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
-            data['useComponents'], data['js'], data['templates'], data['templateEngine']);
+            data['useComponents'], data['js'], data['templates'], data['contextPlugins']);
           this.initializers.addForInit(bundleName, name);
         }
       }
@@ -166,7 +167,7 @@ module Woc {
             continue;
           data = compMap[name];
           this.components.register(name, bundleUrl, data['useApplication'], data['useExternLibs'], data['useServices'],
-            data['useComponents'], data['js'], data['templates'], data['templateEngine']);
+            data['useComponents'], data['js'], data['templates'], data['contextPlugins']);
           if (data['css'])
             promList.push(Loader.addCssLinks(data['css'], bundleUrl));
         }

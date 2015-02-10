@@ -34,13 +34,13 @@ module Woc {
       }
     }
 
-    public setComp(id: number, c: Component, cc: ComponentContext, tplProc: TemplateProcessor): void {
+    public setComp(id: number, c: Component, cc: ComponentContext, cPlugins: ContextPlugin[]): void {
       var item = this.list[id];
       if (item === undefined)
         throw Error('Unknown component "' + id + '"');
       item['comp'] = c;
       item['cc'] = cc;
-      item['tplProc'] = tplProc;
+      item['cPlugins'] = cPlugins;
       c[ComponentTree.ID_PROP] = id;
     }
 
@@ -110,8 +110,10 @@ module Woc {
       var item = this.list[id];
       if (item === undefined)
         throw Error('Unknown component "' + id + '" (already removed?)');
-      if (item['tplProc'])
-        item['tplProc'].destruct(item['cc']);
+      if (item['cPlugins']) {
+        for (var i = 0, len = item['cPlugins'].length; i < len; ++i)
+          item['cPlugins'][i].destruct(item['cc']);
+      }
       if (item['comp'] === null)
         throw Error('Cannot destruct the component "' + item['name'] + '" during its initialisation');
       if (removeFromDOM && item['comp']['destructInDOM'] !== undefined)
@@ -139,7 +141,7 @@ module Woc {
       this.list.push(children[id] = {
         'comp': null,
         'cc': null,
-        'tplProc': null,
+        'cPlugins': null,
         'name': cName,
         'children': {},
         'parentMap': children
