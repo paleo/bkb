@@ -10,11 +10,13 @@
     "woc-make": "./woc-make.js"
   },
   "dependencies": {
+    "fs": "*",
+    "path": "*",
+    "es6-promise": ">=1.0",
     "optimist": ">=0.6",
     "uglify-js": ">=2.4",
     "uglifycss": ">=0.0",
-    "html-minifier": ">=0.5",
-		"es6-promise": "*"
+    "html-minifier": ">=0.5"
   },
   "private": true,
   "license": "CC0"
