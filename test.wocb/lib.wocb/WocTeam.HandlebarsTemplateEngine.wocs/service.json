@@ -1,7 +1,0 @@
-{
-  "woc": "0.12",
-  "encoding": "UTF-8",
-  "scripts": ["handlebars-v1.3.0.min.js", "HandlebarsTemplateEngine.js"],
-  "name": "WocTeam.HandlebarsTemplateEngine",
-  "isContextPluginProvider": true
-}

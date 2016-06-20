@@ -1,0 +1,19 @@
+{
+  "name": "bkb-framework",
+  "version": "0.1.1",
+  "description": "Bkb is a lightweight front-end framework.",
+  "main": "bkb.min.js",
+  "typescript": {
+    "definition": "index.d.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paleo229/bkb.git"
+  },
+  "author": {
+    "name": "Paleo"
+  },
+  "license": "CC0",
+  "homepage": "http://paleo229.github.io/bkb/",
+  "keywords": ["frontend", "framework", "components", "lightweight"]
+}

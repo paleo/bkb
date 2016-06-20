@@ -1,0 +1,23 @@
+<!-- Template: .Task -->
+
+<div class="Task">
+  <div class="Task-textWrapper js-update">
+    <input class="Task-text js-input" type="text" placeholder="Write a task here…">
+  </div>
+  <div class="Task-textWrapper js-read">
+    <p class="Task-text js-lbl"></p>
+  </div>
+  <div class="Task-comments"></div>
+</div>
+
+<!-- Template: .TaskV -->
+
+<div class="Task">
+  <div class="Task-textWrapper js-update">
+    <input class="Task-text js-input" type="text" placeholder="Write a task here…" v-model="vm.label">
+  </div>
+  <div class="Task-textWrapper js-read" v-on:click="select()">
+    <p class="Task-text js-lbl">{{ vm.label }}</p>
+  </div>
+  <div class="Task-comments"></div>
+</div>

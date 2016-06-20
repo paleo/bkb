@@ -1,0 +1,15 @@
+@import "./definitions";
+
+.TinyBtn,
+.Btn {
+  background-color: #03AEAE;
+  border-radius: 4px;
+  color: #FFF;
+  font-weight: bold;
+  padding: 2px 3px;
+}
+
+.Btn {
+  min-width: $c1;
+  padding: 3px 4px;
+}

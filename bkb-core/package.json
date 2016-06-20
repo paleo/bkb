@@ -1,0 +1,13 @@
+{
+  "name": "bkb",
+  "version": "0.0.0",
+  "main": "build.js",
+  "dependencies": {
+    "typescript": "*",
+    "uglify-js": "*"
+  },
+  "scripts": {
+  },
+  "author": "Paleo",
+  "private": true
+}

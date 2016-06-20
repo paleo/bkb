@@ -1,0 +1,8 @@
+.Comment {
+  &-input {
+    width: 100%;
+    &:disabled {
+      background-color: transparent;
+    }
+  }
+}

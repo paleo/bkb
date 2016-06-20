@@ -1,7 +1,0 @@
-{
-  "woc": "0.12",
-  "encoding": "UTF-8",
-  "scripts": ["Log.js"],
-  "name": "WocTeam.Log",
-  "alias": "Woc.Log"
-}

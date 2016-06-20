@@ -1,7 +1,0 @@
-{
-  "woc": "0.12",
-  "encoding": "UTF-8",
-  "version": "0.1",
-  "bundles": ["lib(w)"],
-  "services": ["MyProject.Start"]
-}

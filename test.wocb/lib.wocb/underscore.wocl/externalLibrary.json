@@ -1,5 +1,0 @@
-{
-	"woc": "0.12",
-	"scripts": ["underscore-1.6.0-min.js", "underscore.string-2.3.0.min.js"],
-	"name": "underscore"
-}

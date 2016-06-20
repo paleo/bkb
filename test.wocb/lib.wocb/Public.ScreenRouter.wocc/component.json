@@ -1,7 +1,0 @@
-{
-  "woc": "0.12",
-  "encoding": "UTF-8",
-  "useServices": ["WocTeam.WocEasyRouter"],
-  "scripts": "ScreenRouter.js",
-  "name": "Public.ScreenRouter"
-}

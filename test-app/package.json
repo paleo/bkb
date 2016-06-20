@@ -1,0 +1,19 @@
+{
+  "name": "test-app",
+  "version": "0.0.0",
+  "dependencies": {
+    "bkb": "*",
+    "dialog-polyfill": "*",
+    "es6-shim": "*",
+    "html-loader": "*",
+    "jquery": "*",
+    "system-text": "*",
+    "systemjs": "*",
+    "ts-loader": "*",
+    "typescript": "*",
+    "vue": "*"
+  },
+  "devDependencies": {},
+  "scripts": {},
+  "private": true
+}

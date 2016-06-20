@@ -1,0 +1,18 @@
+.TodoList {
+  &-ul {
+    width: 600px;
+  }
+  &-addBtn {
+  }
+}
+
+.TodoLi {
+  padding: 5px 5px 5px 30px;
+  position: relative;
+  &-rmBtn {
+    left: 5px;
+    position: absolute;
+    top: 5px;
+  }
+}
+

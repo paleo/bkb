@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base href=".">
+  <title>Todo App</title>
+  <script src="node_modules/es6-shim/es6-shim.min.js"></script>
+  <script src="node_modules/vue/dist/vue.min.js"></script>
+  <script src="node_modules/typescript/lib/typescript.js"></script>
+  <script src="node_modules/systemjs/dist/system.js"></script>
+  <script>
+    System.config({
+//      baseURL: ".",
+      transpiler: 'typescript',
+//      typescriptOptions: {
+//        allowSyntheticDefaultImports: true
+//      },
+      //defaultJSExtensions: true,
+      paths: {
+        '*': './node_modules/*'
+      },
+      packageConfigPaths: ['./node_modules/*/package.json'],
+      map: {
+        text: './node_modules/system-text/text.js'
+      },
+      packages: {
+        './components': {
+          defaultExtension: 'ts'
+        },
+        './libraries-ts': {
+          defaultExtension: 'ts'
+        },
+        './bkb-libraries': {
+          defaultExtension: 'ts'
+        }
+      }
+    });
+    System.import('./start.ts')
+      .then(null, console.error.bind(console));
+  </script>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="js-app" data-base-url="/dvp/woc/test-app/index-systemjs.html" data-first="tasks/77"></div>

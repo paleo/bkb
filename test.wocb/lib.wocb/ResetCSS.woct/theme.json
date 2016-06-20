@@ -1,9 +1,0 @@
-{
-  "woc": "0.12",
-  "encoding": "UTF-8",
-  "styleSheets": ["reset.css"],
-  "priority": {
-    "channel": "before",
-    "level": 1
-  }
-}

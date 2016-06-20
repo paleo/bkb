@@ -1,0 +1,6 @@
+{
+  "ambientDependencies": {
+    "harmony-proxy": "registry:dt/harmony-proxy#1.0.0+20160317120654",
+    "jquery": "registry:dt/jquery#1.10.0+20160316155526"
+  }
+}

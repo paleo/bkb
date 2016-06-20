@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "system",
+    "target": "es5",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "noEmit": true
+  },
+  "exclude": [
+    "node_modules",
+    "typings/main",
+    "typings/main.d.ts"
+  ]
+}
