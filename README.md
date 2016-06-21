@@ -2,6 +2,10 @@
 
 Bkb is a lightweight front-end framework.
 
+## Install
+
+    npm install bkb-framework
+
 ## License
 
 Public domain

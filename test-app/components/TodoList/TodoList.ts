@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import {Component, Context, Bkb} from 'bkb'
+import {Component, Context, Bkb} from 'bkb-framework'
 import Task from "../Task/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'

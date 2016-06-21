@@ -133,7 +133,7 @@ function makeTsCode(srcPath, readInterfacesTs) {
 
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare module 'bkb' {
+    return `declare module 'bkb-framework' {
 function createApplication<A>(obj?: any): A & Application<A>
 
 ${interfacesStr}

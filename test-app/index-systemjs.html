@@ -2,8 +2,8 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <base href=".">
-  <title>Todo App</title>
+  <title>Test App (SystemJS)</title>
+  <link rel="stylesheet" href="app.css">
   <script src="node_modules/es6-shim/es6-shim.min.js"></script>
   <script src="node_modules/vue/dist/vue.min.js"></script>
   <script src="node_modules/typescript/lib/typescript.js"></script>
@@ -38,7 +38,6 @@
     System.import('./start.ts')
       .then(null, console.error.bind(console));
   </script>
-  <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <div class="js-app" data-base-url="./index-systemjs.html" data-first="tasks/77"></div>

@@ -1,4 +1,4 @@
-import {Context} from 'bkb'
+import {Context} from 'bkb-framework'
 
 declare type Vue = any
 declare var Vue: any // { new(config: any): Vue }
