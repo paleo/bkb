@@ -8,6 +8,8 @@
     "es6-shim": "*",
     "html-loader": "*",
     "jquery": "*",
+    "monkberry": "^4.0.7",
+    "monkberry-loader": "^4.0.7",
     "system-text": "*",
     "systemjs": "*",
     "ts-loader": "*",

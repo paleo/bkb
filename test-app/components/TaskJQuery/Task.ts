@@ -4,11 +4,11 @@ import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import {TestApp} from '../../start'
 
-declare var Vue;
+declare let Vue;
 
-//const templates = new RawTemplateProvider(require("html!./Task.html"))
-import tplStr from './Task.html!text'
-const templates = new RawTemplateProvider(tplStr)
+const templates = new RawTemplateProvider(require("html!./Task.html"))
+// import tplStr from './Task.html!text'
+// const templates = new RawTemplateProvider(tplStr)
 
 export default class Task implements Component<Task> {
   public static componentName = 'Task'

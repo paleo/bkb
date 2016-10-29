@@ -3,10 +3,9 @@ import {Component, Context, Bkb} from 'bkb-framework'
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
 
-//const templates = new RawTemplateProvider(require("html!./Comment.html"))
-
-import tplStr from './Comment.html!text'
-const templates = new RawTemplateProvider(tplStr)
+const templates = new RawTemplateProvider(require("html!./Comment.html"))
+// import tplStr from './Comment.html!text'
+// const templates = new RawTemplateProvider(tplStr)
 
 export default class Comment implements Component<Comment> {
   public static componentName = 'Comment'

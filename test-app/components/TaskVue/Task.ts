@@ -3,9 +3,9 @@ import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import {TestApp} from '../../start'
 
-//const templates = new BkbVueProvider(require("html!./Task.html"))
-import tplStr from './Task.html!text'
-const templates = new BkbVueProvider(tplStr)
+const templates = new BkbVueProvider(require("html!./Task.html"))
+// import tplStr from './Task.html!text'
+// const templates = new BkbVueProvider(tplStr)
 
 export default class Task implements Component<Task> {
   public static componentName = 'Task'
@@ -21,7 +21,7 @@ export default class Task implements Component<Task> {
     this.context.emit<void>('grabFocus')
   }
 
-  public attachTo(el: HTMLElement) {
+  public attachTo(el: HTMLElement): this {
     templates.attachVue(this.context, {
       el: el,
       templateName: '.TaskV',
@@ -32,23 +32,8 @@ export default class Task implements Component<Task> {
           this.context.emit<void>('grabFocus')
         }
       },
-      childComponents: {
-        CommentList: CommentList
-      }
+      childComponents: {CommentList}
     })
-    // new Vue({
-    //   el: el,
-    //   replace: false,
-    //   template: templates.getTemplate('.TaskV'),
-    //   data: this.vm,
-    //   methods: {
-    //     select: () => {
-    //       this.setUpdateMode(true)
-    //       this.context.emit<void>('grabFocus')
-    //     }
-    //   }
-    // })
-    
     return this
   }
 

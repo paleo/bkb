@@ -1,18 +1,12 @@
 import $ from 'jquery'
 import {Component, Context, Bkb} from 'bkb-framework'
-import Task from "../Task/Task"
+import Task from "../TaskVue/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
 
-//const templates = new RawTemplateProvider(require("html!./TodoList.html"))
-
-// let templates
-// System.import("./TodoList.html!text").then((tplStr) => {
-//   console.log(tplStr)
-//   templates = new RawTemplateProvider(tplStr)
-// })
-import tplStr from './TodoList.html!text'
-const templates = new RawTemplateProvider(tplStr)
+const templates = new RawTemplateProvider(require("html!./TodoList.html"))
+// import tplStr from './TodoList.html!text'
+// const templates = new RawTemplateProvider(tplStr)
 
 export default class TodoList implements Component<TodoList> {
   public static componentName = 'TodoList'
