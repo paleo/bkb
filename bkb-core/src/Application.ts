@@ -62,12 +62,12 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       container: container
     })
     container.initBkbAndContext({
-      instanceComponent: <C>(Cl, properties?: NewComponentProperties) => this.root.context.instanceComponent(Cl, properties),
-      objectComponent: <C>(obj, properties?: NewComponentProperties) => this.root.context.objectComponent(obj, properties),
+      createComponent: <C>(Cl: { new(): C }, properties?: NewComponentProperties) => this.root.context.createComponent(Cl, properties),
+      toComponent: <C>(obj, properties?: NewComponentProperties) => this.root.context.toComponent(obj, properties),
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
     })
-    container.createFromObject(obj, false)
+    container.createFromObject(obj)
     container.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], true)
     return container
   }
@@ -88,7 +88,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     parentNode.children.set(componentId, node)
     container.initBkbAndContext()
     if (asObject)
-      container.createFromObject(objOrCl, !!properties.freeze)
+      container.createFromObject(objOrCl)
     else
       container.createInstance(objOrCl, properties.args || [])
     this.root.context.emit('addComponent', {component: container.inst})

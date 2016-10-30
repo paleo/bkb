@@ -36,7 +36,7 @@ export default function createBkbMonkberryDirective(context: Context<any>) {
 // console.log('this.arg', this.arg)
 // console.log('this.expression', this.expression)
 // console.log('value', value)
-        bkbChildComp = context.instanceComponent(Cl, value)
+        bkbChildComp = context.createComponent(Cl, value)
         bkbChildComp.attachTo(this.el)
       } catch (e) {
         context.app.bkb.log.error(e)

@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import {createApplication, Log, Application} from 'bkb-framework'
+import {createApplication, Log, Application, LogItem} from 'bkb-framework'
 import TodoList from "./components/TodoList/TodoList"
 import {createEasyRouter, EasyRouter} from './libraries-ts/EasyRouter'
 
@@ -18,7 +18,7 @@ $(() => {
   // const aaa: Application;
   //app.router;
 
-  app.bkb.listen<any>('log').call((evt) => {
+  app.bkb.listen<LogItem>('log').call((evt) => {
     console.log(`[LOG] ${evt.data.type} `, evt.data.messages)
   })
 
@@ -100,9 +100,9 @@ $(() => {
     hashMode: true
   })
 
-  //const router = app.instanceComponent<BkbEasyRouter>(BkbEasyRouter, 'My TODO List').start()
+  //const router = app.createComponent(BkbEasyRouter, 'My TODO List').start()
 
-  const list = app.bkb.instanceComponent<TodoList>(TodoList, 'My TODO List')
+  const list = app.bkb.createComponent(TodoList, 'My TODO List')
   list.attachTo($app[0])
 
   function publicNodesToString(components: any[], indent = '') {

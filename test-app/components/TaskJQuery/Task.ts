@@ -32,7 +32,7 @@ export default class Task implements Component<Task> {
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-    context.instanceComponent<CommentList>(CommentList).attachTo(this.$container.find('.Task-comments')[0])
+    context.createComponent(CommentList).attachTo(this.$container.find('.Task-comments')[0])
     this.setUpdateMode(true)
     this.context.emit<void>('grabFocus')
   }

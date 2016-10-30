@@ -91,7 +91,7 @@ class VueTemplate {
 // console.log('this.arg', this.arg)
 // console.log('this.expression', this.expression)
 // console.log('value', value)
-          this.bkbChildComp = context.instanceComponent(Cl, value)
+          this.bkbChildComp = context.createComponent(Cl, value)
           this.bkbChildComp.attachTo(this.el)
         } catch (e) {
           context.app.bkb.log.error(e)

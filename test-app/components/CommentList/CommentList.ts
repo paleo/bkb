@@ -36,7 +36,7 @@ export default class CommentList implements Component<CommentList> {
   public add() {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
-    const comment = this.context.instanceComponent<Comment>(Comment).attachTo($li[0])
+    const comment = this.context.createComponent(Comment).attachTo($li[0])
     const listener = this.context.listenParent('enabled').call((evt) => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)

@@ -28,11 +28,11 @@ class Container<C> {
     this.inst.bkb = this.bkb
   }
 
-  public createFromObject(obj, freeze: boolean): C {
+  public createFromObject(obj): C {
     if (obj.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
     obj.bkb = this.bkb
-    this.inst = freeze ? Object.freeze(obj) : obj
+    this.inst = obj
     return this.inst
   }
 
@@ -78,11 +78,8 @@ class Container<C> {
       listenChildren: <C, D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<C, D>(eventName, filter),
       listenParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenParent<C, D>(eventName, filter),
       listenComponent: <C, D>(component: Component<C>, eventName: string) => this.listenComponent<C, D>(component, eventName),
-      instanceComponent: <C>(Cl, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
-      objectComponent: <C>(obj, properties: NewComponentProperties = {}): [C, Context<any>] => {
-        const child = this.createComponent<C>(obj, properties, true)
-        return [child.inst, child.context]
-      },
+      createComponent: <C>(Cl: { new(): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
+      toComponent: <C>(obj, properties: NewComponentProperties = {}) => this.createComponent<C>(obj, properties, true).context,
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter)
     })
@@ -159,13 +156,12 @@ class Container<C> {
       sourceName: this.componentName,
       sourceId: this.componentId,
       source: this.inst,
+      data,
       stopPropagation: () => {
         canPropagate = false
       }
     }
-    if (data !== undefined)
-      evt.data = data
-    evt['canPropagate'] = () => canPropagate
+    evt['_canPropagate'] = () => canPropagate
     return Object.freeze(evt)
   }
 
@@ -177,7 +173,7 @@ class Container<C> {
   }
 
   private bubbleUpEvent<C, D>(evt: ComponentEvent<C, D>, isFromDeep: boolean, childId: number) {
-    if (evt['canPropagate'] && !evt['canPropagate']())
+    if (evt['_canPropagate'] && !evt['_canPropagate']())
       return
     this.childEmitter.emit<C, D>(evt, isFromDeep, this.getGroupsOf(childId))
     const parent = this.app.getParentOf(this.componentId)

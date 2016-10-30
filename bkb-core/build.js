@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const ts = require('typescript')
-const uglifyJS = require("uglify-js");
+const uglifyJS = require('uglify-js');
 
 var fsp = {
   exists: function (path) {
@@ -87,8 +87,9 @@ function build(projectPath) {
     return fsp.writeFile(targetBkbTs, tsCode).then(() => tsCode)
   }).then((tsCode) => {
     const jsCode = ts.transpile(tsCode, {
-      'module': ts.ModuleKind.UMD,
+      //'module': ts.ModuleKind.UMD,
       'target': ts.ScriptTarget.ES5
+      //'lib': ['dom', 'es5', 'es2015.core', 'es2015.iterable', 'es2015.collection', 'es2015.promise']
     });
     //return fsp.writeFile(targetBkbJs, jsCode).then(() => jsCode)
     return jsCode
@@ -114,6 +115,7 @@ const exportsTsCode = `export {
   EmitterOptions,
   Context,
   Bkb,
+  LogItem,
   Log,
   ApplicationBkb,
   Application
@@ -155,6 +157,4 @@ ${exportsTsCode}`
 
 build(__dirname).then(() => {
   console.log('done')
-}, (err) => {
-  console.log(err.message, err.stack)
-})
+}, err => console.log(err.message, err.stack))

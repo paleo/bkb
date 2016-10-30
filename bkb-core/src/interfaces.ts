@@ -8,12 +8,12 @@ interface Component<C> {
 }
 
 interface ComponentEvent<C, D> {
-  eventName: string
-  sourceName: string
-  sourceId: number
-  source: C
-  data?: D
-  stopPropagation: () => void
+  readonly eventName: string
+  readonly sourceName: string
+  readonly sourceId: number
+  readonly source: C
+  readonly data?: D
+  stopPropagation(): void
 }
 
 interface ComponentListener<C, D> {
@@ -41,11 +41,6 @@ interface NewComponentProperties {
    * NB: Used only with instance components. Ignored for object components.
    */
   args?: any[]
-  /**
-   * Default is <code>false</code>
-   * NB: Used only with object components. Ignored for instance components.
-   */
-  freeze?: boolean
 }
 
 interface EmitterOptions {
@@ -55,15 +50,15 @@ interface EmitterOptions {
   sync?: boolean
 }
 
-interface BasicContext {
-  instanceComponent<C>(Cl, properties?: NewComponentProperties): C
-  objectComponent<C>(obj, properties?: NewComponentProperties): [C, Context<any>]
+interface BasicContext<A> {
+  createComponent<C>(Cl: { new(context: Context<A>, ...args): C }, properties?: NewComponentProperties): C & Component<C>
+  toComponent(obj: any, properties?: NewComponentProperties): Context<A>
 }
 
-interface Context<A> extends BasicContext {
-  app: Application<A> & A
+interface Context<A> extends BasicContext<A> {
+  readonly app: Application<A> & A
 
-  bkb: Bkb<any>
+  readonly bkb: Bkb<any>
 
   exposeEvents(eventNames: string[]): this
 
@@ -104,10 +99,15 @@ interface BasicBkb<C> {
 
 interface Bkb<C> extends BasicBkb<C> {
   destroy(): void
-  componentName: string
-  componentId: number
+  readonly componentName: string
+  readonly componentId: number
   getInstance(): C & Component<C>
   getParent(): Component<any>
+}
+
+interface LogItem {
+  type: string
+  messages: any[]
 }
 
 interface Log {
@@ -118,11 +118,11 @@ interface Log {
   trace(...messages: any[]): void
 }
 
-interface ApplicationBkb<A> extends Bkb<A>, BasicContext {
+interface ApplicationBkb<A> extends Bkb<A>, BasicContext<A> {
   nextTick(cb: () => void): void
-  log: Log
+  readonly log: Log
 }
 
 interface Application<A> extends Component<A> {
-  bkb: ApplicationBkb<A>
+  readonly bkb: ApplicationBkb<A>
 }
