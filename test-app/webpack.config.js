@@ -27,7 +27,8 @@ module.exports = {
       },
       {test: /\.css$/, loader: "style!css"},
       {test: /\.jpg$/, loader: "file-loader"},
-      {test: /\.png$/, loader: "url-loader?mimetype=image/png"}
+      {test: /\.png$/, loader: "url-loader?mimetype=image/png"},
+      {test: /\.monk$/, loader: 'monkberry-loader'}
     ]
   },
   externals: {

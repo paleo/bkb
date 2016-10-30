@@ -1,4 +1,4 @@
-import $ from 'jquery'
+import * as $ from 'jquery'
 import {Component, Context, Bkb} from 'bkb-framework'
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'

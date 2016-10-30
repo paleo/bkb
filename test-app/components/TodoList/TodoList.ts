@@ -1,6 +1,7 @@
-import $ from 'jquery'
+import * as $ from 'jquery'
 import {Component, Context, Bkb} from 'bkb-framework'
-import Task from "../TaskVue/Task"
+//import Task from "../TaskVue/Task"
+import Task from "../TaskMonkberry/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
 

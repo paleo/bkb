@@ -1,8 +1,10 @@
-import $ from 'jquery'
+import * as $ from 'jquery'
 import {Component, Context, Bkb} from 'bkb-framework'
 import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
+
+import tplStr from "html!./CommentList.html";
 
 const templates = new RawTemplateProvider(require("html!./CommentList.html"))
 // import tplStr from './CommentList.html!text'

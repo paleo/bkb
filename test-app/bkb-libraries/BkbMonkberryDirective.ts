@@ -26,21 +26,21 @@ export default function createBkbMonkberryDirective(context: Context<any>) {
     }
 
     update(ClName: string) {
-      if (!ClName)
-        return
-      if (!Cl)
-        return
-      try {
-        if (bkbChildComp)
-          bkbChildComp.bkb.destroy()
-// console.log('this.arg', this.arg)
-// console.log('this.expression', this.expression)
-// console.log('value', value)
-        bkbChildComp = context.createComponent(Cl, value)
-        bkbChildComp.attachTo(this.el)
-      } catch (e) {
-        context.app.bkb.log.error(e)
-      }
+//       if (!ClName)
+//         return
+//       if (!Cl)
+//         return
+//       try {
+//         if (bkbChildComp)
+//           bkbChildComp.bkb.destroy()
+// // console.log('this.arg', this.arg)
+// // console.log('this.expression', this.expression)
+// // console.log('value', value)
+//         bkbChildComp = context.createComponent(Cl, value)
+//         bkbChildComp.attachTo(this.el)
+//       } catch (e) {
+//         context.app.bkb.log.error(e)
+//       }
     }
   }
 }
