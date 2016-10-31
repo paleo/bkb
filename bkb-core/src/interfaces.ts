@@ -102,7 +102,7 @@ interface Bkb<C> extends BasicBkb<C> {
   readonly componentName: string
   readonly componentId: number
   getInstance(): C & Component<C>
-  getParent(): Component<any>
+  getParent(): Component<any>|null
 }
 
 interface LogItem {

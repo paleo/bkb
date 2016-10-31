@@ -4,7 +4,7 @@ interface Callback {
 }
 
 class ChildEmitter {
-  private callbacks: Map<string, Callback[]>
+  private callbacks: Map<string, Callback[]>|null
   private destroyed = false
 
   constructor(private app: InternalApplicationContainer) {
@@ -31,12 +31,12 @@ class ChildEmitter {
     if (this.destroyed)
       throw new Error(`Cannot call listen in a destroyed child-emitter`)
     if (!this.callbacks)
-      this.callbacks = new Map<SHIM_ANY, SHIM_ANY>()
-    let idList = []
+      this.callbacks = new Map()
+    let idList: number[]|null = []
     const listener = {
       call: (callback: (evt: ComponentEvent<C, D>) => void) => {
-        if (this.destroyed || !idList)
-          return
+        if (this.destroyed || !idList || !this.callbacks)
+          return listener
         let cbList = this.callbacks.get(eventName)
         if (!cbList)
           this.callbacks.set(eventName, cbList = [])
@@ -49,7 +49,7 @@ class ChildEmitter {
         return listener
       },
       cancel: () => {
-        if (this.destroyed || !idList)
+        if (this.destroyed || !idList || !this.callbacks)
           return
         let cbList = this.callbacks.get(eventName)
         if (cbList) {

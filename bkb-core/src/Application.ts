@@ -1,15 +1,13 @@
-type SHIM_ANY = any
-
 function createApplication<A>(obj: any = {}): A & Application<A> {
   const appContainer = new ApplicationContainer<A>(obj)
-  return <any>appContainer.root.inst
+  return appContainer.root.inst as any
 }
 
 interface InternalApplicationContainer {
   root: Container<any>
   createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean, properties: NewComponentProperties): Container<C>
   getChildrenOf(componentId: number): Container<any>[]
-  getParentOf(componentId: number): Container<any>
+  getParentOf(componentId: number): Container<any>|null
   getContainer(componentId: number): Container<any>
   removeComponent<C>(container: Container<C>): void
   errorHandler(err: any): void
@@ -18,24 +16,24 @@ interface InternalApplicationContainer {
 
 interface CompNode {
   container: Container<any>
-  parent?: CompNode
-  children?: Map<number, CompNode>
+  parent?: CompNode|null
+  children?: Map<number, CompNode>|null
 }
 
 class ApplicationContainer<A> implements InternalApplicationContainer {
 
-  public /* readonly */ root: Container<A>
+  readonly root: Container<A>
 
   private compCount = 0
-  private nodes: Map<number, CompNode> = new Map<SHIM_ANY, SHIM_ANY>()
-  private tickList: (() => void)[] = null
+  private nodes = new Map<number, CompNode>()
+  private tickList: (() => void)[]|null = null
   private insideRmComp = false
 
   constructor(obj: any) {
     this.root = this.createRootComponent(obj)
   }
 
-  public getParentOf(componentId: number): Container<any> {
+  public getParentOf(componentId: number): Container<any>|null {
     const node = this.findNode(componentId)
     return node.parent ? node.parent.container : null
   }
@@ -62,8 +60,16 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       container: container
     })
     container.initBkbAndContext({
-      createComponent: <C>(Cl: { new(): C }, properties?: NewComponentProperties) => this.root.context.createComponent(Cl, properties),
-      toComponent: <C>(obj, properties?: NewComponentProperties) => this.root.context.toComponent(obj, properties),
+      createComponent: <C>(Cl: { new(): C }, properties?: NewComponentProperties) => {
+        if (!this.root.context)
+          throw new Error('Destroyed root component')
+        return this.root.context.createComponent(Cl, properties)
+      },
+      toComponent: <C>(obj, properties?: NewComponentProperties) => {
+        if (!this.root.context)
+          throw new Error('Destroyed root component')
+        return this.root.context.toComponent(obj, properties)
+      },
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
     })
@@ -74,6 +80,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
 
   public createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean,
                             properties: NewComponentProperties): Container<C> {
+    if (!this.root.context)
+      throw new Error('Destroyed root component')
     const componentName = properties.componentName ? properties.componentName : ApplicationContainer.getComponentName(objOrCl),
       componentId = this.newId(),
       container = new Container<C>(this, componentName, componentId)
@@ -84,7 +92,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       }
     this.nodes.set(componentId, node)
     if (!parentNode.children)
-      parentNode.children = new Map<SHIM_ANY, SHIM_ANY>()
+      parentNode.children = new Map()
     parentNode.children.set(componentId, node)
     container.initBkbAndContext()
     if (asObject)
@@ -97,6 +105,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   public removeComponent<C>(container: Container<C>): void {
+    if (!this.root.context)
+      throw new Error('Destroyed root component')
     const mainRm = !this.insideRmComp
     try {
       if (mainRm) {
@@ -115,7 +125,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       }
       if (node.parent) {
         node.parent.container.forgetChild(componentId)
-        node.parent.children.delete(componentId)
+        (node.parent.children as Map<number, CompNode>).delete(componentId)
       }
       this.nodes.delete(componentId)
     } finally {
@@ -125,6 +135,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   public errorHandler(err: any): void {
+    if (!this.root.context)
+      throw new Error('Destroyed root component')
     this.root.context.emit('error', err)
   }
 
@@ -162,6 +174,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     const log = {}
     for (const type of logTypes) {
       log[type] = (...messages: any[]) => {
+        if (!this.root.context)
+          throw new Error('Destroyed root component')
         this.root.context.emit('log', {
           type: type,
           messages: messages

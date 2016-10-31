@@ -1,13 +1,13 @@
 class Container<C> {
-  public /* readonly */ inst: C & Component<C>
-  public /* readonly */ bkb: Bkb<C>
-  public /* readonly */ context: Context<any>
+  public inst: (C & Component<C>)|null
+  public bkb: Bkb<C>|null
+  public context: Context<any>|null
 
   private emitter: Emitter
   private childEmitter: ChildEmitter
   private childGroups: Map<string, Set<number>>
 
-  constructor(private app: ApplicationContainer<any>, public /* readonly */ componentName, public /* readonly */ componentId: number) {
+  constructor(private app: ApplicationContainer<any>, readonly componentName, readonly componentId: number) {
     this.emitter = new Emitter(app, ['destroy'])
     this.childEmitter = new ChildEmitter(app)
   }
@@ -22,24 +22,31 @@ class Container<C> {
   }
 
   public createInstance(Cl, args: any[]) {
-    this.inst = new Cl(this.context, ...args)
-    if (this.inst.bkb)
+    let inst = new Cl(this.context, ...args)
+    if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb" (${Cl})`)
-    this.inst.bkb = this.bkb
+    inst.bkb = this.bkb as Bkb<C>
+    this.inst = inst
   }
 
-  public createFromObject(obj): C {
+  public createFromObject(obj) {
     if (obj.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
     obj.bkb = this.bkb
     this.inst = obj
-    return this.inst
   }
 
   private makeBkb(bkbMethods?: any): Bkb<C> {
     let obj: Bkb<C> = {
-      getInstance: () => this.inst,
-      getParent: () => this.app.getParentOf(this.componentId),
+      getInstance: () => {
+        if (!this.inst)
+          throw new Error('Cannot call "getInstance()"on a destroyed component')
+        return this.inst
+      },
+      getParent: () => {
+        let parent = this.app.getParentOf(this.componentId)
+        return parent ? parent.inst : null
+      },
       on: <D>(eventName: string, callback: (evt: ComponentEvent<C, D>) => void) => {
         this.emitter.listen(eventName).call(callback)
         return bkb
@@ -79,7 +86,7 @@ class Container<C> {
       listenParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenParent<C, D>(eventName, filter),
       listenComponent: <C, D>(component: Component<C>, eventName: string) => this.listenComponent<C, D>(component, eventName),
       createComponent: <C>(Cl: { new(): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
-      toComponent: <C>(obj, properties: NewComponentProperties = {}) => this.createComponent<C>(obj, properties, true).context,
+      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties, true) as any).context,
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter)
     })
@@ -90,12 +97,13 @@ class Container<C> {
     const child = this.app.createComponent<E>(objOrCl, this, asObject, properties)
     if (properties.groupName) {
       if (!this.childGroups)
-        this.childGroups = new Map<SHIM_ANY, SHIM_ANY>()
-      const groupNames = <string[]>(typeof properties.groupName === 'string' ? [properties.groupName] : properties.groupName)
+        this.childGroups = new Map()
+      const groupNames = (typeof properties.groupName === 'string' ? [properties.groupName] : properties.groupName) as string[]
       for (const name of groupNames) {
-        if (!this.childGroups.has(name))
-          this.childGroups.set(name, new Set<SHIM_ANY>())
-        this.childGroups.get(name).add(child.componentId)
+        let g = this.childGroups.get(name)
+        if (!g)
+          this.childGroups.set(name, g = new Set())
+        g.add(child.componentId)
       }
     }
     return child
@@ -200,7 +208,7 @@ class Container<C> {
   }
 
   private listenParent<C, D>(eventName: string, filter: ParentFilter): ComponentListener<C, D> {
-    let parent: Container<any> = this
+    let parent: Container<any>|null = this
     while (parent = this.app.getParentOf(parent.componentId)) {
       if (!filter.componentName || filter.componentName === parent.componentName)
         return parent.emitter.listen(eventName, this)
@@ -223,8 +231,11 @@ class Container<C> {
     this.childEmitter.destroy()
     this.bkb = null
     this.context = null
-    this.inst.bkb = null
-    this.inst = null
+    if (this.inst) {
+      let tmp: any = this.inst;
+      tmp.bkb = null
+      this.inst = null
+    }
   }
 
   public forgetChild(componentId: number) {

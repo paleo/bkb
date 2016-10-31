@@ -1,9 +1,9 @@
 class Emitter {
-  private eventNames: Set<string>
+  private eventNames: Set<string>|null
   private strictEvents = false
-  private callbacks: Map<string, ((...args: any[]) => void)[]>
+  private callbacks: Map<string, ((...args: any[]) => void)[]>|null
   private destroyed = false
-  private fromEolCancelers: Listener[] = []
+  private fromEolCancelers: Listener[]|null = []
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
@@ -14,7 +14,7 @@ class Emitter {
     if (this.destroyed)
       throw new Error(`Cannot call exposeEvents in a destroyed listener`)
     if (!this.eventNames)
-      this.eventNames = new Set<SHIM_ANY>()
+      this.eventNames = new Set()
     for (const name of eventNames)
       this.eventNames.add(name)
     if (strictEventsMode)
@@ -33,15 +33,15 @@ class Emitter {
   }
 
   public listen(eventName: string, from?: Container<any>): Listener {
-    if (this.destroyed)
+    if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
     if (!this.callbacks)
-      this.callbacks = new Map<SHIM_ANY, SHIM_ANY>()
-    let idList = []
+      this.callbacks = new Map()
+    let idList: number[]|null = []
     const listener = {
       call: (callback: (...args: any[]) => void) => {
-        if (this.destroyed || !idList)
-          return
+        if (this.destroyed || !idList || !this.callbacks)
+          return listener
         let cbList = this.callbacks.get(eventName)
         if (!cbList)
           this.callbacks.set(eventName, cbList = [])
@@ -51,7 +51,7 @@ class Emitter {
         return listener
       },
       cancel: () => {
-        if (this.destroyed || !idList)
+        if (this.destroyed || !idList || !this.callbacks)
           return
         let cbList = this.callbacks.get(eventName)
         if (cbList) {
@@ -66,13 +66,14 @@ class Emitter {
       }
     }
     let fromEolCanceler
-    if (from) {
+    if (from && from.bkb) {
       const destroyListener = from.bkb.listen('destroy').call(() => listener.cancel()),
         cancelerId = this.fromEolCancelers.length
       this.fromEolCancelers[cancelerId] = destroyListener
       fromEolCanceler = () => {
         destroyListener.cancel()
-        delete this.fromEolCancelers[cancelerId]
+        if (this.fromEolCancelers)
+          delete this.fromEolCancelers[cancelerId]
       }
     } else
       fromEolCanceler = null
@@ -80,10 +81,11 @@ class Emitter {
   }
 
   public destroy(): void {
-
-    for (const i in this.fromEolCancelers) {
-      if (this.fromEolCancelers.hasOwnProperty(i))
-        this.fromEolCancelers[i].cancel()
+    if (this.fromEolCancelers) {
+      for (const i in this.fromEolCancelers) {
+        if (this.fromEolCancelers.hasOwnProperty(i))
+          this.fromEolCancelers[i].cancel()
+      }
     }
     this.fromEolCancelers = null
     this.callbacks = null
