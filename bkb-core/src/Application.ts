@@ -125,7 +125,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       }
       if (node.parent) {
         node.parent.container.forgetChild(componentId)
-        (node.parent.children as Map<number, CompNode>).delete(componentId)
+        ;(node.parent.children as Map<number, CompNode>).delete(componentId)
       }
       this.nodes.delete(componentId)
     } finally {

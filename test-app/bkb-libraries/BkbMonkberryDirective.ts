@@ -1,46 +1,62 @@
-import {Context} from 'bkb-framework'
+import {Log, Component} from 'bkb-framework'
 
-export default function createBkbMonkberryDirective(context: Context<any>) {
-  let bkbChildComp
-  return class BkbMonkberryDirective {
-    private el: HTMLElement
-    
-    constructor() {
-      this.el = null
-    }
+type Comp = Component<any> & MonkberryComponent
 
+export interface MonkberryComponent {
+  attachTo(el: HTMLElement): void
+  update?(value: string): void
+}
+
+export interface ComponentMakers {
+  [directiveName: string]: (el: HTMLElement, value?: string) => Component<any> & MonkberryComponent
+}
+
+export default function createBkbDirectives(log: Log, makers: ComponentMakers) {
+  let directives = {}
+  for (let name in makers) {
+    directives[name] = createDirective(log, makers[name], name)
+  }
+  return directives
+}
+
+function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Comp, directiveName: string) {
+
+  let comp: Comp,
+    el: HTMLElement
+
+
+  return class {
     bind(node) {
-      this.el = node
+      el = node
     }
 
-    unbind(node) {
-      if (bkbChildComp) {
+    unbind() {
+      el = null
+      if (comp) {
         try {
-          bkbChildComp.bkb.destroy()
-          bkbChildComp = null
+          comp.bkb.destroy()
+          comp = null
         } catch (e) {
-          context.app.bkb.log.error(e)
+          log.error(e)
         }
       }
-      this.el = null
     }
 
-    update(ClName: string) {
-//       if (!ClName)
-//         return
-//       if (!Cl)
-//         return
-//       try {
-//         if (bkbChildComp)
-//           bkbChildComp.bkb.destroy()
-// // console.log('this.arg', this.arg)
-// // console.log('this.expression', this.expression)
-// // console.log('value', value)
-//         bkbChildComp = context.createComponent(Cl, value)
-//         bkbChildComp.attachTo(this.el)
-//       } catch (e) {
-//         context.app.bkb.log.error(e)
-//       }
+    update(value?: string) {
+      try {
+        if (!el)
+          throw new Error('Cannot call method "update" of an unbound directive')
+        if (comp) {
+          if (!comp.update)
+            throw new Error(`Missing method "update" in component of the Monkberry directive "${directiveName}"`)
+          comp.update(value)
+        } else {
+          comp = maker(el, value)
+          comp.attachTo(el)
+        }
+      } catch (e) {
+        log.error(e)
+      }
     }
   }
 }

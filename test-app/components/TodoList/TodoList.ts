@@ -4,6 +4,7 @@ import {Component, Context, Bkb} from 'bkb-framework'
 import Task from "../TaskMonkberry/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
+import {MonkberryComponent} from '../../bkb-libraries/BkbMonkberryDirective'
 
 const templates = new RawTemplateProvider(require("html!./TodoList.html"))
 // import tplStr from './TodoList.html!text'

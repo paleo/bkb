@@ -1,7 +1,7 @@
 import {Context} from 'bkb-framework'
 
 declare type Vue = any
-declare var Vue: any // { new(config: any): Vue }
+declare let Vue: any // { new(config: any): Vue }
 
 export interface VueConfig {
   el: HTMLElement
@@ -75,7 +75,7 @@ class VueTemplate {
   }
 
   private createBkbVue(context: Context<any>, config: VueConfig) {
-    var BkbVue = Vue.extend()
+    let BkbVue = Vue.extend()
     BkbVue.directive('bkb-component', {
       bind: function () {
       },
@@ -92,6 +92,8 @@ class VueTemplate {
 // console.log('this.expression', this.expression)
 // console.log('value', value)
           this.bkbChildComp = context.createComponent(Cl, value)
+          if (!this.bkbChildComp.attachTo)
+            throw new Error('Component created by a Vue directive must have a method "attachTo"')
           this.bkbChildComp.attachTo(this.el)
         } catch (e) {
           context.app.bkb.log.error(e)

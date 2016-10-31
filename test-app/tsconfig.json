@@ -4,7 +4,8 @@
     "target": "es5",
     "moduleResolution": "node",
     "sourceMap": true,
-    "noEmit": true
+    "noEmit": true,
+    "strictNullChecks": false
   },
   "exclude": [
     "node_modules",
