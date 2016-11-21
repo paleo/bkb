@@ -14,7 +14,8 @@ export interface ComponentMakers {
 export default function createBkbDirectives(log: Log, makers: ComponentMakers) {
   let directives = {}
   for (let name in makers) {
-    directives[name] = createDirective(log, makers[name], name)
+    if (makers.hasOwnProperty(name))
+      directives[name] = createDirective(log, makers[name], name)
   }
   return directives
 }

@@ -40,6 +40,8 @@ export default class TodoList implements Component<TodoList> {
       .appendTo(this.$ul)
     const task = this.context.createComponent(Task, {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
     $li.find('.TodoLi-rmBtn').click(() => {
+      //task[this.context.app.bkbSymbol].destroy();
+      //this.context.app.getBkb(task).destroy()
       task.bkb.destroy()
       $li.remove()
     })

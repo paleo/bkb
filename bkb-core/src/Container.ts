@@ -7,6 +7,8 @@ class Container<C> {
   private childEmitter: ChildEmitter
   private childGroups: Map<string, Set<number>>
 
+  private static canPropagateSymb = Symbol('canPropagate')
+
   constructor(private app: ApplicationContainer<any>, readonly componentName, readonly componentId: number) {
     this.emitter = new Emitter(app, ['destroy'])
     this.childEmitter = new ChildEmitter(app)
@@ -25,14 +27,16 @@ class Container<C> {
     let inst = new Cl(this.context, ...args)
     if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb" (${Cl})`)
-    inst.bkb = this.bkb as Bkb<C>
+    Object.defineProperty(inst, 'bkb', {get: () => this.bkb!});
+    //inst.bkb = this.bkb!
     this.inst = inst
   }
 
   public createFromObject(obj) {
     if (obj.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
-    obj.bkb = this.bkb
+    Object.defineProperty(obj, 'bkb', {get: () => this.bkb!});
+    //obj.bkb = this.bkb!
     this.inst = obj
   }
 
@@ -85,8 +89,10 @@ class Container<C> {
       listenChildren: <C, D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<C, D>(eventName, filter),
       listenParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenParent<C, D>(eventName, filter),
       listenComponent: <C, D>(component: Component<C>, eventName: string) => this.listenComponent<C, D>(component, eventName),
-      createComponent: <C>(Cl: { new(): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
-      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties, true) as any).context,
+      createComponent: <C>(Cl: { new(): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties,
+        false).inst,
+      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties,
+        true) as any).context,
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter)
     })
@@ -169,7 +175,7 @@ class Container<C> {
         canPropagate = false
       }
     }
-    evt['_canPropagate'] = () => canPropagate
+    evt[Container.canPropagateSymb] = () => canPropagate
     return Object.freeze(evt)
   }
 
@@ -181,7 +187,7 @@ class Container<C> {
   }
 
   private bubbleUpEvent<C, D>(evt: ComponentEvent<C, D>, isFromDeep: boolean, childId: number) {
-    if (evt['_canPropagate'] && !evt['_canPropagate']())
+    if (evt[Container.canPropagateSymb] && !evt[Container.canPropagateSymb]())
       return
     this.childEmitter.emit<C, D>(evt, isFromDeep, this.getGroupsOf(childId))
     const parent = this.app.getParentOf(this.componentId)
@@ -231,11 +237,12 @@ class Container<C> {
     this.childEmitter.destroy()
     this.bkb = null
     this.context = null
-    if (this.inst) {
-      let tmp: any = this.inst;
-      tmp.bkb = null
-      this.inst = null
-    }
+    this.inst = null
+    // if (this.inst) {
+    //   let tmp: any = this.inst;
+    //   tmp.bkb = null
+    //   this.inst = null
+    // }
   }
 
   public forgetChild(componentId: number) {

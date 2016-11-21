@@ -4,7 +4,7 @@ interface Listener {
 }
 
 interface Component<C> {
-  bkb: Bkb<C>
+  readonly bkb: Bkb<C>
 }
 
 interface ComponentEvent<C, D> {
