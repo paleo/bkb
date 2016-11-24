@@ -3,9 +3,7 @@
   "version": "0.2.0",
   "description": "Bkb is a lightweight front-end framework.",
   "main": "bkb.min.js",
-  "typescript": {
-    "definition": "index.d.ts"
-  },
+  "types": "bkb.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paleo229/bkb.git"

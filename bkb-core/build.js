@@ -3,7 +3,7 @@ const path = require('path')
 const ts = require('typescript')
 const uglifyJS = require('uglify-js');
 
-var fsp = {
+const fsp = {
   exists: function (path) {
     return new Promise((resolve) => {
       fs.exists(path, (b) => {
@@ -76,8 +76,8 @@ var fsp = {
 function build(projectPath) {
   const srcPath = path.join(projectPath, 'src'),
     targetBkbTs = path.join(projectPath, 'dist_ts', 'bkb.ts'),
-    targetBkbDefTs = path.join(projectPath, 'dist_ts', 'bkb.d.ts'),
-    targetIndexDefTs = path.join(projectPath, 'dist_npm', 'index.d.ts'),
+    targetDistDefTs = path.join(projectPath, 'dist_ts', 'bkb.d.ts'),
+    targetNpmDefTs = path.join(projectPath, 'dist_npm', 'bkb.d.ts'),
     //targetBkbJs = path.join(projectPath, 'dist', 'bkb.js'),
     targetBkbMinJs = path.join(projectPath, 'dist_npm', 'bkb.min.js')
 
@@ -97,9 +97,9 @@ function build(projectPath) {
     const minified = uglifyJS.minify(jsCode, {fromString: true});
     return fsp.writeFile(targetBkbMinJs, minified.code)
   }).then(() => makeTsDefCode(srcPath, readInterfacesTs)).then(tsCode => {
-    return fsp.writeFile(targetBkbDefTs, tsCode)
+    return fsp.writeFile(targetDistDefTs, tsCode)
   }).then(() => makeIndexTsDefCode(srcPath, readInterfacesTs)).then(tsCode => {
-    return fsp.writeFile(targetIndexDefTs, tsCode)
+    return fsp.writeFile(targetNpmDefTs, tsCode)
   })
 }
 
