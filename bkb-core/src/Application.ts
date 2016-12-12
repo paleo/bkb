@@ -39,7 +39,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   public getChildrenOf(componentId: number): Container<any>[] {
-    const result = [],
+    const result: Container<any>[] = [],
       children = this.findNode(componentId).children
     if (children) {
       for (const child of Array.from(children.values()))

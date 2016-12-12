@@ -16,7 +16,7 @@ class ChildEmitter {
     let cbList = this.callbacks.get(evt.eventName)
     if (!cbList)
       return
-    const filtered = []
+    const filtered: ((evt: ComponentEvent<C, D>) => void)[] = []
     for (const cb of cbList) {
       if ((cb.filter.componentName && cb.filter.componentName === evt.sourceName)
         || (!cb.filter.deep && deep)

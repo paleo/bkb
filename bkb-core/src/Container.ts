@@ -119,7 +119,7 @@ class Container<C> {
     if (filter.deep)
       throw new Error('Cannot call "find" with filter deep')
     const containers = this.getChildContainers(filter.groupName)
-    const result = []
+    const result: C[] = []
     for (const child of containers) {
       if (!filter.componentName || filter.componentName === child.componentName)
         result.push(child.inst)
@@ -148,7 +148,7 @@ class Container<C> {
       for (const id of Array.from(group.values()))
         idSet.add(id)
     }
-    const containers = []
+    const containers: Container<any>[] = []
     for (const id of Array.from(idSet.values()))
       containers.push(this.app.getContainer(id))
     return containers

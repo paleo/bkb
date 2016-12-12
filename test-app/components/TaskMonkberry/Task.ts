@@ -4,7 +4,7 @@ import CommentList from '../CommentList/CommentList'
 import {TestApp} from '../../start'
 
 import * as Monkberry from 'monkberry'
-import directives from 'monkberry-directives'
+import monkberryDirectives from 'monkberry-directives'
 import 'monkberry-events'
 
 import * as Template from './Task.monk'
@@ -13,13 +13,12 @@ export default class Task implements Component<Task> {
   public static componentName = 'Task'
   public bkb: Bkb<Task>
   private view: any
-  private directives: any
 
   private state = {
     label: 'Hop Monkberry',
     updMode: true,
     ctrl: {
-      select: e => {
+      select: () => {
         this.setUpdateMode(true)
         this.context.emit<void>('grabFocus')
       },
@@ -32,18 +31,22 @@ export default class Task implements Component<Task> {
   constructor(private context: Context<TestApp>) {
     this.setUpdateMode(true)
     this.context.emit<void>('grabFocus')
-
-    this.directives = createBkbDirectives(context.app.log, {
-      'CommentList': (el: HTMLElement, value: string) => context.createComponent(CommentList, value)
-    })
-    for (let name in directives) {
-      if (directives.hasOwnProperty(name))
-        this.directives[name] = directives[name]
-    }
+    context.bkb.on('destroy', () => {
+      if (this.view)
+        this.view.remove();
+    });
   }
 
   public attachTo(el: HTMLElement) {
-    this.view = Monkberry.render(Template, el, {directives: this.directives})
+    this.view = Monkberry.render(Template, el, {directives: {
+      ...monkberryDirectives,
+      ...createBkbDirectives(this.context.app.log, {
+        'CommentList': (el: HTMLElement, value: string) => this.context.createComponent(CommentList, value)
+      })
+    }})
+    this.view.on('click', 'input', (e: Event) => {
+      console.log('==> click', e.target, e.currentTarget)
+    })
     // this.view.on('change', 'input', (e: Event) => {
     //   this.state.label = (e.target as any).value
     // })

@@ -3,6 +3,17 @@ import {createApplication, Log, Application, LogItem} from 'bkb-framework'
 import TodoList from "./components/TodoList/TodoList"
 import {createEasyRouter, EasyRouter} from './libraries-ts/EasyRouter'
 
+//import './tmp'
+// declare module 'bkb-framework' {
+//   interface Log {
+//     popo(string): void
+//   }
+// }
+
+// let lll: Log;
+// lll.debug('')
+// lll.popo('')
+
 export interface TestApp extends Application<TestApp> {
   log: Log,
   router: EasyRouter
