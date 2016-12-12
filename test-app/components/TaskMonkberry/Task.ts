@@ -32,8 +32,11 @@ export default class Task implements Component<Task> {
     this.setUpdateMode(true)
     this.context.emit<void>('grabFocus')
     context.onDestroy(() => {
-      if (this.view)
-        this.view.remove();
+      // console.log('destroy task')
+      if (this.view) {
+        this.view.remove()
+        this.view = null
+      }
     });
   }
 

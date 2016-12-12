@@ -240,7 +240,7 @@ class Container<C> {
     this.context = null
     this.inst = null
     // if (this.inst) {
-    //   let tmp: any = this.inst;
+    //   let tmp: any = this.inst
     //   tmp.bkb = null
     //   this.inst = null
     // }
