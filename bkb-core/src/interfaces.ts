@@ -88,6 +88,8 @@ interface Context<A> extends BasicContext<A> {
 
   find<C>(filter?: ChildFilter): C[]
   findSingle<C>(filter?: ChildFilter): C
+
+  onDestroy(cb: (evt: ComponentEvent<any, {}>) => void): void
 }
 
 interface BasicBkb<C> {

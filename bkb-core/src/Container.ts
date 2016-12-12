@@ -94,7 +94,8 @@ class Container<C> {
       toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties,
         true) as any).context,
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
-      findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter)
+      findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter),
+      onDestroy: (cb: (evt: ComponentEvent<any, {}>) => void) => this.emitter.listen('destroy').call(cb)
     })
     return context
   }

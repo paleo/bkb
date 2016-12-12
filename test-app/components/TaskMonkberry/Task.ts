@@ -31,7 +31,7 @@ export default class Task implements Component<Task> {
   constructor(private context: Context<TestApp>) {
     this.setUpdateMode(true)
     this.context.emit<void>('grabFocus')
-    context.bkb.on('destroy', () => {
+    context.onDestroy(() => {
       if (this.view)
         this.view.remove();
     });
