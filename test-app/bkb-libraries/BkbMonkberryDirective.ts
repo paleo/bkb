@@ -26,12 +26,10 @@ function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Co
     private el: HTMLElement
 
     bind(node) {
-      console.log('MONK>> bind')
       this.el = node
     }
 
     unbind() {
-      console.log('MONK>> unbind')
       this.el = null
       if (this.comp) {
         try {
@@ -44,7 +42,6 @@ function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Co
     }
 
     update(value?: string) {
-      console.log('MONK>> update', value)
       try {
         if (!this.el)
           throw new Error('Cannot call method "update" of an unbound directive')
