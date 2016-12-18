@@ -1,4 +1,4 @@
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import createBkbDirectives from '../../bkb-libraries/BkbMonkberryDirective'
 import CommentList from '../CommentList/CommentList'
 import {TestApp} from '../../start'
@@ -20,7 +20,7 @@ export default class Task implements Component<Task> {
     ctrl: {
       select: () => {
         this.setUpdateMode(true)
-        this.context.emit<void>('grabFocus')
+        this.context.emit('grabFocus')
       },
       changeText: (e: Event) => {
         this.state.label = (e.target as any).value
@@ -28,9 +28,9 @@ export default class Task implements Component<Task> {
     }
   }
 
-  constructor(private context: Context<TestApp>) {
+  constructor(private context: Dash<TestApp>) {
     this.setUpdateMode(true)
-    this.context.emit<void>('grabFocus')
+    this.context.emit('grabFocus')
     context.onDestroy(() => {
       // console.log('destroy task')
       if (this.view) {

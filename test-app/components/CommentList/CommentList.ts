@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
@@ -16,12 +16,12 @@ export default class CommentList implements Component<CommentList> {
   private $container: JQuery
   private $ul: JQuery
 
-  constructor(private context: Context<TestApp>, title: string) {
+  constructor(private context: Dash<TestApp>, title: string) {
     this.$container = $(templates.getTemplate('.CommentList'))
     this.$container.find('.CommentList-h1').text(title)
     this.$ul = this.$container.find('.CommentList-ul')
     const $addBtn = this.$container.find('.CommentList-addBtn').click(() => this.add())
-    context.listenParent('enabled').call((evt) => {
+    context.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data}`)
       if (evt.data)
         $addBtn.show()
@@ -39,7 +39,7 @@ export default class CommentList implements Component<CommentList> {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
     const comment = this.context.createComponent(Comment).attachTo($li[0])
-    const listener = this.context.listenParent('enabled').call((evt) => {
+    const listener = this.context.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)
         $rmBtn.show()
@@ -49,7 +49,7 @@ export default class CommentList implements Component<CommentList> {
     const $rmBtn = $li.find('.js-rmBtn').click(() => {
       $li.remove()
       comment.bkb.destroy()
-      listener.cancel()
+      listener.disable()
     })
   }
 }

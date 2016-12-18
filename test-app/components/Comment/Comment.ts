@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import {TestApp} from '../../start'
 
@@ -12,15 +12,15 @@ export default class Comment implements Component<Comment> {
   public bkb: Bkb<Comment>
   private $container: JQuery
 
-  constructor(private context: Context<TestApp>) {
+  constructor(private context: Dash<TestApp>) {
     this.$container = $(templates.getTemplate('.Comment'))
     const $input = this.$container.find('input')
-    context.listenParent('enabled').call((evt) => {
+    context.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data}`)
       $input.prop('disabled', !evt.data)
     })
     // $input.click(() => {
-    //   this.context.emit<void>('grabFocus')
+    //   this.context.emit('grabFocus')
     // })
   }
 

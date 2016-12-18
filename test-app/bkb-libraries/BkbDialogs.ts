@@ -1,4 +1,4 @@
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import {EasyRouter} from '../libraries-ts/EasyRouter'
 import 'dialog-polyfill'
 
@@ -24,7 +24,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
   private registeredMap = {}
   private regOpenedStack = []
 
-  constructor(private context: Context<any>) {
+  constructor(private context: Dash<any>) {
     this.initShortDialogs()
   }
 

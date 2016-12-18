@@ -108,7 +108,6 @@ const exportsTsCode = `export {
   Component,
   ComponentEvent,
   Transmitter,
-  ComponentTransmitter,
   ParentFilter,
   ChildFilter,
   NewComponentProperties,

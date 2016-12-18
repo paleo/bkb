@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import {TestApp} from '../../start'
@@ -22,19 +22,19 @@ export default class Task implements Component<Task> {
   
   private vm;
 
-  constructor(private context: Context<TestApp>) {
+  constructor(private context: Dash<TestApp>) {
     this.$container = $(templates.getTemplate('.Task'))
     this.$update = this.$container.find('.js-update')
     this.$read = this.$container.find('.js-read')
       .click(() => {
         this.setUpdateMode(true)
-        this.context.emit<void>('grabFocus')
+        this.context.emit('grabFocus')
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
     context.createComponent(CommentList).attachTo(this.$container.find('.Task-comments')[0])
     this.setUpdateMode(true)
-    this.context.emit<void>('grabFocus')
+    this.context.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement) {

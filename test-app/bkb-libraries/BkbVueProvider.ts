@@ -1,4 +1,4 @@
-import {Context} from 'bkb-framework'
+import {Dash} from 'bkb-framework'
 
 declare type Vue = any
 declare let Vue: any // { new(config: any): Vue }
@@ -18,7 +18,7 @@ export default class BkbVueProvider {
     this.templates = BkbVueProvider.splitTemplates(templatesStr)
   }
 
-  public attachVue(context: Context<any>, config: VueConfig): Vue {
+  public attachVue(context: Dash<any>, config: VueConfig): Vue {
     const vt = new VueTemplate(context, this.templates)
     return vt.createVue(config)
   }
@@ -45,7 +45,7 @@ export default class BkbVueProvider {
 class VueTemplate {
   private BkbVue
 
-  constructor(private context: Context<any>, private templates: string[]) {
+  constructor(private context: Dash<any>, private templates: string[]) {
   }
 
   public createVue(config: VueConfig): Vue {
@@ -61,20 +61,20 @@ class VueTemplate {
       destroyed: () => {
         //console.log('.................... destroyed')
         if (destroyListener) {
-          destroyListener.cancel()
+          destroyListener.disable()
           destroyListener = null
         }
       }
     })
     let destroyListener = this.context.bkb.listen('destroy').call(() => {
-      destroyListener.cancel()
+      destroyListener.disable()
       destroyListener = null
       v.$destroy()
     })
     return v
   }
 
-  private createBkbVue(context: Context<any>, config: VueConfig) {
+  private createBkbVue(context: Dash<any>, config: VueConfig) {
     let BkbVue = Vue.extend()
     BkbVue.directive('bkb-component', {
       bind: function () {

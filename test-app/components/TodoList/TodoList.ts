@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 //import Task from "../TaskVue/Task"
 import Task from "../TaskMonkberry/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
@@ -16,12 +16,12 @@ export default class TodoList implements Component<TodoList> {
   private $container: JQuery
   private $ul: JQuery
 
-  constructor(private context: Context<TestApp>, title: string) {
+  constructor(private context: Dash<TestApp>, title: string) {
     this.$container = $(templates.getTemplate('.TodoList'))
     this.$container.find('.TodoList-h1').text(title)
     this.$ul = this.$container.find('.TodoList-ul')
     this.$container.find('.TodoList-addBtn').click(() => this.add())
-    context.listenChildren('grabFocus', {groupName: 'items'}).call((evt) => {
+    context.listenToChildren('grabFocus', {groupName: 'items'}).call((evt) => {
       console.log(`[Event] [${this.bkb.componentName} ${this.bkb.componentId}] grabFocus`)
       for (const child of context.find<Task>({groupName: 'items', componentName: 'Task'})) {
         if (child !== evt.source)

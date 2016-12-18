@@ -1,4 +1,4 @@
-import {Component, Context, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb-framework'
 import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import {TestApp} from '../../start'
@@ -16,9 +16,9 @@ export default class Task implements Component<Task> {
     updMode: true
   };
 
-  constructor(private context: Context<TestApp>) {
+  constructor(private context: Dash<TestApp>) {
     this.setUpdateMode(true)
-    this.context.emit<void>('grabFocus')
+    this.context.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement): this {
@@ -29,7 +29,7 @@ export default class Task implements Component<Task> {
       methods: {
         select: () => {
           this.setUpdateMode(true)
-          this.context.emit<void>('grabFocus')
+          this.context.emit('grabFocus')
         }
       },
       childComponents: {CommentList}
