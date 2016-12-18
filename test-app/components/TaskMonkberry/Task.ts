@@ -43,20 +43,19 @@ export default class Task implements Component<Task> {
   }
 
   public attachTo(el: HTMLElement) {
-    console.log('Task.attachTo a', this.bkb.componentId)
-    this.view = Monkberry.render(Template, el, {directives: {
-      ...monkberryDirectives,
-      ...createBkbDirectives(this.dash.app.log, {
-        'CommentList': (el: HTMLElement, value: string) => this.dash.createComponent(CommentList, value)
-      })
-    }})
-    console.log('Task.attachTo b', this.bkb.componentId)
-    this.view.on('click', 'input', (e: Event) => {
-      console.log('==> click', e.target, e.currentTarget)
+    this.view = Monkberry.render(Template, el, {
+      noCache: true,
+      directives: {
+        ...monkberryDirectives,
+        ...createBkbDirectives(this.dash.app.log, {
+          'CommentList': (el: HTMLElement, value: string) => {
+            return this.dash.createComponent(CommentList, value)
+          }
+        })
+      }
     })
-    console.log('Task.attachTo c', this.bkb.componentId)
-    // this.view.on('change', 'input', (e: Event) => {
-    //   this.state.label = (e.target as any).value
+    // this.view.on('click', 'input', (e: Event) => {
+    //   console.log('==> click', e.target, e.currentTarget)
     // })
     this.view.update(this.state)
 
