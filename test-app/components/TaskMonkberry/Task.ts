@@ -30,7 +30,7 @@ export default class Task implements Component<Task> {
   }
 
   constructor(private dash: Dash<TestApp>) {
-    this.state.compId += dash.bkb.componentId
+    this.state.compId = dash.bkb.componentId
     this.setUpdateMode(true)
     this.dash.emit('grabFocus')
     dash.onDestroy(() => {
@@ -49,7 +49,9 @@ export default class Task implements Component<Task> {
         ...monkberryDirectives,
         ...createBkbDirectives(this.dash.app.log, {
           'CommentList': (el: HTMLElement, value: string) => {
-            return this.dash.createComponent(CommentList, value)
+            return this.dash.createComponent(CommentList, {
+              args: [value]
+            })
           }
         })
       }
