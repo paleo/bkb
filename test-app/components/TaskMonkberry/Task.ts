@@ -17,10 +17,11 @@ export default class Task implements Component<Task> {
   private state = {
     label: 'Hop Monkberry',
     updMode: true,
+    compId: null,
     ctrl: {
       select: () => {
         this.setUpdateMode(true)
-        this.context.emit('grabFocus')
+        this.dash.emit('grabFocus')
       },
       changeText: (e: Event) => {
         this.state.label = (e.target as any).value
@@ -28,10 +29,11 @@ export default class Task implements Component<Task> {
     }
   }
 
-  constructor(private context: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>) {
+    this.state.compId += dash.bkb.componentId
     this.setUpdateMode(true)
-    this.context.emit('grabFocus')
-    context.onDestroy(() => {
+    this.dash.emit('grabFocus')
+    dash.onDestroy(() => {
       // console.log('destroy task')
       if (this.view) {
         this.view.remove()
@@ -41,15 +43,18 @@ export default class Task implements Component<Task> {
   }
 
   public attachTo(el: HTMLElement) {
+    console.log('Task.attachTo a', this.bkb.componentId)
     this.view = Monkberry.render(Template, el, {directives: {
       ...monkberryDirectives,
-      ...createBkbDirectives(this.context.app.log, {
-        'CommentList': (el: HTMLElement, value: string) => this.context.createComponent(CommentList, value)
+      ...createBkbDirectives(this.dash.app.log, {
+        'CommentList': (el: HTMLElement, value: string) => this.dash.createComponent(CommentList, value)
       })
     }})
+    console.log('Task.attachTo b', this.bkb.componentId)
     this.view.on('click', 'input', (e: Event) => {
       console.log('==> click', e.target, e.currentTarget)
     })
+    console.log('Task.attachTo c', this.bkb.componentId)
     // this.view.on('change', 'input', (e: Event) => {
     //   this.state.label = (e.target as any).value
     // })
@@ -63,6 +68,6 @@ export default class Task implements Component<Task> {
       return
     this.state.updMode = mode
     this.view.update(this.state)
-    this.context.emit('enabled', mode)
+    this.dash.emit('enabled', mode)
   }
 }

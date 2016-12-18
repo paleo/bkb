@@ -137,7 +137,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   public errorHandler(err: any): void {
     if (!this.root.dash)
       throw new Error('Destroyed root component')
-    this.root.dash.emit('error', err)
+    this.root.dash.emit('error', err, {sync: true})
   }
 
   public nextTick(cb: () => void): void {
@@ -179,7 +179,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
         this.root.dash.emit('log', {
           type: type,
           messages: messages
-        })
+        }, {sync: true})
       }
     }
     return <any>Object.freeze(log)

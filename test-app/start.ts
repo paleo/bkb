@@ -29,8 +29,8 @@ $(() => {
   // const aaa: Application;
   //app.router;
 
-  app.bkb.listen<LogItem>('log').call((evt) => {
-    console.log(`[LOG] ${evt.data.type} `, evt.data.messages)
+  app.bkb.listen<LogItem>('log').call('dataFirst', (data) => {
+    console.log(`[LOG] ${data.type} `, data.messages)
   })
 
   // private fireEventStringMsg(type: LogType, something: any) {

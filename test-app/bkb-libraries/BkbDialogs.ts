@@ -24,7 +24,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
   private registeredMap = {}
   private regOpenedStack = []
 
-  constructor(private context: Dash<any>) {
+  constructor(private dash: Dash<any>) {
     this.initShortDialogs()
   }
 
@@ -147,7 +147,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
       props['rmDialog']()
     if (props['handle'] !== handle) {
       var err = Error('Current dialog handle "' + handle + '" should match with "' + props['handle'] + '"')
-      this.context.app.bkb.log.error(err)
+      this.dash.app.bkb.log.error(err)
       props['reject'](err)
     } else
       props['resolve'](val)
@@ -284,7 +284,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
       }
       this.pleaseProcessShortDialogs()
     } catch (e) {
-      this.context.app.bkb.log.error(e)
+      this.dash.app.bkb.log.error(e)
     }
   }
 
@@ -321,7 +321,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
           this.curSmallProp = null
           this.pleaseProcessShortDialogs()
         } catch (e) {
-          this.context.app.bkb.log.error(e)
+          this.dash.app.bkb.log.error(e)
         }
       }, props['delayInMs'])
     }

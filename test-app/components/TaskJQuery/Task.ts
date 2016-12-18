@@ -22,27 +22,23 @@ export default class Task implements Component<Task> {
   
   private vm;
 
-  constructor(private context: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>) {
     this.$container = $(templates.getTemplate('.Task'))
     this.$update = this.$container.find('.js-update')
     this.$read = this.$container.find('.js-read')
       .click(() => {
         this.setUpdateMode(true)
-        this.context.emit('grabFocus')
+        this.dash.emit('grabFocus')
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-    context.createComponent(CommentList).attachTo(this.$container.find('.Task-comments')[0])
+    dash.createComponent(CommentList).attachTo(this.$container.find('.Task-comments')[0])
     this.setUpdateMode(true)
-    this.context.emit('grabFocus')
+    this.dash.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement) {
-    new Vue({
-      el: el,
-      data: this.vm
-    })
-    $(el).append(this.$container) 
+    $(el).append(this.$container)
     return this
   }
 
@@ -59,6 +55,6 @@ export default class Task implements Component<Task> {
       this.$read.show()
       this.$lbl.text(this.$input.val())
     }
-    this.context.emit('enabled', mode)
+    this.dash.emit('enabled', mode)
   }
 }

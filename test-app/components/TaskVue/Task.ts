@@ -16,20 +16,20 @@ export default class Task implements Component<Task> {
     updMode: true
   };
 
-  constructor(private context: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>) {
     this.setUpdateMode(true)
-    this.context.emit('grabFocus')
+    this.dash.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement): this {
-    templates.attachVue(this.context, {
+    templates.attachVue(this.dash, {
       el: el,
       templateName: '.TaskV',
       data: this.vm,
       methods: {
         select: () => {
           this.setUpdateMode(true)
-          this.context.emit('grabFocus')
+          this.dash.emit('grabFocus')
         }
       },
       childComponents: {CommentList}
@@ -41,6 +41,6 @@ export default class Task implements Component<Task> {
     if (this.vm.updMode === mode)
       return
     this.vm.updMode = mode
-    this.context.emit('enabled', mode)
+    this.dash.emit('enabled', mode)
   }
 }

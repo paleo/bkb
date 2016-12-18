@@ -21,22 +21,20 @@ export default function createBkbDirectives(log: Log, makers: ComponentMakers) {
 }
 
 function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Comp, directiveName: string) {
-
-  let comp: Comp,
-    el: HTMLElement
-
-
   return class {
+    private comp: Comp
+    private el: HTMLElement
+
     bind(node) {
-      el = node
+      this.el = node
     }
 
     unbind() {
-      el = null
-      if (comp) {
+      this.el = null
+      if (this.comp) {
         try {
-          comp.bkb.destroy()
-          comp = null
+          this.comp.bkb.destroy()
+          this.comp = null
         } catch (e) {
           log.error(e)
         }
@@ -45,15 +43,15 @@ function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Co
 
     update(value?: string) {
       try {
-        if (!el)
+        if (!this.el)
           throw new Error('Cannot call method "update" of an unbound directive')
-        if (comp) {
-          if (!comp.update)
+        if (this.comp) {
+          if (!this.comp.update)
             throw new Error(`Missing method "update" in component of the Monkberry directive "${directiveName}"`)
-          comp.update(value)
+          this.comp.update(value)
         } else {
-          comp = maker(el, value)
-          comp.attachTo(el)
+          this.comp = maker(this.el, value)
+          this.comp.attachTo(this.el)
         }
       } catch (e) {
         log.error(e)

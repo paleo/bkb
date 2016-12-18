@@ -18,8 +18,8 @@ export default class BkbVueProvider {
     this.templates = BkbVueProvider.splitTemplates(templatesStr)
   }
 
-  public attachVue(context: Dash<any>, config: VueConfig): Vue {
-    const vt = new VueTemplate(context, this.templates)
+  public attachVue(dash: Dash<any>, config: VueConfig): Vue {
+    const vt = new VueTemplate(dash, this.templates)
     return vt.createVue(config)
   }
 
@@ -45,11 +45,11 @@ export default class BkbVueProvider {
 class VueTemplate {
   private BkbVue
 
-  constructor(private context: Dash<any>, private templates: string[]) {
+  constructor(private dash: Dash<any>, private templates: string[]) {
   }
 
   public createVue(config: VueConfig): Vue {
-    this.BkbVue = this.createBkbVue(this.context, config)
+    this.BkbVue = this.createBkbVue(this.dash, config)
     if (!this.templates[config.templateName])
       throw new Error(`Unknown template ${config.templateName}`)
     const v = new this.BkbVue({
@@ -66,7 +66,7 @@ class VueTemplate {
         }
       }
     })
-    let destroyListener = this.context.bkb.listen('destroy').call(() => {
+    let destroyListener = this.dash.bkb.listen('destroy').call(() => {
       destroyListener.disable()
       destroyListener = null
       v.$destroy()
@@ -74,7 +74,7 @@ class VueTemplate {
     return v
   }
 
-  private createBkbVue(context: Dash<any>, config: VueConfig) {
+  private createBkbVue(dash: Dash<any>, config: VueConfig) {
     let BkbVue = Vue.extend()
     BkbVue.directive('bkb-component', {
       bind: function () {
@@ -91,12 +91,12 @@ class VueTemplate {
 // console.log('this.arg', this.arg)
 // console.log('this.expression', this.expression)
 // console.log('value', value)
-          this.bkbChildComp = context.createComponent(Cl, value)
+          this.bkbChildComp = dash.createComponent(Cl, value)
           if (!this.bkbChildComp.attachTo)
             throw new Error('Component created by a Vue directive must have a method "attachTo"')
           this.bkbChildComp.attachTo(this.el)
         } catch (e) {
-          context.app.bkb.log.error(e)
+          dash.app.bkb.log.error(e)
         }
       },
       unbind: function () {
@@ -105,7 +105,7 @@ class VueTemplate {
             this.bkbChildComp.bkb.destroy()
             this.bkbChildComp = null
           } catch (e) {
-            context.app.bkb.log.error(e)
+            dash.app.bkb.log.error(e)
           }
         }
       }

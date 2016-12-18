@@ -12,15 +12,15 @@ export default class Comment implements Component<Comment> {
   public bkb: Bkb<Comment>
   private $container: JQuery
 
-  constructor(private context: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>) {
     this.$container = $(templates.getTemplate('.Comment'))
     const $input = this.$container.find('input')
-    context.listenToParent('enabled').call(evt => {
+    dash.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data}`)
       $input.prop('disabled', !evt.data)
     })
     // $input.click(() => {
-    //   this.context.emit('grabFocus')
+    //   this.dash.emit('grabFocus')
     // })
   }
 

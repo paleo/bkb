@@ -16,18 +16,18 @@ export default class CommentList implements Component<CommentList> {
   private $container: JQuery
   private $ul: JQuery
 
-  constructor(private context: Dash<TestApp>, title: string) {
+  constructor(private dash: Dash<TestApp>, title: string) {
     this.$container = $(templates.getTemplate('.CommentList'))
     this.$container.find('.CommentList-h1').text(title)
     this.$ul = this.$container.find('.CommentList-ul')
     const $addBtn = this.$container.find('.CommentList-addBtn').click(() => this.add())
-    context.listenToParent('enabled').call(evt => {
+    dash.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data}`)
       if (evt.data)
         $addBtn.show()
       else
         $addBtn.hide()
-      context.broadcast(evt)
+      dash.broadcast(evt)
     })
   }
 
@@ -38,8 +38,8 @@ export default class CommentList implements Component<CommentList> {
   public add() {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
-    const comment = this.context.createComponent(Comment).attachTo($li[0])
-    const listener = this.context.listenToParent('enabled').call(evt => {
+    const comment = this.dash.createComponent(Comment).attachTo($li[0])
+    const listener = this.dash.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)
         $rmBtn.show()
