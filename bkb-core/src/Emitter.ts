@@ -1,9 +1,38 @@
+interface CallbackEventOnly {
+  mode: 'eventOnly'
+  callback: (evt: ComponentEvent<any, any>) => void
+  thisArg?: any
+}
+interface CallbackDataFirst {
+  mode: 'dataFirst'
+  callback: (data: any, evt: ComponentEvent<any, any>) => void
+  thisArg?: any
+}
+interface CallbackArguments {
+  mode: 'arguments'
+  callback: (...args: any[]) => void
+  thisArg?: any
+}
+type Callback = CallbackEventOnly | CallbackDataFirst | CallbackArguments
+
 class Emitter {
+  public static empty(): Transmitter<any, any> {
+    const transmitter = {
+      call: () => {
+        return transmitter
+      },
+      disable: () => {
+      },
+      isDisabled: () => false
+    }
+    return transmitter
+  }
+
   private eventNames: Set<string>|null
   private strictEvents = false
-  private callbacks: Map<string, ((...args: any[]) => void)[]>|null
+  private callbacks: Map<string, Callback[]>|null
   private destroyed = false
-  private fromEolCancelers: Listener[]|null = []
+  private fromEolCancelers: Transmitter<any, any>[]|null = []
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
@@ -12,7 +41,7 @@ class Emitter {
 
   public exposeEvents(eventNames: string[], strictEventsMode: boolean): void {
     if (this.destroyed)
-      throw new Error(`Cannot call exposeEvents in a destroyed listener`)
+      throw new Error(`Cannot call exposeEvents in a destroyed transmitter`)
     if (!this.eventNames)
       this.eventNames = new Set()
     for (const name of eventNames)
@@ -21,41 +50,53 @@ class Emitter {
       this.strictEvents = true
   }
 
-  public emit(eventName: string, args?: any[]): void {
+  public emit(evt: ComponentEvent<any, any>): void {
     if (!this.callbacks)
       return
-    if (this.strictEvents && this.eventNames && !this.eventNames.has(eventName))
-      throw new Error(`Unexposed event: ${eventName}`)
-    let cbList = this.callbacks.get(eventName)
-// console.log('emit', args)
+    if (this.strictEvents && this.eventNames && !this.eventNames.has(evt.eventName))
+      throw new Error(`Unexposed event: ${evt.eventName}`)
+    let cbList = this.callbacks.get(evt.eventName)
     if (cbList)
-      this.callCbList(cbList, args)
+      this.callCbList(cbList, evt)
   }
 
-  public listen(eventName: string, from?: Container<any>): Listener {
+  public listen(eventName: string, from?: Container<any>): Transmitter<any, any> {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[]|null = []
-    const listener = {
-      call: (callback: (...args: any[]) => void) => {
+    const isDisabled = () => this.destroyed || !idList
+    const transmitter: Transmitter<any, any> = {
+      call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
         if (this.destroyed || !idList || !this.callbacks)
-          return listener
+          return transmitter
         let cbList = this.callbacks.get(eventName)
         if (!cbList)
           this.callbacks.set(eventName, cbList = [])
         const id = cbList.length
         idList.push(id)
-        cbList[id] = callback
-        return listener
+        if (typeof modeOrCb === 'string') {
+          cbList[id] = {
+            mode: modeOrCb as any,
+            callback: cbOrThisArg,
+            thisArg
+          }
+        } else {
+          cbList[id] = {
+            mode: 'eventOnly',
+            callback: modeOrCb,
+            thisArg: cbOrThisArg
+          }
+        }
+        return transmitter
       },
-      cancel: () => {
-        if (this.destroyed || !idList || !this.callbacks)
+      disable: () => {
+        if (isDisabled() || !this.callbacks)
           return
         let cbList = this.callbacks.get(eventName)
         if (cbList) {
-          for (const id of idList)
+          for (const id of idList!)
             delete cbList[id]
         }
         idList = null
@@ -63,28 +104,29 @@ class Emitter {
           fromEolCanceler()
           fromEolCanceler = null
         }
-      }
+      },
+      isDisabled
     }
     let fromEolCanceler
     if (from && from.bkb) {
-      const destroyListener = from.bkb.listen('destroy').call(() => listener.cancel()),
+      const destroyTransmitter = from.bkb.listen('destroy').call(() => transmitter.disable()),
         cancelerId = this.fromEolCancelers.length
-      this.fromEolCancelers[cancelerId] = destroyListener
+      this.fromEolCancelers[cancelerId] = destroyTransmitter
       fromEolCanceler = () => {
-        destroyListener.cancel()
+        destroyTransmitter.disable()
         if (this.fromEolCancelers)
           delete this.fromEolCancelers[cancelerId]
       }
     } else
       fromEolCanceler = null
-    return listener
+    return transmitter
   }
 
   public destroy(): void {
     if (this.fromEolCancelers) {
       for (const i in this.fromEolCancelers) {
         if (this.fromEolCancelers.hasOwnProperty(i))
-          this.fromEolCancelers[i].cancel()
+          this.fromEolCancelers[i].disable()
       }
     }
     this.fromEolCancelers = null
@@ -93,19 +135,39 @@ class Emitter {
     this.destroyed = true
   }
 
-  private callCbList(cbList: ((...args: any[]) => void)[], args?: any[]) {
+  private callCbList(cbList: Callback[], evt: ComponentEvent<any, any>) {
     for (const i in cbList) {
       if (!cbList.hasOwnProperty(i))
         continue
-      const cb = cbList[i]
       try {
-        if (args)
-          cb(...args)
-        else
-          cb()
+        call(cbList[i], evt)
       } catch (e) {
         this.app.errorHandler(e)
       }
     }
+  }
+}
+
+function call(cb: Callback, evt: ComponentEvent<any, any>) {
+  switch (cb.mode) {
+    case 'dataFirst':
+      if (cb.thisArg)
+        cb.callback.call(cb.thisArg, evt.data, evt)
+      else
+        cb.callback(evt.data, evt)
+      break
+    case 'arguments':
+      if (cb.thisArg)
+        cb.callback.apply(cb.thisArg, evt.data)
+      else
+        cb.callback(...evt.data)
+      break
+    case 'eventOnly':
+    default:
+      if (cb.thisArg)
+        cb.callback.call(cb.thisArg, evt)
+      else
+        cb.callback(evt)
+      break
   }
 }

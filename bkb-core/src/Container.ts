@@ -1,7 +1,7 @@
 class Container<C> {
   public inst: (C & Component<C>)|null
   public bkb: Bkb<C>|null
-  public context: Context<any>|null
+  public dash: Dash<any>|null
 
   private emitter: Emitter
   private childEmitter: ChildEmitter
@@ -14,9 +14,9 @@ class Container<C> {
     this.childEmitter = new ChildEmitter(app)
   }
 
-  public initBkbAndContext(bkbMethods?: any) {
+  public initBkbAndDash(bkbMethods?: any) {
     this.bkb = this.makeBkb(bkbMethods)
-    this.context = this.makeContext(this.bkb)
+    this.dash = this.makeDash(this.bkb)
   }
 
   public exposeEvents(eventNames: string[], strictEventsMode: boolean) {
@@ -24,7 +24,7 @@ class Container<C> {
   }
 
   public createInstance(Cl, args: any[]) {
-    let inst = new Cl(this.context, ...args)
+    let inst = new Cl(this.dash, ...args)
     if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb" (${Cl})`)
     Object.defineProperty(inst, 'bkb', {get: () => this.bkb!});
@@ -47,18 +47,16 @@ class Container<C> {
           throw new Error('Cannot call "getInstance()"on a destroyed component')
         return this.inst
       },
-      getParent: () => {
-        let parent = this.app.getParentOf(this.componentId)
-        return parent ? parent.inst : null
+      getParent: (filter?: ParentFilter) => {
+        let parent = this.getParent(filter)
+        return parent ? parent.inst : undefined
       },
-      on: <D>(eventName: string, callback: (evt: ComponentEvent<C, D>) => void) => {
-        this.emitter.listen(eventName).call(callback)
+      on: <D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
+        this.emitter.listen(eventName).call(modeOrCb, cbOrThisArg, thisArg)
         return bkb
       },
       listen: (eventName: string) => this.emitter.listen(eventName),
-      destroy: () => {
-        this.destroy()
-      },
+      destroy: () => this.destroy(),
       componentName: this.componentName,
       componentId: this.componentId,
       find: <E>(filter: ChildFilter = {}) => this.find<E>(filter),
@@ -70,34 +68,38 @@ class Container<C> {
     return bkb
   }
 
-  private makeContext(bkb: Bkb<C>): Context<any> {
-    const context = Object.freeze({
-      app: this.app.root ? this.app.root.inst : null, // The root context doesn't need this property
+  private makeDash(bkb: Bkb<C>): Dash<any> {
+    const dash = Object.freeze({
+      app: this.app.root ? this.app.root.inst : null, // The root dash doesn't need this property
       bkb: bkb,
       exposeEvents: (eventNames: string[]) => {
         this.exposeEvents(eventNames, true)
-        return context
+        return dash
       },
       emit: <D>(eventName: string, data?: D, options?: EmitterOptions) => {
         this.emit<D>(eventName, data, options)
-        return context
+        return dash
       },
       broadcast: (evt: ComponentEvent<any, any>, options?: EmitterOptions) => {
         this.broadcast(evt, options)
-        return context
+        return dash
       },
-      listenChildren: <C, D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<C, D>(eventName, filter),
-      listenParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenParent<C, D>(eventName, filter),
-      listenComponent: <C, D>(component: Component<C>, eventName: string) => this.listenComponent<C, D>(component, eventName),
-      createComponent: <C>(Cl: { new(): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties,
+      listenToChildren: <C, D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<C, D>(eventName, filter),
+      listenToParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenToParent<C, D>(eventName, filter),
+      listenTo: <C, D>(component: Component<C>, eventName: string) => this.listenTo<C, D>(component, eventName),
+      createComponent: <C>(Cl: {new(): C}, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties,
         false).inst,
       toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties,
-        true) as any).context,
+        true) as any).dash,
+      onDestroy: (cb: (evt: ComponentEvent<any, {}>) => void) => this.emitter.listen('destroy').call(cb),
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter),
-      onDestroy: (cb: (evt: ComponentEvent<any, {}>) => void) => this.emitter.listen('destroy').call(cb)
+      getParent: (filter?: ParentFilter) => {
+        let parent = this.getParent(filter)
+        return parent ? parent.inst : undefined
+      }
     })
-    return context
+    return dash
   }
 
   private createComponent<E>(objOrCl, properties: NewComponentProperties, asObject: boolean): Container<E> {
@@ -181,7 +183,7 @@ class Container<C> {
   }
 
   private emitSync<D>(evt: ComponentEvent<C, D>) {
-    this.emitter.emit(evt.eventName, [evt])
+    this.emitter.emit(evt)
     const parent = this.app.getParentOf(this.componentId)
     if (parent)
       parent.bubbleUpEvent<C, D>(evt, false, this.componentId)
@@ -198,9 +200,9 @@ class Container<C> {
 
   private broadcast(evt: ComponentEvent<any, any>, options?: EmitterOptions) {
     if (options && options.sync)
-      this.emitter.emit(evt.eventName, [evt])
+      this.emitter.emit(evt)
     else
-      this.app.nextTick(() => this.emitter.emit(evt.eventName, [evt]))
+      this.app.nextTick(() => this.emitter.emit(evt))
   }
 
   private getGroupsOf(childId: number): Set<string> {
@@ -214,18 +216,24 @@ class Container<C> {
     return result
   }
 
-  private listenParent<C, D>(eventName: string, filter: ParentFilter): ComponentListener<C, D> {
-    let parent: Container<any>|null = this
+  private getParent(filter?: ParentFilter): Container<any>|undefined {
+    let parent: Container<any>|undefined = this
     while (parent = this.app.getParentOf(parent.componentId)) {
-      if (!filter.componentName || filter.componentName === parent.componentName)
-        return parent.emitter.listen(eventName, this)
+      if (!filter || !filter.componentName || filter.componentName === parent.componentName)
+        return parent
     }
-    if (filter.componentName)
-      throw new Error(`Unknown parent ${filter.componentName}`)
-    return ChildEmitter.empty()
   }
 
-  private listenComponent<C, D>(component: Component<C>, eventName: string): ComponentListener<C, D> {
+  private listenToParent<C, D>(eventName: string, filter: ParentFilter): Transmitter<C, D> {
+    let parent = this.getParent(filter)
+    if (parent)
+      return parent.emitter.listen(eventName, this)
+    if (filter.componentName)
+      throw new Error(`Unknown parent ${filter.componentName}`)
+    return Emitter.empty()
+  }
+
+  private listenTo<C, D>(component: Component<C>, eventName: string): Transmitter<C, D> {
     return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
   }
 
@@ -237,7 +245,7 @@ class Container<C> {
     this.emitter.destroy()
     this.childEmitter.destroy()
     this.bkb = null
-    this.context = null
+    this.dash = null
     this.inst = null
     // if (this.inst) {
     //   let tmp: any = this.inst

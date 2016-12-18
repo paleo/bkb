@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const ts = require('typescript')
-const uglifyJS = require('uglify-js');
+const uglifyJS = require('uglify-js')
 
 const fsp = {
   exists: function (path) {
@@ -87,7 +87,7 @@ function build(projectPath) {
     return fsp.writeFile(targetBkbTs, tsCode).then(() => tsCode)
   }).then((tsCode) => {
     const jsCode = ts.transpile(tsCode, {
-      //'module': ts.ModuleKind.UMD,
+      'module': ts.ModuleKind.CommonJS, // UMD
       'target': ts.ScriptTarget.ES5
       //'lib': ['dom', 'es5', 'es2015.core', 'es2015.iterable', 'es2015.collection', 'es2015.promise']
     });
@@ -105,15 +105,15 @@ function build(projectPath) {
 
 const exportsTsCode = `export {
   createApplication,
-  Listener,
   Component,
   ComponentEvent,
-  ComponentListener,
+  Transmitter,
+  ComponentTransmitter,
   ParentFilter,
   ChildFilter,
   NewComponentProperties,
   EmitterOptions,
-  Context,
+  Dash,
   Bkb,
   LogItem,
   Log,

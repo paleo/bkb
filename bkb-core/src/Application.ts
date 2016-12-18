@@ -7,7 +7,7 @@ interface InternalApplicationContainer {
   root: Container<any>
   createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean, properties: NewComponentProperties): Container<C>
   getChildrenOf(componentId: number): Container<any>[]
-  getParentOf(componentId: number): Container<any>|null
+  getParentOf(componentId: number): Container<any>|undefined
   getContainer(componentId: number): Container<any>
   removeComponent<C>(container: Container<C>): void
   errorHandler(err: any): void
@@ -33,9 +33,9 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     this.root = this.createRootComponent(obj)
   }
 
-  public getParentOf(componentId: number): Container<any>|null {
+  public getParentOf(componentId: number): Container<any>|undefined {
     const node = this.findNode(componentId)
-    return node.parent ? node.parent.container : null
+    return node.parent ? node.parent.container : undefined
   }
 
   public getChildrenOf(componentId: number): Container<any>[] {
@@ -59,16 +59,16 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     this.nodes.set(componentId, {
       container: container
     })
-    container.initBkbAndContext({
+    container.initBkbAndDash({
       createComponent: <C>(Cl: { new(): C }, properties?: NewComponentProperties) => {
-        if (!this.root.context)
+        if (!this.root.dash)
           throw new Error('Destroyed root component')
-        return this.root.context.createComponent(Cl, properties)
+        return this.root.dash.createComponent(Cl, properties)
       },
       toComponent: <C>(obj, properties?: NewComponentProperties) => {
-        if (!this.root.context)
+        if (!this.root.dash)
           throw new Error('Destroyed root component')
-        return this.root.context.toComponent(obj, properties)
+        return this.root.dash.toComponent(obj, properties)
       },
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
@@ -80,7 +80,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
 
   public createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean,
                             properties: NewComponentProperties): Container<C> {
-    if (!this.root.context)
+    if (!this.root.dash)
       throw new Error('Destroyed root component')
     const componentName = properties.componentName ? properties.componentName : ApplicationContainer.getComponentName(objOrCl),
       componentId = this.newId(),
@@ -94,25 +94,25 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     if (!parentNode.children)
       parentNode.children = new Map()
     parentNode.children.set(componentId, node)
-    container.initBkbAndContext()
+    container.initBkbAndDash()
     if (asObject)
       container.createFromObject(objOrCl)
     else
       container.createInstance(objOrCl, properties.args || [])
-    this.root.context.emit('addComponent', {component: container.inst})
-    this.root.context.emit('changeComponent', {component: container.inst, type: 'add'})
+    this.root.dash.emit('addComponent', {component: container.inst})
+    this.root.dash.emit('changeComponent', {component: container.inst, type: 'add'})
     return container
   }
 
   public removeComponent<C>(container: Container<C>): void {
-    if (!this.root.context)
+    if (!this.root.dash)
       throw new Error('Destroyed root component')
     const mainRm = !this.insideRmComp
     try {
       if (mainRm) {
         this.insideRmComp = true
-        this.root.context.emit('removeComponent', {component: container.inst}, {sync: true})
-        this.root.context.emit('changeComponent', {component: container.inst, type: 'remove'}, {sync: true})
+        this.root.dash.emit('removeComponent', {component: container.inst}, {sync: true})
+        this.root.dash.emit('changeComponent', {component: container.inst, type: 'remove'}, {sync: true})
       }
       const componentId = container.componentId,
         node = this.findNode(componentId)
@@ -135,9 +135,9 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   public errorHandler(err: any): void {
-    if (!this.root.context)
+    if (!this.root.dash)
       throw new Error('Destroyed root component')
-    this.root.context.emit('error', err)
+    this.root.dash.emit('error', err)
   }
 
   public nextTick(cb: () => void): void {
@@ -174,9 +174,9 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     const log = {}
     for (const type of logTypes) {
       log[type] = (...messages: any[]) => {
-        if (!this.root.context)
+        if (!this.root.dash)
           throw new Error('Destroyed root component')
-        this.root.context.emit('log', {
+        this.root.dash.emit('log', {
           type: type,
           messages: messages
         })

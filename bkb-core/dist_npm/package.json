@@ -1,6 +1,6 @@
 {
   "name": "bkb-framework",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bkb is a lightweight front-end framework.",
   "main": "bkb.min.js",
   "types": "bkb.d.ts",

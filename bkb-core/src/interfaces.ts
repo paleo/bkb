@@ -1,8 +1,3 @@
-interface Listener {
-  call(callback: (...args: any[]) => void): this
-  cancel(): void
-}
-
 interface Component<C> {
   readonly bkb: Bkb<C>
 }
@@ -16,9 +11,13 @@ interface ComponentEvent<C, D> {
   stopPropagation(): void
 }
 
-interface ComponentListener<C, D> {
-  call(callback: (evt: ComponentEvent<C, D>) => void): this
-  cancel(): void
+interface Transmitter<C, D> {
+  call(callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this
+  call(mode: 'eventOnly', callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this
+  call(mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<C, D>) => void, thisArg?: any): this
+  call(mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
+  disable(): void
+  isDisabled(): boolean
 }
 
 interface ParentFilter {
@@ -50,19 +49,19 @@ interface EmitterOptions {
   sync?: boolean
 }
 
-interface BasicContext<A> {
-  createComponent<C>(Cl: { new(context: Context<A>, ...args): C }, properties?: NewComponentProperties): C & Component<C>
-  toComponent(obj: any, properties?: NewComponentProperties): Context<A>
+interface BasicDash<A> {
+  createComponent<C>(Cl: { new(dash: Dash<A>, ...args): C }, properties?: NewComponentProperties): C & Component<C>
+  toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
 }
 
-interface Context<A> extends BasicContext<A> {
+interface Dash<A> extends BasicDash<A> {
   readonly app: Application<A> & A
 
   readonly bkb: Bkb<any>
 
   exposeEvents(eventNames: string[]): this
 
-  emit<D>(eventName: string, data?: D, options?: EmitterOptions): this
+  emit(eventName: string, data?: any, options?: EmitterOptions): this
 
   /**
    * Notice: The event will NOT bubble up to parent hierarchy
@@ -76,26 +75,43 @@ interface Context<A> extends BasicContext<A> {
    * @param eventName The event to listen
    * @param filter A filter that has to match with the targeted parent
    */
-  listenParent<C, D>(eventName: string, filter?: ParentFilter): ComponentListener<C, D>
+  listenToParent<C, D>(eventName: string, filter?: ParentFilter): Transmitter<C, D>
 
   /**
    * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
    * descendant that match the filter.
    */
-  listenChildren<C, D>(eventName: string, filter?: ChildFilter): ComponentListener<C, D>
+  listenToChildren<C, D>(eventName: string, filter?: ChildFilter): Transmitter<C, D>
 
-  listenComponent<C, D>(component: Component<C>, eventName: string): ComponentListener<C, D>
-
-  find<C>(filter?: ChildFilter): C[]
-  findSingle<C>(filter?: ChildFilter): C
+  listenTo<C, D>(component: Component<C>, eventName: string): Transmitter<C, D>
 
   onDestroy(cb: (evt: ComponentEvent<any, {}>) => void): void
+
+  /**
+   * Find children
+   */
+  find<C>(filter?: ChildFilter): C[]
+  /**
+   * Find a single child (an Error is thrown if there isn't one result)
+   */
+  findSingle<C>(filter?: ChildFilter): C
+
+  getParent(filter?: ParentFilter): Component<any>|undefined
 }
 
 interface BasicBkb<C> {
-  on<D>(eventName: string, callback: (evt: ComponentEvent<C, D>) => void): this
-  listen<D>(eventName: string): ComponentListener<C, D>
+  on<D>(eventName: string, callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
+  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
+  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
+  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this // TODO implement
+  listen<D>(eventName: string): Transmitter<C, D>
+  /**
+   * Find children
+   */
   find<E>(filter?: ChildFilter): E[]
+  /**
+   * Find a single child (an Error is thrown if there isn't one result)
+   */
   findSingle<E>(filter?: ChildFilter): E
 }
 
@@ -104,9 +120,12 @@ interface Bkb<C> extends BasicBkb<C> {
   readonly componentName: string
   readonly componentId: number
   getInstance(): C & Component<C>
-  getParent(): Component<any>|null
+  getParent(filter?: ParentFilter): Component<any>|undefined
 }
 
+/**
+ * The type of data for log event
+ */
 interface LogItem {
   type: string
   messages: any[]
@@ -120,7 +139,7 @@ interface Log {
   trace(...messages: any[]): void
 }
 
-interface ApplicationBkb<A> extends Bkb<A>, BasicContext<A> {
+interface ApplicationBkb<A> extends Bkb<A>, BasicDash<A> {
   nextTick(cb: () => void): void
   readonly log: Log
 }
