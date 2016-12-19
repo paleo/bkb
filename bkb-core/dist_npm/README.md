@@ -1,6 +1,8 @@
 # Bkb
 
-Bkb is a lightweight front-end framework.
+A JavaScript Framework for Front-end Applications.
+
+http://paleo229.github.io/bkb/
 
 ## License
 
