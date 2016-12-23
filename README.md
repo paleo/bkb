@@ -6,9 +6,9 @@ Bkb is a lightweight front-end framework.
 
     npm install bkb-framework
 
-## Documentation
+## Web Site
 
-The documentation is on [the Web site](http://paleo229.github.io/bkb/).
+[The Web Site is here](http://paleo.github.io/bkb/).
 
 ## License
 

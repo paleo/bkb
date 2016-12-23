@@ -1,6 +1,4 @@
-# Bkb
-
-A JavaScript Framework for Front-end Applications.
+## Web Site
 
 http://paleo229.github.io/bkb/
 
