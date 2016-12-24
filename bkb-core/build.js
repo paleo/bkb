@@ -90,11 +90,11 @@ function build(projectPath) {
       'module': ts.ModuleKind.CommonJS, // UMD
       'target': ts.ScriptTarget.ES5
       //'lib': ['dom', 'es5', 'es2015.core', 'es2015.iterable', 'es2015.collection', 'es2015.promise']
-    });
+    })
     //return fsp.writeFile(targetBkbJs, jsCode).then(() => jsCode)
     return jsCode
   }).then((jsCode) => {
-    const minified = uglifyJS.minify(jsCode, {fromString: true});
+    const minified = uglifyJS.minify(jsCode, {fromString: true})
     return fsp.writeFile(targetBkbMinJs, minified.code)
   }).then(() => makeTsDefCode(srcPath, readInterfacesTs)).then(tsCode => {
     return fsp.writeFile(targetDistDefTs, tsCode)
@@ -137,7 +137,7 @@ function makeTsCode(srcPath, readInterfacesTs) {
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
     return `declare module 'bkb-framework' {
-function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, ...args: any[]): A & Application
+function createApplication<A>(Cl: {new(dash: Dash<A>, ...args: any[]): A}, ...args: any[]): A & Application
 function toApplication<A>(obj: A): Dash<A>
 
 ${interfacesStr}
@@ -149,7 +149,7 @@ ${exportsTsCode}
 
 function makeIndexTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, ...args: any[]): A & Application
+    return `declare function createApplication<A>(Cl: {new(dash: Dash<A>, ...args: any[]): A}, ...args: any[]): A & Application
 declare function toApplication<A>(obj: A): Dash<A>
 
 ${interfacesStr}

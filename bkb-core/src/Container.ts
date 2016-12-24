@@ -32,7 +32,7 @@ class Container<C> {
   public createInstance(Cl, args: any[]) {
     // let inst = new Cl(this.dash, ...args)
     this.inst = Object.create(Cl.prototype)
-    Object.defineProperty(this.inst, 'bkb', {get: () => this.bkb!});
+    Object.defineProperty(this.inst, 'bkb', {get: () => this.bkb!})
     let retVal = Cl.call(this.inst, this.dash, ...args)
     if (Object(retVal) === retVal && retVal !== this.inst) {
       this.inst = retVal
@@ -44,8 +44,7 @@ class Container<C> {
   public createFromObject(obj) {
     if (obj.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
-    Object.defineProperty(obj, 'bkb', {get: () => this.bkb!});
-    //obj.bkb = this.bkb!
+    Object.defineProperty(obj, 'bkb', {get: () => this.bkb!})
     this.inst = obj
   }
 
