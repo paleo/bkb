@@ -4,16 +4,13 @@ import {Component, Dash, Bkb} from 'bkb-framework'
 import Task from "../TaskMonkberry/Task"
 //import Task from "../TaskJQuery/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
-import {TestApp} from '../../start'
-import {MonkberryComponent} from '../../bkb-libraries/BkbMonkberryDirective'
+import TestApp from '../TestApp/TestApp'
 
 const templates = new RawTemplateProvider(require("html!./TodoList.html"))
-// import tplStr from './TodoList.html!text'
-// const templates = new RawTemplateProvider(tplStr)
 
-export default class TodoList implements Component<TodoList> {
-  public static componentName = 'TodoList'
-  public bkb: Bkb<TodoList>
+export default class TodoList implements Component {
+  static readonly componentName = 'TodoList'
+  readonly bkb: Bkb
   private $container: JQuery
   private $ul: JQuery
 
@@ -39,10 +36,8 @@ export default class TodoList implements Component<TodoList> {
     this.dash.app.log.info('add from todolist')
     const $li = $(templates.getTemplate('.TodoLi'))
       .appendTo(this.$ul)
-    const task = this.dash.createComponent(Task, {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
+    const task = this.dash.create(Task, {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
     $li.find('.TodoLi-rmBtn').click(() => {
-      //task[this.dash.app.bkbSymbol].destroy();
-      //this.dash.app.getBkb(task).destroy()
       task.bkb.destroy()
       $li.remove()
     })

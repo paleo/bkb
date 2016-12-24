@@ -16,7 +16,7 @@ class ChildEmitter {
   constructor(private app: InternalApplicationContainer) {
   }
 
-  public emit<C, D>(evt: ComponentEvent<C, D>, deep: boolean, groupNames: Set<string>): void {
+  public emit<D>(evt: ComponentEvent<D>, deep: boolean, groupNames: Set<string>): void {
     if (!this.callbacks)
       return
     let cbList = this.callbacks.get(evt.eventName)
@@ -30,10 +30,10 @@ class ChildEmitter {
         continue
       filtered.push(cb)
     }
-    this.callCbList<C, D>(filtered, evt)
+    this.callCbList<D>(filtered, evt)
   }
 
-  public listen<C, D>(eventName: string, filter: ChildFilter = {}): Transmitter<C, D> {
+  public listen<D>(eventName: string, filter: ChildFilter = {}): Transmitter<D> {
     if (this.destroyed)
       throw new Error(`Cannot call listen in a destroyed child-emitter`)
     if (!this.callbacks)
@@ -95,7 +95,7 @@ class ChildEmitter {
     return false
   }
 
-  private callCbList<C, D>(cbList: ChildCallback[], evt: ComponentEvent<C, D>) {
+  private callCbList<D>(cbList: ChildCallback[], evt: ComponentEvent<D>) {
     for (const cb of cbList) {
       try {
         call(cb, evt)

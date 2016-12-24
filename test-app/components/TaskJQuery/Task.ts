@@ -2,17 +2,15 @@ import * as $ from 'jquery'
 import {Component, Dash, Bkb} from 'bkb-framework'
 import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
-import {TestApp} from '../../start'
-
-declare let Vue;
+import TestApp from '../TestApp/TestApp'
 
 const templates = new RawTemplateProvider(require("html!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 
-export default class Task implements Component<Task> {
-  public static componentName = 'Task'
-  public bkb: Bkb<Task>
+export default class Task implements Component {
+  static readonly componentName = 'Task'
+  readonly bkb: Bkb
   private $container: JQuery
   private $update: JQuery
   private $read: JQuery
@@ -20,8 +18,6 @@ export default class Task implements Component<Task> {
   private $lbl: JQuery
   private updMode: boolean
   
-  private vm;
-
   constructor(private dash: Dash<TestApp>) {
     this.$container = $(templates.getTemplate('.Task'))
     this.$update = this.$container.find('.js-update')
@@ -32,7 +28,7 @@ export default class Task implements Component<Task> {
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-    dash.createComponent(CommentList).attachTo(this.$container.find('.Task-comments')[0])
+    dash.create(CommentList).attachTo(this.$container.find('.Task-comments')[0])
     this.setUpdateMode(true)
     this.dash.emit('grabFocus')
   }

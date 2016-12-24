@@ -1,6 +1,6 @@
 class Container<C> {
-  public inst: (C & Component<C>)|null
-  public bkb: Bkb<C>|null
+  public inst: (C & Component)|null
+  public bkb: Bkb|null
   public dash: Dash<any>|null
 
   private emitter: Emitter
@@ -23,13 +23,22 @@ class Container<C> {
     this.emitter.exposeEvents(eventNames, strictEventsMode)
   }
 
+  /**
+   * Simulate the "new" operator. The Container member `inst` and the instance member `bkb` are defined before the execution of
+   * the constructor.
+   *
+   * Thanks to http://stackoverflow.com/q/10428603/3786294
+   */
   public createInstance(Cl, args: any[]) {
-    let inst = new Cl(this.dash, ...args)
-    if (inst.bkb)
-      throw new Error(`A component cannot have a member "bkb" (${Cl})`)
-    Object.defineProperty(inst, 'bkb', {get: () => this.bkb!});
-    //inst.bkb = this.bkb!
-    this.inst = inst
+    // let inst = new Cl(this.dash, ...args)
+    this.inst = Object.create(Cl.prototype)
+    Object.defineProperty(this.inst, 'bkb', {get: () => this.bkb!});
+    let retVal = Cl.call(this.inst, this.dash, ...args)
+    if (Object(retVal) === retVal && retVal !== this.inst) {
+      this.inst = retVal
+      if (!retVal.bkb)
+        throw new Error(`Missing member "bkb" (${Cl})`)
+    }
   }
 
   public createFromObject(obj) {
@@ -40,11 +49,11 @@ class Container<C> {
     this.inst = obj
   }
 
-  private makeBkb(bkbMethods?: any): Bkb<C> {
-    let obj: Bkb<C> = {
+  private makeBkb(bkbMethods?: any): Bkb {
+    let obj: Bkb = {
       getInstance: () => {
         if (!this.inst)
-          throw new Error('Cannot call "getInstance()"on a destroyed component')
+          throw new Error('Destroyed or uninitialised component')
         return this.inst
       },
       getParent: (filter?: ParentFilter) => {
@@ -68,7 +77,7 @@ class Container<C> {
     return bkb
   }
 
-  private makeDash(bkb: Bkb<C>): Dash<any> {
+  private makeDash(bkb: Bkb): Dash<any> {
     const dash = Object.freeze({
       app: this.app.root ? this.app.root.inst : null, // The root dash doesn't need this property
       bkb: bkb,
@@ -80,18 +89,16 @@ class Container<C> {
         this.emit<D>(eventName, data, options)
         return dash
       },
-      broadcast: (evt: ComponentEvent<any, any>, options?: EmitterOptions) => {
+      broadcast: (evt: ComponentEvent<any>, options?: EmitterOptions) => {
         this.broadcast(evt, options)
         return dash
       },
-      listenToChildren: <C, D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<C, D>(eventName, filter),
-      listenToParent: <C, D>(eventName: string, filter: ParentFilter = {}) => this.listenToParent<C, D>(eventName, filter),
-      listenTo: <C, D>(component: Component<C>, eventName: string) => this.listenTo<C, D>(component, eventName),
-      createComponent: <C>(Cl: {new(): C}, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties,
-        false).inst,
-      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties,
-        true) as any).dash,
-      onDestroy: (cb: (evt: ComponentEvent<any, {}>) => void) => this.emitter.listen('destroy').call(cb),
+      listenToChildren: <D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<D>(eventName, filter),
+      listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => this.listenToParent<D>(eventName, filter),
+      listenTo: <D>(component: Component, eventName: string) => this.listenTo<D>(component, eventName),
+      create: <C>(Cl: {new(): C}, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
+      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties, true) as any).dash,
+      onDestroy: (cb: (evt: ComponentEvent<void>) => void) => this.emitter.listen('destroy').call(cb),
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter),
       getParent: (filter?: ParentFilter) => {
@@ -168,7 +175,7 @@ class Container<C> {
     if (!this.inst)
       throw new Error(`Cannot fire an event ${eventName} from an uninitialized component ${this.componentName}`)
     let canPropagate = true
-    let evt: ComponentEvent<C, D> = {
+    let evt: ComponentEvent<D> = {
       eventName: eventName,
       sourceName: this.componentName,
       sourceId: this.componentId,
@@ -182,23 +189,23 @@ class Container<C> {
     return Object.freeze(evt)
   }
 
-  private emitSync<D>(evt: ComponentEvent<C, D>) {
+  private emitSync<D>(evt: ComponentEvent<D>) {
     this.emitter.emit(evt)
     const parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<C, D>(evt, false, this.componentId)
+      parent.bubbleUpEvent<D>(evt, false, this.componentId)
   }
 
-  private bubbleUpEvent<C, D>(evt: ComponentEvent<C, D>, isFromDeep: boolean, childId: number) {
+  private bubbleUpEvent<D>(evt: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
     if (evt[Container.canPropagateSymb] && !evt[Container.canPropagateSymb]())
       return
-    this.childEmitter.emit<C, D>(evt, isFromDeep, this.getGroupsOf(childId))
+    this.childEmitter.emit<D>(evt, isFromDeep, this.getGroupsOf(childId))
     const parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<C, D>(evt, true, this.componentId)
+      parent.bubbleUpEvent<D>(evt, true, this.componentId)
   }
 
-  private broadcast(evt: ComponentEvent<any, any>, options?: EmitterOptions) {
+  private broadcast(evt: ComponentEvent<any>, options?: EmitterOptions) {
     if (options && options.sync)
       this.emitter.emit(evt)
     else
@@ -224,7 +231,7 @@ class Container<C> {
     }
   }
 
-  private listenToParent<C, D>(eventName: string, filter: ParentFilter): Transmitter<C, D> {
+  private listenToParent<D>(eventName: string, filter: ParentFilter): Transmitter<D> {
     let parent = this.getParent(filter)
     if (parent)
       return parent.emitter.listen(eventName, this)
@@ -233,7 +240,7 @@ class Container<C> {
     return Emitter.empty()
   }
 
-  private listenTo<C, D>(component: Component<C>, eventName: string): Transmitter<C, D> {
+  private listenTo<D>(component: Component, eventName: string): Transmitter<D> {
     return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
   }
 

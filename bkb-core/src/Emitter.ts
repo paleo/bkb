@@ -1,11 +1,11 @@
 interface CallbackEventOnly {
   mode: 'eventOnly'
-  callback: (evt: ComponentEvent<any, any>) => void
+  callback: (evt: ComponentEvent<any>) => void
   thisArg?: any
 }
 interface CallbackDataFirst {
   mode: 'dataFirst'
-  callback: (data: any, evt: ComponentEvent<any, any>) => void
+  callback: (data: any, evt: ComponentEvent<any>) => void
   thisArg?: any
 }
 interface CallbackArguments {
@@ -16,7 +16,7 @@ interface CallbackArguments {
 type Callback = CallbackEventOnly | CallbackDataFirst | CallbackArguments
 
 class Emitter {
-  public static empty(): Transmitter<any, any> {
+  public static empty(): Transmitter<any> {
     const transmitter = {
       call: () => {
         return transmitter
@@ -32,7 +32,7 @@ class Emitter {
   private strictEvents = false
   private callbacks: Map<string, Callback[]>|null
   private destroyed = false
-  private fromEolCancelers: Transmitter<any, any>[]|null = []
+  private fromEolCancelers: Transmitter<any>[]|null = []
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
@@ -50,7 +50,7 @@ class Emitter {
       this.strictEvents = true
   }
 
-  public emit(evt: ComponentEvent<any, any>): void {
+  public emit(evt: ComponentEvent<any>): void {
     if (!this.callbacks)
       return
     if (this.strictEvents && this.eventNames && !this.eventNames.has(evt.eventName))
@@ -60,14 +60,14 @@ class Emitter {
       this.callCbList(cbList, evt)
   }
 
-  public listen(eventName: string, from?: Container<any>): Transmitter<any, any> {
+  public listen(eventName: string, from?: Container<any>): Transmitter<any> {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[]|null = []
     const isDisabled = () => this.destroyed || !idList
-    const transmitter: Transmitter<any, any> = {
+    const transmitter: Transmitter<any> = {
       call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
         if (this.destroyed || !idList || !this.callbacks)
           return transmitter
@@ -135,7 +135,7 @@ class Emitter {
     this.destroyed = true
   }
 
-  private callCbList(cbList: Callback[], evt: ComponentEvent<any, any>) {
+  private callCbList(cbList: Callback[], evt: ComponentEvent<any>) {
     for (const i in cbList) {
       if (!cbList.hasOwnProperty(i))
         continue
@@ -148,7 +148,7 @@ class Emitter {
   }
 }
 
-function call(cb: Callback, evt: ComponentEvent<any, any>) {
+function call(cb: Callback, evt: ComponentEvent<any>) {
   switch (cb.mode) {
     case 'dataFirst':
       if (cb.thisArg)

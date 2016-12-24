@@ -2,17 +2,17 @@ import * as $ from 'jquery'
 import {Component, Dash, Bkb} from 'bkb-framework'
 import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
-import {TestApp} from '../../start'
+import TestApp from '../TestApp/TestApp'
 
-import tplStr from "html!./CommentList.html";
+// import tplStr from "html!./CommentList.html";
 
 const templates = new RawTemplateProvider(require("html!./CommentList.html"))
 // import tplStr from './CommentList.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 
-export default class CommentList implements Component<CommentList> {
-  public static componentName = 'CommentList'
-  public bkb: Bkb<CommentList>
+export default class CommentList implements Component {
+  static readonly componentName = 'CommentList'
+  readonly bkb: Bkb
   private $container: JQuery
   private $ul: JQuery
 
@@ -38,7 +38,7 @@ export default class CommentList implements Component<CommentList> {
   public add() {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
-    const comment = this.dash.createComponent(Comment).attachTo($li[0])
+    const comment = this.dash.create(Comment).attachTo($li[0])
     const listener = this.dash.listenToParent('enabled').call(evt => {
       console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)

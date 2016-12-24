@@ -1,17 +1,17 @@
 {
   "name": "bkb-framework",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "A JavaScript Framework for Front-end Applications.",
   "main": "bkb.min.js",
   "types": "bkb.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/paleo229/bkb.git"
+    "url": "git+https://github.com/paleo/bkb.git"
   },
   "author": {
     "name": "Paleo"
   },
   "license": "CC0",
-  "homepage": "http://paleo229.github.io/bkb/",
+  "homepage": "http://paleo.github.io/bkb/",
   "keywords": ["frontend", "framework", "components", "lightweight"]
 }

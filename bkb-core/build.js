@@ -105,6 +105,7 @@ function build(projectPath) {
 
 const exportsTsCode = `export {
   createApplication,
+  toApplication,
   Component,
   ComponentEvent,
   Transmitter,
@@ -117,6 +118,7 @@ const exportsTsCode = `export {
   LogItem,
   Log,
   ApplicationBkb,
+  ApplicationDash,
   Application
 }`
 
@@ -135,7 +137,8 @@ function makeTsCode(srcPath, readInterfacesTs) {
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
     return `declare module 'bkb-framework' {
-function createApplication<A>(obj?: any): A & Application<A>
+function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, args?: any[]): A & Application
+function toApplication<A>(obj: A): Dash<A>
 
 ${interfacesStr}
 
@@ -146,7 +149,8 @@ ${exportsTsCode}
 
 function makeIndexTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare function createApplication<A>(obj?: any): A & Application<A>
+    return `declare function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, args?: any[]): A & Application
+declare function toApplication<A>(obj: A): Dash<A>
 
 ${interfacesStr}
 

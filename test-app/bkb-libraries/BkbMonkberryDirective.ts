@@ -1,6 +1,6 @@
 import {Log, Component} from 'bkb-framework'
 
-type Comp = Component<any> & MonkberryComponent
+type Comp = Component & MonkberryComponent
 
 export interface MonkberryComponent {
   attachTo(el: HTMLElement): void
@@ -8,7 +8,7 @@ export interface MonkberryComponent {
 }
 
 export interface ComponentMakers {
-  [directiveName: string]: (el: HTMLElement, value?: string) => Component<any> & MonkberryComponent
+  [directiveName: string]: (el: HTMLElement, value?: string) => Component & MonkberryComponent
 }
 
 export default function createBkbDirectives(log: Log, makers: ComponentMakers) {

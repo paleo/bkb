@@ -1,6 +1,6 @@
 ## Web Site
 
-http://paleo229.github.io/bkb/
+http://paleo.github.io/bkb/
 
 ## License
 

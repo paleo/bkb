@@ -1,20 +1,20 @@
-interface Component<C> {
-  readonly bkb: Bkb<C>
+interface Component {
+  readonly bkb: Bkb
 }
 
-interface ComponentEvent<C, D> {
+interface ComponentEvent<D> {
   readonly eventName: string
   readonly sourceName: string
   readonly sourceId: number
-  readonly source: C
+  readonly source: Component
   readonly data?: D
   stopPropagation(): void
 }
 
-interface Transmitter<C, D> {
-  call(callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this
-  call(mode: 'eventOnly', callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this
-  call(mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<C, D>) => void, thisArg?: any): this
+interface Transmitter<D> {
+  call(callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  call(mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  call(mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
   call(mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
   disable(): void
   isDisabled(): boolean
@@ -49,15 +49,12 @@ interface EmitterOptions {
   sync?: boolean
 }
 
-interface BasicDash<A> {
-  createComponent<C>(Cl: { new(dash: Dash<A>, ...args): C }, properties?: NewComponentProperties): C & Component<C>
+interface Dash<A> {
+  readonly app: Application & A
+  readonly bkb: Bkb
+
+  create<C>(Cl: { new(dash: Dash<A>, ...args): C }, properties?: NewComponentProperties): C & Component
   toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
-}
-
-interface Dash<A> extends BasicDash<A> {
-  readonly app: Application<A> & A
-
-  readonly bkb: Bkb<any>
 
   exposeEvents(eventNames: string[]): this
 
@@ -66,7 +63,7 @@ interface Dash<A> extends BasicDash<A> {
   /**
    * Notice: The event will NOT bubble up to parent hierarchy
    */
-  broadcast(evt: ComponentEvent<any, any>, options?: EmitterOptions): this
+  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this
 
   /**
    * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches
@@ -75,17 +72,17 @@ interface Dash<A> extends BasicDash<A> {
    * @param eventName The event to listen
    * @param filter A filter that has to match with the targeted parent
    */
-  listenToParent<C, D>(eventName: string, filter?: ParentFilter): Transmitter<C, D>
+  listenToParent<D>(eventName: string, filter?: ParentFilter): Transmitter<D>
 
   /**
    * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
    * descendant that match the filter.
    */
-  listenToChildren<C, D>(eventName: string, filter?: ChildFilter): Transmitter<C, D>
+  listenToChildren<D>(eventName: string, filter?: ChildFilter): Transmitter<D>
 
-  listenTo<C, D>(component: Component<C>, eventName: string): Transmitter<C, D>
+  listenTo<D>(component: Component, eventName: string): Transmitter<D>
 
-  onDestroy(cb: (evt: ComponentEvent<any, {}>) => void): void
+  onDestroy(cb: (evt: ComponentEvent<void>) => void): void
 
   /**
    * Find children
@@ -96,15 +93,15 @@ interface Dash<A> extends BasicDash<A> {
    */
   findSingle<C>(filter?: ChildFilter): C
 
-  getParent(filter?: ParentFilter): Component<any>|undefined
+  getParent(filter?: ParentFilter): Component|undefined
 }
 
-interface BasicBkb<C> {
-  on<D>(eventName: string, callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
-  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
-  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<C, D>) => void, thisArg?: any): this // TODO implement
-  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this // TODO implement
-  listen<D>(eventName: string): Transmitter<C, D>
+interface BasicBkb {
+  on<D>(eventName: string, callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
+  listen<D>(eventName: string): Transmitter<D>
   /**
    * Find children
    */
@@ -115,12 +112,12 @@ interface BasicBkb<C> {
   findSingle<E>(filter?: ChildFilter): E
 }
 
-interface Bkb<C> extends BasicBkb<C> {
+interface Bkb extends BasicBkb {
   destroy(): void
   readonly componentName: string
   readonly componentId: number
-  getInstance(): C & Component<C>
-  getParent(filter?: ParentFilter): Component<any>|undefined
+  getInstance(): Component
+  getParent(filter?: ParentFilter): Component|undefined
 }
 
 /**
@@ -139,11 +136,15 @@ interface Log {
   trace(...messages: any[]): void
 }
 
-interface ApplicationBkb<A> extends Bkb<A>, BasicDash<A> {
+interface ApplicationBkb extends Bkb {
   nextTick(cb: () => void): void
   readonly log: Log
 }
 
-interface Application<A> extends Component<A> {
-  readonly bkb: ApplicationBkb<A>
+interface ApplicationDash<A> extends Dash<A> {
+  readonly bkb: ApplicationBkb
+}
+
+interface Application extends Component {
+  readonly bkb: ApplicationBkb
 }

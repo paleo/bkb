@@ -1,15 +1,15 @@
 import {Component, Dash, Bkb} from 'bkb-framework'
 import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
-import {TestApp} from '../../start'
+import TestApp from '../TestApp/TestApp'
 
 const templates = new BkbVueProvider(require("html!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new BkbVueProvider(tplStr)
 
-export default class Task implements Component<Task> {
-  public static componentName = 'Task'
-  public bkb: Bkb<Task>
+export default class Task implements Component {
+  static readonly componentName = 'Task'
+  readonly bkb: Bkb
 
   private vm = {
     label: '',

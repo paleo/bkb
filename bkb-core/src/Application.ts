@@ -1,6 +1,11 @@
-function createApplication<A>(obj: any = {}): A & Application<A> {
-  const appContainer = new ApplicationContainer<A>(obj)
-  return appContainer.root.inst as any
+function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, args?: any[]): A & Application {
+  let container = new ApplicationContainer<A>(Cl, false, args)
+  return container.root.inst as any
+}
+
+function toApplication<A>(obj: A): Dash<A> {
+  let container = new ApplicationContainer<A>(obj, true)
+  return container.root.inst as any
 }
 
 interface InternalApplicationContainer {
@@ -22,15 +27,29 @@ interface CompNode {
 
 class ApplicationContainer<A> implements InternalApplicationContainer {
 
-  readonly root: Container<A>
+  public root: Container<A>
 
   private compCount = 0
   private nodes = new Map<number, CompNode>()
   private tickList: (() => void)[]|null = null
   private insideRmComp = false
 
-  constructor(obj: any) {
-    this.root = this.createRootComponent(obj)
+  constructor(objOrCl: any, asObject: boolean, args?: any[]) {
+    const logTypes = ['error', 'warn', 'info', 'debug', 'trace'],
+      componentId = this.newId()
+    this.root = new Container<A>(this, 'root', componentId)
+    this.nodes.set(componentId, {
+      container: this.root
+    })
+    this.root.initBkbAndDash({
+      nextTick: (cb: () => void) => this.nextTick(cb),
+      log: this.createLog(logTypes)
+    })
+    this.root.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], false)
+    if (asObject)
+      this.root.createFromObject(objOrCl)
+    else
+      this.root.createInstance(objOrCl, args || [])
   }
 
   public getParentOf(componentId: number): Container<any>|undefined {
@@ -50,32 +69,6 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
 
   public getContainer(componentId: number): Container<any> {
     return this.findNode(componentId).container
-  }
-
-  private createRootComponent(obj: any): Container<A> {
-    const logTypes = ['error', 'warn', 'info', 'debug', 'trace'],
-      componentId = this.newId(),
-      container = new Container<A>(this, 'root', componentId)
-    this.nodes.set(componentId, {
-      container: container
-    })
-    container.initBkbAndDash({
-      createComponent: <C>(Cl: { new(): C }, properties?: NewComponentProperties) => {
-        if (!this.root.dash)
-          throw new Error('Destroyed root component')
-        return this.root.dash.createComponent(Cl, properties)
-      },
-      toComponent: <C>(obj, properties?: NewComponentProperties) => {
-        if (!this.root.dash)
-          throw new Error('Destroyed root component')
-        return this.root.dash.toComponent(obj, properties)
-      },
-      nextTick: (cb: () => void) => this.nextTick(cb),
-      log: this.createLog(logTypes)
-    })
-    container.createFromObject(obj)
-    container.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], true)
-    return container
   }
 
   public createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean,

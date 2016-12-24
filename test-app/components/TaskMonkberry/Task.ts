@@ -1,7 +1,7 @@
 import {Component, Dash, Bkb} from 'bkb-framework'
 import createBkbDirectives from '../../bkb-libraries/BkbMonkberryDirective'
 import CommentList from '../CommentList/CommentList'
-import {TestApp} from '../../start'
+import TestApp from '../TestApp/TestApp'
 
 import * as Monkberry from 'monkberry'
 import monkberryDirectives from 'monkberry-directives'
@@ -9,9 +9,9 @@ import 'monkberry-events'
 
 import * as Template from './Task.monk'
 
-export default class Task implements Component<Task> {
+export default class Task implements Component {
   public static componentName = 'Task'
-  public bkb: Bkb<Task>
+  readonly bkb: Bkb
   private view: any
 
   private state = {
@@ -49,7 +49,7 @@ export default class Task implements Component<Task> {
         ...monkberryDirectives,
         ...createBkbDirectives(this.dash.app.log, {
           'CommentList': (el: HTMLElement, value: string) => {
-            return this.dash.createComponent(CommentList, {
+            return this.dash.create(CommentList, {
               args: [value]
             })
           }

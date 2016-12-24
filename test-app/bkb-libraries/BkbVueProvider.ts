@@ -91,7 +91,7 @@ class VueTemplate {
 // console.log('this.arg', this.arg)
 // console.log('this.expression', this.expression)
 // console.log('value', value)
-          this.bkbChildComp = dash.createComponent(Cl, value)
+          this.bkbChildComp = dash.create(Cl, value)
           if (!this.bkbChildComp.attachTo)
             throw new Error('Component created by a Vue directive must have a method "attachTo"')
           this.bkbChildComp.attachTo(this.el)

@@ -8,9 +8,9 @@ enum SmallDialogType {
   Info, Warning, Error, Confirm
 }
 
-export default class BkbDialogs implements Component<BkbDialogs> {
-  public static componentName = 'Task'
-  public bkb: Bkb<BkbDialogs>
+export default class BkbDialogs implements Component {
+  static readonly componentName = 'Task'
+  readonly bkb: Bkb
 
   // --
   // -- Initialisation
@@ -102,7 +102,7 @@ export default class BkbDialogs implements Component<BkbDialogs> {
   }
 
   public showModal(dialog: any): Promise<any> {
-    var handle: string,
+    let handle: string,
       onClose = () => {
         this.closeRegistered(dialog.returnValue, handle)
       },
