@@ -1,4 +1,4 @@
-function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, args?: any[]): A & Application {
+function createApplication<A>(Cl: { new(dash: Dash<A>, ...args: any[]): A }, ...args: any[]): A & Application {
   let container = new ApplicationContainer<A>(Cl, false, args)
   return container.root.inst as any
 }

@@ -53,7 +53,7 @@ interface Dash<A> {
   readonly app: Application & A
   readonly bkb: Bkb
 
-  create<C>(Cl: { new(dash: Dash<A>, ...args): C }, properties?: NewComponentProperties): C & Component
+  create<C>(Cl: { new(dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): C & Component
   toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
 
   exposeEvents(eventNames: string[]): this

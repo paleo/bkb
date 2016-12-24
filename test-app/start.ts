@@ -1,7 +1,5 @@
 import * as $ from 'jquery'
-import {createApplication, Log, Application, LogItem} from 'bkb-framework'
-import TodoList from "./components/TodoList/TodoList"
-import {createEasyRouter, EasyRouter} from './libraries-ts/EasyRouter'
+import {createApplication} from 'bkb-framework'
 import TestApp from './components/TestApp/TestApp'
 
 $(() => {
