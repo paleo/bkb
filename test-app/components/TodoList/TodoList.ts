@@ -1,8 +1,8 @@
 import * as $ from 'jquery'
 import {Component, Dash, Bkb} from 'bkb-framework'
-//import Task from "../TaskVue/Task"
-import Task from "../TaskMonkberry/Task"
-//import Task from "../TaskJQuery/Task"
+import Task from "../TaskJQuery/Task"
+import Task2 from "../TaskMonkberry/Task"
+import Task3 from "../TaskVue/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
 
@@ -35,11 +35,23 @@ export default class TodoList implements Component {
   public add() {
     this.dash.app.log.info('add from todolist')
     const $li = $(templates.getTemplate('.TodoLi'))
-      .appendTo(this.$ul)
-    const task = this.dash.create(Task, {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
-    $li.find('.TodoLi-rmBtn').click(() => {
+    const task = this.dash.create(this.getTaskClass(), {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
+    $li.appendTo(this.$ul).find('.TodoLi-rmBtn').click(() => {
       task.bkb.destroy()
       $li.remove()
     })
+  }
+
+  private getTaskClass(): typeof Task {
+    let val = this.$ul.children().length % 3
+    // console.log('-->', val, this.$ul.children())
+    switch (val) {
+      case 1:
+        return Task2 as any
+      case 2:
+        return Task3 as any
+      case 0:
+        return Task
+    }
   }
 }

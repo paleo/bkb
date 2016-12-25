@@ -8,7 +8,7 @@ export interface VueConfig {
   data?: any
   methods?: any
   templateName: string
-  childComponents: any
+  childComponents?: any
 }
 
 export default class BkbVueProvider {
@@ -75,35 +75,39 @@ class VueTemplate {
   }
 
   private createBkbVue(dash: Dash<any>, config: VueConfig) {
+// console.log('............. yop', config)
     let BkbVue = Vue.extend()
-    BkbVue.directive('bkb-component', {
-      bind: function () {
-      },
-      update: function (value) {
+    BkbVue.directive('bkb', {
+      bind: function (el, binding, vnode) {
+// console.log('............. bind', el, binding, vnode)
         if (!config.childComponents)
           return
-        const Cl = config.childComponents[this.arg || this.expression]
+        const Cl = config.childComponents[binding.arg]
         if (!Cl)
           return
         try {
-          if (this.bkbChildComp)
-            this.bkbChildComp.bkb.destroy()
-// console.log('this.arg', this.arg)
-// console.log('this.expression', this.expression)
-// console.log('value', value)
-          this.bkbChildComp = dash.create(Cl, value)
-          if (!this.bkbChildComp.attachTo)
+          if (binding.bkbChildComp)
+            binding.bkbChildComp.bkb.destroy()
+          binding.bkbChildComp = dash.create(Cl)
+          if (!binding.bkbChildComp.attachTo)
             throw new Error('Component created by a Vue directive must have a method "attachTo"')
-          this.bkbChildComp.attachTo(this.el)
+          binding.bkbChildComp.attachTo(el)
         } catch (e) {
           dash.app.bkb.log.error(e)
         }
       },
-      unbind: function () {
-        if (this.bkbChildComp) {
+      inserted: function (el) {
+// console.log('............. inserted', el)
+      },
+      update: function (value) {
+// console.log('............. update', value)
+      },
+      unbind: function (el, binding) {
+// console.log('............. unbind', arguments)
+        if (binding.bkbChildComp) {
           try {
-            this.bkbChildComp.bkb.destroy()
-            this.bkbChildComp = null
+            binding.bkbChildComp.bkb.destroy()
+            binding.bkbChildComp = null
           } catch (e) {
             dash.app.bkb.log.error(e)
           }
