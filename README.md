@@ -4,7 +4,7 @@ Bkb is a lightweight front-end framework.
 
 ## Install
 
-    npm install bkb-framework
+    npm install bkb
 
 ## Web Site
 

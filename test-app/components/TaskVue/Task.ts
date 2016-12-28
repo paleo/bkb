@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb'
 import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import TestApp from '../TestApp/TestApp'

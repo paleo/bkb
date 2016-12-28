@@ -136,7 +136,7 @@ function makeTsCode(srcPath, readInterfacesTs) {
 
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare module 'bkb-framework' {
+    return `declare module 'bkb' {
 function createApplication<A>(Cl: {new(dash: Dash<A>, ...args: any[]): A}, ...args: any[]): A & Application
 function toApplication<A>(obj: A): Dash<A>
 

@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Dash, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb'
 import Task from "../TaskJQuery/Task"
 import Task2 from "../TaskMonkberry/Task"
 import Task3 from "../TaskVue/Task"

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "@types/jquery": "*",
-    "bkb-framework": "*",
+    "bkb": "*",
     "dialog-polyfill": "*",
     "es6-shim": "*",
     "html-loader": "*",

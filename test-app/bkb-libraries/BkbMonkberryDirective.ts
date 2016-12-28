@@ -1,4 +1,4 @@
-import {Log, Component} from 'bkb-framework'
+import {Log, Component} from 'bkb'
 
 type Comp = Component & MonkberryComponent
 

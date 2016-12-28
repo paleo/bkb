@@ -1,4 +1,4 @@
-import {Dash} from 'bkb-framework'
+import {Dash} from 'bkb'
 
 declare type Vue = any
 declare let Vue: any // { new(config: any): Vue }

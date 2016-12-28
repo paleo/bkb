@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb'
 import {EasyRouter} from '../libraries-ts/EasyRouter'
 import 'dialog-polyfill'
 

@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb-framework'
+import {Component, Dash, Bkb} from 'bkb'
 import createBkbDirectives from '../../bkb-libraries/BkbMonkberryDirective'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'

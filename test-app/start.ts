@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {createApplication} from 'bkb-framework'
+import {createApplication} from 'bkb'
 import TestApp from './components/TestApp/TestApp'
 
 $(() => {

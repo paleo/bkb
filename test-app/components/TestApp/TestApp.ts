@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Application, ApplicationDash, ApplicationBkb, Log, LogItem} from 'bkb-framework'
+import {Application, ApplicationDash, ApplicationBkb, Log, LogItem} from 'bkb'
 import TodoList from "../TodoList/TodoList"
 import {createEasyRouter, EasyRouter} from '../../libraries-ts/EasyRouter'
 
