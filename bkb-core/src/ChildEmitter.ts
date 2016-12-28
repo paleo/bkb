@@ -26,7 +26,7 @@ class ChildEmitter {
     for (const cb of cbList) {
       if ((cb.filter.componentName && cb.filter.componentName === evt.sourceName)
         || (!cb.filter.deep && deep)
-        || (cb.filter.groupName && !ChildEmitter.hasGroup(cb.filter.groupName, groupNames)))
+        || (cb.filter.group && !ChildEmitter.hasGroup(cb.filter.group, groupNames)))
         continue
       filtered.push(cb)
     }

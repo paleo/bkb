@@ -19,9 +19,9 @@ export default class TodoList implements Component {
     this.$container.find('.TodoList-h1').text(title)
     this.$ul = this.$container.find('.TodoList-ul')
     this.$container.find('.TodoList-addBtn').click(() => this.add())
-    dash.listenToChildren('grabFocus', {groupName: 'items'}).call((evt) => {
+    dash.listenToChildren('grabFocus', {group: 'items'}).call((evt) => {
       console.log(`[Event] [${this.bkb.componentName} ${this.bkb.componentId}] grabFocus`)
-      for (const child of dash.find<Task>({groupName: 'items', componentName: 'Task'})) {
+      for (const child of dash.find<Task>({group: 'items', componentName: 'Task'})) {
         if (child !== evt.source)
           child.setUpdateMode(false)
       }
@@ -35,7 +35,7 @@ export default class TodoList implements Component {
   public add() {
     this.dash.app.log.info('add from todolist')
     const $li = $(templates.getTemplate('.TodoLi'))
-    const task = this.dash.create(this.getTaskClass(), {groupName: 'items'}).attachTo($li.find('.TodoLi-content')[0])
+    const task = this.dash.create(this.getTaskClass(), {group: 'items'}).attachTo($li.find('.TodoLi-content')[0])
     $li.appendTo(this.$ul).find('.TodoLi-rmBtn').click(() => {
       task.bkb.destroy()
       $li.remove()

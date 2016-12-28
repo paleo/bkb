@@ -96,7 +96,8 @@ class Container<C> {
       listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => this.listenToParent<D>(eventName, filter),
       listenTo: <D>(component: Component, eventName: string) => this.listenTo<D>(component, eventName),
       create: <C>(Cl: {new(): C}, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
-      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties, true) as any).dash,
+      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties,
+        true) as any).dash,
       onDestroy: (cb: (evt: ComponentEvent<void>) => void) => this.emitter.listen('destroy').call(cb),
       find: <C>(filter: ChildFilter = {}): C[] => this.find<C>(filter),
       findSingle: <C>(filter: ChildFilter = {}) => this.findSingle<C>(filter),
@@ -110,10 +111,10 @@ class Container<C> {
 
   private createComponent<E>(objOrCl, properties: NewComponentProperties, asObject: boolean): Container<E> {
     const child = this.app.createComponent<E>(objOrCl, this, asObject, properties)
-    if (properties.groupName) {
+    if (properties.group) {
       if (!this.childGroups)
         this.childGroups = new Map()
-      const groupNames = (typeof properties.groupName === 'string' ? [properties.groupName] : properties.groupName) as string[]
+      const groupNames = (typeof properties.group === 'string' ? [properties.group] : properties.group) as string[]
       for (const name of groupNames) {
         let g = this.childGroups.get(name)
         if (!g)
@@ -127,7 +128,7 @@ class Container<C> {
   private find<C>(filter: ChildFilter): C[] {
     if (filter.deep)
       throw new Error('Cannot call "find" with filter deep')
-    const containers = this.getChildContainers(filter.groupName)
+    const containers = this.getChildContainers(filter.group)
     const result: C[] = []
     for (const child of containers) {
       if (!filter.componentName || filter.componentName === child.componentName)

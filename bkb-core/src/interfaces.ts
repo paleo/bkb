@@ -25,7 +25,7 @@ interface ParentFilter {
 }
 
 interface ChildFilter {
-  groupName?: string | string[]
+  group?: string | string[]
   componentName?: string
   /**
    * Default value is <code>false</code>
@@ -34,7 +34,7 @@ interface ChildFilter {
 }
 
 interface NewComponentProperties {
-  groupName?: string | string[]
+  group?: string | string[]
   componentName?: string
   /**
    * NB: Used only with instance components. Ignored for object components.
