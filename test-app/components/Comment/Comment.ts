@@ -3,7 +3,7 @@ import {Component, Dash, Bkb} from 'bkb'
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
 
-const templates = new RawTemplateProvider(require("html!./Comment.html"))
+const templates = new RawTemplateProvider(require("html-loader!./Comment.html"))
 // import tplStr from './Comment.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 

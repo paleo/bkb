@@ -49,19 +49,69 @@ interface EmitterOptions {
   sync?: boolean
 }
 
-interface Dash<A> {
-  readonly app: Application & A
-  readonly bkb: Bkb
+interface Bkb {
+  on<D>(eventName: string, callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
+  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
+  listen<D>(eventName: string): Transmitter<D>
+  /**
+   * Find children
+   *
+   * Notice: Cannot be accessed during the initialization.
+   */
+  find<E>(filter?: ChildFilter): E[]
+  /**
+   * Find a single child (an Error is thrown if there isn't one result)
+   *
+   * Notice: Cannot be accessed during the initialization.
+   */
+  findSingle<E>(filter?: ChildFilter): E
+  /**
+   * @returns The count of children that validate the filter
+   *
+   * Notice: Cannot be accessed during the initialization.
+   */
+  count(filter?: ChildFilter): number
+  /**
+   * @returns true if there is one or more children that validate the filter
+   *
+   * Notice: Cannot be accessed during the initialization.
+   */
+  has(filter?: ChildFilter): boolean
 
-  create<C>(Cl: {new(dash: Dash<A>, ...args: any[]): C}, properties?: NewComponentProperties): C & Component
-  toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
+  destroy(): void
+  readonly componentName: string
+  readonly componentId: number
+  /**
+   * Notice: Cannot be accessed during the initialization.
+   */
+  getInstance(): Component
+  getParent(filter?: ParentFilter): Component|undefined
+}
 
+interface BasicDash<A> extends Bkb {
   exposeEvents(eventNames: string[]): this
 
+  /**
+   * Notice: Cannot be accessed during the initialization.
+   */
+  create<C>(Cl: {new(dash: Dash<A>, ...args: any[]): C}, properties?: NewComponentProperties): C & Component
+
+  /**
+   * Notice: Cannot be accessed during the initialization.
+   */
+  toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
+
+  /**
+   * Notice: Cannot be accessed during the initialization.
+   */
   emit(eventName: string, data?: any, options?: EmitterOptions): this
 
   /**
-   * Notice: The event will NOT bubble up to parent hierarchy
+   * Notice: Cannot be accessed during the initialization.
+   *
+   * The event will NOT bubble up to parent hierarchy.
    */
   broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this
 
@@ -81,43 +131,20 @@ interface Dash<A> {
   listenToChildren<D>(eventName: string, filter?: ChildFilter): Transmitter<D>
 
   listenTo<D>(component: Component, eventName: string): Transmitter<D>
-
-  onDestroy(cb: (evt: ComponentEvent<void>) => void): void
-
-  /**
-   * Find children
-   */
-  find<C>(filter?: ChildFilter): C[]
-  /**
-   * Find a single child (an Error is thrown if there isn't one result)
-   */
-  findSingle<C>(filter?: ChildFilter): C
-
-  getParent(filter?: ParentFilter): Component|undefined
 }
 
-interface BasicBkb {
-  on<D>(eventName: string, callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
-  listen<D>(eventName: string): Transmitter<D>
-  /**
-   * Find children
-   */
-  find<E>(filter?: ChildFilter): E[]
-  /**
-   * Find a single child (an Error is thrown if there isn't one result)
-   */
-  findSingle<E>(filter?: ChildFilter): E
+interface Dash<A> extends BasicDash<A> {
+  readonly app: Application & A
+  readonly bkb: Bkb
 }
 
-interface Bkb extends BasicBkb {
-  destroy(): void
-  readonly componentName: string
-  readonly componentId: number
-  getInstance(): Component
-  getParent(filter?: ParentFilter): Component|undefined
+interface ApplicationBkb extends Bkb {
+  nextTick(cb: () => void): void
+  readonly log: Log
+}
+
+interface ApplicationDash<A> extends BasicDash<A>, ApplicationBkb {
+  readonly bkb: ApplicationBkb
 }
 
 /**
@@ -134,15 +161,6 @@ interface Log {
   info(...messages: any[]): void
   debug(...messages: any[]): void
   trace(...messages: any[]): void
-}
-
-interface ApplicationBkb extends Bkb {
-  nextTick(cb: () => void): void
-  readonly log: Log
-}
-
-interface ApplicationDash<A> extends Dash<A> {
-  readonly bkb: ApplicationBkb
 }
 
 interface Application extends Component {

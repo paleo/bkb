@@ -3,7 +3,7 @@ import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import TestApp from '../TestApp/TestApp'
 
-const templates = new BkbVueProvider(require("html!./Task.html"))
+const templates = new BkbVueProvider(require("html-loader!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new BkbVueProvider(tplStr)
 
@@ -18,7 +18,6 @@ export default class Task implements Component {
 
   constructor(private dash: Dash<TestApp>) {
     this.setUpdateMode(true)
-    this.dash.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement): this {
@@ -34,6 +33,7 @@ export default class Task implements Component {
       },
       childComponents: {CommentList}
     })
+    this.dash.emit('grabFocus')
     return this
   }
 

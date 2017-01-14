@@ -8,6 +8,8 @@ export default class TestApp implements Application {
   readonly log: Log
   readonly nextTick: (cb: () => void) => void
 
+  private $app: JQuery
+
   public get router() {
     return this._router
   }
@@ -18,7 +20,7 @@ export default class TestApp implements Application {
     this.log = dash.bkb.log
     this.nextTick = dash.bkb.nextTick
 
-    this.bkb.listen<LogItem>('log').call('dataFirst', (data) => {
+    this.dash.on<LogItem>('log', 'dataFirst', data => {
       console.log(`[LOG] ${data.type} `, data.messages)
     })
 
@@ -32,11 +34,13 @@ export default class TestApp implements Application {
       })
     })
 
-    let $app = $('.js-app')
-    this._router = this.createRouter($app.attr('data-base-url'), $app.attr('data-first'))
+    this.$app = $('.js-app')
+    this._router = this.createRouter(this.$app.attr('data-base-url'), this.$app.attr('data-first'))
+  }
 
+  public start() {
     const list = this.dash.create(TodoList, 'My TODO List')
-    list.attachTo($app[0])
+    list.attachTo(this.$app[0])
   }
 
   private createRouter(baseUrl: string, firstQueryString: string) {

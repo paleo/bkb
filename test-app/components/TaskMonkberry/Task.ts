@@ -32,8 +32,7 @@ export default class Task implements Component {
   constructor(private dash: Dash<TestApp>) {
     this.state.compId = dash.bkb.componentId
     this.setUpdateMode(true)
-    this.dash.emit('grabFocus')
-    dash.onDestroy(() => {
+    dash.on('destroy', () => {
       // console.log('destroy task')
       if (this.view) {
         this.view.remove()
@@ -61,6 +60,7 @@ export default class Task implements Component {
     // })
     this.view.update(this.state)
 
+    this.dash.emit('grabFocus')
     return this
   }
 

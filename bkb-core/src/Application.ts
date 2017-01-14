@@ -1,11 +1,11 @@
-function createApplication<A>(Cl: {new(dash: Dash<A>, ...args: any[]): A}, ...args: any[]): A & Application {
+function createApplication<A>(Cl: {new(dash: ApplicationDash<A>, ...args: any[]): A}, ...args: any[]): A & Application {
   let container = new ApplicationContainer<A>(Cl, false, args)
   return container.root.inst as any
 }
 
-function toApplication<A>(obj: A): Dash<A> {
+function toApplication<A>(obj: A) {
   let container = new ApplicationContainer<A>(obj, true)
-  return container.root.inst as any
+  return container.root.dash as ApplicationDash<A>
 }
 
 interface InternalApplicationContainer {
@@ -37,13 +37,12 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
     const logTypes = ['error', 'warn', 'info', 'debug', 'trace'],
       componentId = this.newId()
-    this.root = new Container<A>(this, 'root', componentId)
-    this.nodes.set(componentId, {
-      container: this.root
-    })
-    this.root.initBkbAndDash({
+    this.root = new Container<A>(this, 'root', componentId, {
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
+    })
+    this.nodes.set(componentId, {
+      container: this.root
     })
     this.root.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], false)
     if (asObject)
@@ -75,7 +74,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
                             properties: NewComponentProperties): Container<C> {
     if (!this.root.dash)
       throw new Error('Destroyed root component')
-    const componentName = properties.componentName ? properties.componentName : ApplicationContainer.getComponentName(objOrCl),
+    const componentName = properties.componentName || ApplicationContainer.getComponentName(objOrCl),
       componentId = this.newId(),
       container = new Container<C>(this, componentName, componentId)
     const parentNode = this.findNode(parent.componentId),
@@ -87,7 +86,6 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     if (!parentNode.children)
       parentNode.children = new Map()
     parentNode.children.set(componentId, node)
-    container.initBkbAndDash()
     if (asObject)
       container.createFromObject(objOrCl)
     else

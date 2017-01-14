@@ -4,9 +4,9 @@ import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
 
-// import tplStr from "html!./CommentList.html";
+// import tplStr from "html-loader!./CommentList.html";
 
-const templates = new RawTemplateProvider(require("html!./CommentList.html"))
+const templates = new RawTemplateProvider(require("html-loader!./CommentList.html"))
 // import tplStr from './CommentList.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 

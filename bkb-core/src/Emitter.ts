@@ -63,6 +63,8 @@ class Emitter {
   public listen(eventName: string, from?: Container<any>): Transmitter<any> {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
+    if (from && !from.bkb)
+      throw new Error(`Cannot call listen from a destroyed component`)
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[]|null = []
@@ -108,8 +110,8 @@ class Emitter {
       isDisabled
     }
     let fromEolCanceler
-    if (from && from.bkb) {
-      const destroyTransmitter = from.bkb.listen('destroy').call(() => transmitter.disable()),
+    if (from) {
+      const destroyTransmitter = from.bkb!.listen('destroy').call(() => transmitter.disable()),
         cancelerId = this.fromEolCancelers.length
       this.fromEolCancelers[cancelerId] = destroyTransmitter
       fromEolCanceler = () => {

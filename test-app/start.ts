@@ -3,7 +3,7 @@ import {createApplication} from 'bkb'
 import TestApp from './components/TestApp/TestApp'
 
 $(() => {
-  createApplication(TestApp)
+  createApplication(TestApp).start()
 })
 
 // private fireEventStringMsg(type: LogType, something: any) {

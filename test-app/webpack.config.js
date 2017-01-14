@@ -1,4 +1,4 @@
-var path = require("path");
+var path = require("path")
 
 module.exports = {
   entry: path.join(__dirname, "start.ts"),
@@ -9,16 +9,13 @@ module.exports = {
   },
   devtool: "source-map",
   resolve: {
-    extensions: ["", ".webpack.js", ".web.js", ".d.ts", ".ts", ".js"]
-  },
-  resolveLoader: {
-    fallback: "/path/to/lib/node_modules"
+    extensions: [".webpack.js", ".web.js", ".d.ts", ".ts", ".js"]
   },
   module: {
     loaders: [
       {
-        test: /\.ts$/,
-        loader: "ts",
+        test: /\.ts?$/,
+        loader: 'ts-loader',
         query: {
           "compilerOptions": {
             "noEmit": false
@@ -34,4 +31,4 @@ module.exports = {
   externals: {
     "jquery": "jQuery"
   }
-};
+}

@@ -6,7 +6,7 @@ import Task3 from "../TaskVue/Task"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
 
-const templates = new RawTemplateProvider(require("html!./TodoList.html"))
+const templates = new RawTemplateProvider(require("html-loader!./TodoList.html"))
 
 export default class TodoList implements Component {
   static readonly componentName = 'TodoList'

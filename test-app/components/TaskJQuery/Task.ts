@@ -4,7 +4,7 @@ import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'
 
-const templates = new RawTemplateProvider(require("html!./Task.html"))
+const templates = new RawTemplateProvider(require("html-loader!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 
@@ -28,13 +28,13 @@ export default class Task implements Component {
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-    dash.create(CommentList).attachTo(this.$container.find('.Task-comments')[0])
-    this.setUpdateMode(true)
-    this.dash.emit('grabFocus')
   }
 
   public attachTo(el: HTMLElement) {
+    this.dash.create(CommentList).attachTo(this.$container.find('.Task-comments')[0])
+    this.setUpdateMode(true)
     $(el).append(this.$container)
+    this.dash.emit('grabFocus')
     return this
   }
 
