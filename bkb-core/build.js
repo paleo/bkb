@@ -158,6 +158,6 @@ ${exportsTsCode}`
   })
 }
 
-build(__dirname).then(() => {
+build(__dirname).then(() => { // TODO mkdir dist_ts if not exists
   console.log('done')
 }, err => console.log(err.message, err.stack))

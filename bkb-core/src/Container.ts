@@ -1,31 +1,28 @@
 class Container<C> {
-  public inst: (C & Component) | null
   public bkb: Bkb | null
   public dash: Dash<any> | ApplicationDash<any> | null
+  public emitter: Emitter
+  public childEmitter: ChildEmitter
 
-  private ready = false
-  private emitter: Emitter
-  private childEmitter: ChildEmitter
+  private inst: (C & Component) | null
   private childGroups: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol('canPropagate')
 
-  constructor(private app: ApplicationContainer<any>, readonly componentName, readonly componentId: number,
+  constructor(public app: ApplicationContainer<any>, readonly componentName, readonly componentId: number,
     bkbMethods?: any) {
     this.emitter = new Emitter(app, ['destroy'])
     this.childEmitter = new ChildEmitter(app)
-    this.bkb = this.makeBkb(bkbMethods)
-    this.dash = this.makeDash(this.bkb)
+    this.bkb = makeBkb(this, bkbMethods)
+    this.dash = makeDash(this, this.bkb)
   }
 
-  public exposeEvents(eventNames: string[], strictEventsMode: boolean) {
-    this.emitter.exposeEvents(eventNames, strictEventsMode)
-  }
+  // --
+  // -- Used by Application
+  // --
 
-  public createInstance(Cl, args: any[]) {
-    this.inst = new Cl(this.dash, ...args)
-    Object.defineProperty(this.inst, 'bkb', { get: () => this.bkb })
-    this.ready = true
+  public makeInstance(Cl, args: any[]) {
+    this.setInstance(new Cl(this.dash, ...args))
 
     // /*
     //  * Simulate the "new" operator. The Container member `inst` and the instance member `bkb` are defined before the
@@ -43,75 +40,50 @@ class Container<C> {
     // }
   }
 
-  public createFromObject(obj) {
-    if (obj.bkb)
+  public setInstance(inst) {
+    if (this.inst)
+      return
+    if (!this.bkb)
+      throw new Error(`Destroyed component`)
+    if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
-    Object.defineProperty(obj, 'bkb', { get: () => this.bkb })
-    this.inst = obj
+    Object.defineProperty(inst, 'bkb', { get: () => this.bkb })
+    this.inst = inst
   }
 
-  private makeBkb(additionalMembers?: any): Bkb {
-    let obj: Bkb = {
-      getInstance: () => {
-        if (!this.ready)
-          throw new Error(`Cannot call "getInstance" during the initialization`)
-        if (!this.inst)
-          throw new Error('Destroyed component')
-        return this.inst
-      },
-      getParent: (filter?: ParentFilter) => {
-        let parent = this.getParent(filter)
-        return parent ? parent.inst : undefined
-      },
-      on: <D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
-        this.emitter.listen(eventName).call(modeOrCb, cbOrThisArg, thisArg)
-        return bkb
-      },
-      listen: (eventName: string) => this.emitter.listen(eventName),
-      destroy: () => this.destroy(),
-      componentName: this.componentName,
-      componentId: this.componentId,
-      find: <E>(filter: ChildFilter = {}) => this.find<E>(filter),
-      findSingle: <E>(filter: ChildFilter = {}) => this.findSingle<E>(filter),
-      count: (filter: ChildFilter = {}) => this.count(filter),
-      has: (filter: ChildFilter = {}) => this.has(filter)
+  public getInstance() {
+    if (!this.inst) {
+      if (this.bkb)
+        throw new Error(`The component instance is still not initialized`)
+      throw new Error('Destroyed component')
     }
-    if (additionalMembers)
-      obj = Object.assign(obj, additionalMembers)
-    const bkb = Object.freeze(obj)
-    return bkb
+    return this.inst
   }
 
-  private makeDash(bkb: Bkb): Dash<any> | ApplicationDash<any> {
-    let obj: any = {
-      bkb: bkb,
-      exposeEvents: (eventNames: string[]) => {
-        this.exposeEvents(eventNames, true)
-        return dash
-      },
-      emit: <D>(eventName: string, data?: D, options?: EmitterOptions) => {
-        this.emit<D>(eventName, data, options)
-        return dash
-      },
-      broadcast: (evt: ComponentEvent<any>, options?: EmitterOptions) => {
-        this.broadcast(evt, options)
-        return dash
-      },
-      listenToChildren: <D>(eventName: string, filter?: ChildFilter) => this.childEmitter.listen<D>(eventName, filter),
-      listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => this.listenToParent<D>(eventName, filter),
-      listenTo: <D>(component: Component, eventName: string) => this.listenTo<D>(component, eventName),
-      create: <C>(Cl: { new (): C }, properties: NewComponentProperties = {}) => this.createComponent<C>(Cl, properties, false).inst,
-      toComponent: <C>(obj, properties: NewComponentProperties = {}) => (this.createComponent<C>(obj, properties, true) as any).dash
+  public destroy() {
+    this.emit('destroy', undefined, { sync: true })
+    this.app.removeComponent(this)
+    if (this.childGroups)
+      this.childGroups.clear()
+    this.emitter.destroy()
+    this.childEmitter.destroy()
+    this.bkb = null
+    this.dash = null
+    this.inst = null
+  }
+
+  public forgetChild(componentId: number) {
+    if (this.childGroups) {
+      for (const group of Array.from(this.childGroups.values()))
+        group.delete(componentId)
     }
-    if (this.app.root && this.app.root !== this)
-      obj.app = this.app.root.inst
-    const dash = Object.freeze(this.makeBkb(obj)) as any
-    return dash
   }
 
-  private createComponent<E>(objOrCl, properties: NewComponentProperties, asObject: boolean): Container<E> {
-    if (!this.ready)
-      throw new Error(`Cannot call "create" or "toComponent" during the initialization`)
+  // --
+  // -- [makeBkb and makeDash]
+  // --
+
+  public createComponent<E>(objOrCl, properties: NewComponentProperties, asObject: boolean): Container<E> {
     const child = this.app.createComponent<E>(objOrCl, this, asObject, properties)
     if (properties.group) {
       if (!this.childGroups)
@@ -127,34 +99,123 @@ class Container<C> {
     return child
   }
 
-  private find<C>(filter: ChildFilter): C[] {
-    if (!this.ready)
-      throw new Error(`Cannot call "find" or "findSingle" during the initialization`)
+  // --
+  // -- [makeBkb and makeDash] Emit events
+  // --
+
+  public broadcast(evt: ComponentEvent<any>, options?: EmitterOptions) {
+    if (options && options.sync)
+      this.emitter.emit(evt)
+    else
+      this.app.nextTick(() => this.emitter.emit(evt))
+  }
+
+  public emit<D>(eventName: string, data?: D, options?: EmitterOptions) {
+    if (options && options.sync)
+      this.emitSync(this.createEvent<D>(eventName, data))
+    else
+      this.app.nextTick(() => this.emitSync<D>(this.createEvent<D>(eventName, data)))
+  }
+
+  private createEvent<D>(eventName, data?: D): ComponentEvent<D> {
+    let canPropagate = true
+    return Object.freeze({
+      eventName,
+      sourceName: this.componentName,
+      sourceId: this.componentId,
+      source: this.getInstance(),
+      data,
+      stopPropagation: () => {
+        canPropagate = false
+      },
+      [Container.canPropagateSymb]: () => canPropagate
+    } as ComponentEvent<D>)
+  }
+
+  private emitSync<D>(evt: ComponentEvent<D>) {
+    this.emitter.emit(evt)
+    const parent = this.app.getParentOf(this.componentId)
+    if (parent)
+      parent.bubbleUpEvent<D>(evt, false, this.componentId)
+  }
+
+  private bubbleUpEvent<D>(evt: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
+    if (evt[Container.canPropagateSymb] && !evt[Container.canPropagateSymb]())
+      return
+    this.childEmitter.emit<D>(evt, isFromDeep, this.getGroupsOf(childId))
+    const parent = this.app.getParentOf(this.componentId)
+    if (parent)
+      parent.bubbleUpEvent<D>(evt, true, this.componentId)
+  }
+
+  // --
+  // -- [makeBkb and makeDash] Listen
+  // --
+
+  public listenToParent<D>(eventName: string, filter: ParentFilter): Transmitter<D> {
+    let parent = this.getParent(filter)
+    if (parent)
+      return parent.emitter.listen(eventName, this)
+    if (filter.componentName)
+      throw new Error(`Unknown parent ${filter.componentName}`)
+    return Emitter.empty()
+  }
+
+  public listenTo<D>(component: Component, eventName: string): Transmitter<D> {
+    return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
+  }
+
+  // --
+  // -- [makeBkb and makeDash] Navigate to parents
+  // --
+
+  private getGroupsOf(childId: number): Set<string> {
+    const result = new Set<string>()
+    if (this.childGroups) {
+      for (const [groupName, idSet] of Array.from(this.childGroups.entries())) {
+        if (idSet.has(childId))
+          result.add(groupName)
+      }
+    }
+    return result
+  }
+
+  public getParent(filter?: ParentFilter): Container<any> | undefined {
+    let parent: Container<any> | undefined = this
+    while (parent = this.app.getParentOf(parent.componentId)) {
+      if (!filter || !filter.componentName || filter.componentName === parent.componentName)
+        return parent
+    }
+  }
+
+  // --
+  // -- [makeBkb and makeDash] Navigate to children
+  // --
+
+  public find<C>(filter: ChildFilter): C[] {
     if (filter.deep)
       throw new Error('Cannot call "find" with filter deep')
     const containers = this.getChildContainers(filter.group),
       result: C[] = []
     for (const child of containers) {
       if (!filter.componentName || filter.componentName === child.componentName)
-        result.push(child.inst)
+        result.push(child.getInstance())
     }
     return result
   }
 
-  private findSingle<C>(filter: ChildFilter): C {
+  public findSingle<C>(filter: ChildFilter): C {
     const list = this.find<C>(filter)
     if (list.length !== 1)
       throw new Error(`Cannot find single ${JSON.stringify(filter)} in ${this.componentName} ${this.componentId}`)
     return list[0]
   }
 
-  private count(filter: ChildFilter): number {
-    if (!this.ready)
-      throw new Error(`Cannot call "count" or "has" during the initialization`)
+  public count(filter: ChildFilter): number {
     return this.find<any>(filter).length
   }
 
-  private has(filter: ChildFilter): boolean {
+  public has(filter: ChildFilter): boolean {
     return this.count(filter) > 0
   }
 
@@ -177,107 +238,63 @@ class Container<C> {
       containers.push(this.app.getContainer(id))
     return containers
   }
+}
 
-  private emit<D>(eventName: string, data?: D, options?: EmitterOptions) {
-    if (!this.ready)
-      throw new Error(`Cannot call "emit" during the initialization`)
-    if (options && options.sync)
-      this.emitSync(this.createEvent<D>(eventName, data))
-    else
-      this.app.nextTick(() => this.emitSync<D>(this.createEvent<D>(eventName, data)))
+function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
+  let bkb: Bkb = {
+    get instance() {
+      return container.getInstance()
+    },
+    get parent() {
+      return this.getParent()
+    },
+    getParent: function (filter?: ParentFilter) {
+      let parent = container.getParent(filter)
+      return parent ? parent.getInstance() : undefined
+    },
+    on: function<D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) {
+      container.emitter.listen(eventName).call(modeOrCb, cbOrThisArg, thisArg)
+      return this
+    },
+    listen: (eventName: string) => container.emitter.listen(eventName),
+    destroy: () => container.destroy(),
+    componentName: container.componentName,
+    componentId: container.componentId,
+    find: <E>(filter: ChildFilter = {}) => container.find<E>(filter),
+    findSingle: <E>(filter: ChildFilter = {}) => container.findSingle<E>(filter),
+    count: (filter: ChildFilter = {}) => container.count(filter),
+    has: (filter: ChildFilter = {}) => container.has(filter)
   }
+  if (additionalMembers)
+    Object.assign(bkb, additionalMembers)
+  Object.freeze(bkb)
+  return bkb
+}
 
-  private createEvent<D>(eventName, data?: D) {
-    if (!this.inst)
-      throw new Error(`Cannot fire an event ${eventName} from an uninitialized component ${this.componentName}`)
-    let canPropagate = true
-    let evt: ComponentEvent<D> = {
-      eventName: eventName,
-      sourceName: this.componentName,
-      sourceId: this.componentId,
-      source: this.inst,
-      data,
-      stopPropagation: () => {
-        canPropagate = false
-      }
-    }
-    evt[Container.canPropagateSymb] = () => canPropagate
-    return Object.freeze(evt)
-  }
-
-  private emitSync<D>(evt: ComponentEvent<D>) {
-    this.emitter.emit(evt)
-    const parent = this.app.getParentOf(this.componentId)
-    if (parent)
-      parent.bubbleUpEvent<D>(evt, false, this.componentId)
-  }
-
-  private bubbleUpEvent<D>(evt: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
-    if (evt[Container.canPropagateSymb] && !evt[Container.canPropagateSymb]())
-      return
-    this.childEmitter.emit<D>(evt, isFromDeep, this.getGroupsOf(childId))
-    const parent = this.app.getParentOf(this.componentId)
-    if (parent)
-      parent.bubbleUpEvent<D>(evt, true, this.componentId)
-  }
-
-  private broadcast(evt: ComponentEvent<any>, options?: EmitterOptions) {
-    if (!this.ready)
-      throw new Error(`Cannot call "broadcast" during the initialization`)
-    if (options && options.sync)
-      this.emitter.emit(evt)
-    else
-      this.app.nextTick(() => this.emitter.emit(evt))
-  }
-
-  private getGroupsOf(childId: number): Set<string> {
-    const result = new Set<string>()
-    if (this.childGroups) {
-      for (const [groupName, idSet] of Array.from(this.childGroups.entries())) {
-        if (idSet.has(childId))
-          result.add(groupName)
-      }
-    }
-    return result
-  }
-
-  private getParent(filter?: ParentFilter): Container<any> | undefined {
-    let parent: Container<any> | undefined = this
-    while (parent = this.app.getParentOf(parent.componentId)) {
-      if (!filter || !filter.componentName || filter.componentName === parent.componentName)
-        return parent
-    }
-  }
-
-  private listenToParent<D>(eventName: string, filter: ParentFilter): Transmitter<D> {
-    let parent = this.getParent(filter)
-    if (parent)
-      return parent.emitter.listen(eventName, this)
-    if (filter.componentName)
-      throw new Error(`Unknown parent ${filter.componentName}`)
-    return Emitter.empty()
-  }
-
-  private listenTo<D>(component: Component, eventName: string): Transmitter<D> {
-    return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
-  }
-
-  public destroy() {
-    this.emit('destroy', undefined, { sync: true })
-    this.app.removeComponent(this)
-    if (this.childGroups)
-      this.childGroups.clear()
-    this.emitter.destroy()
-    this.childEmitter.destroy()
-    this.bkb = null
-    this.dash = null
-    this.inst = null
-  }
-
-  public forgetChild(componentId: number) {
-    if (this.childGroups) {
-      for (const group of Array.from(this.childGroups.values()))
-        group.delete(componentId)
-    }
-  }
+function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | ApplicationDash<any> {
+  let dash = Object.assign(Object.create(bkb), {
+    setInstance: inst => container.setInstance,
+    exposeEvents: function (eventNames: string[]) {
+      container.emitter.exposeEvents(eventNames, true)
+      return this
+    },
+    create: <C>(Cl: { new (): C }, properties: NewComponentProperties = {}) => container.createComponent<C>(Cl, properties, false).getInstance(),
+    toComponent: <C>(obj, properties: NewComponentProperties = {}) => (container.createComponent<C>(obj, properties, true) as any).dash,
+    emit: function<D>(eventName: string, data?: D, options?: EmitterOptions) {
+      container.emit<D>(eventName, data, options)
+      return this
+    },
+    broadcast: function(evt: ComponentEvent<any>, options?: EmitterOptions) {
+      container.broadcast(evt, options)
+      return this
+    },
+    listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => container.listenToParent<D>(eventName, filter),
+    listenToChildren: <D>(eventName: string, filter?: ChildFilter) => container.childEmitter.listen<D>(eventName, filter),
+    listenTo: <D>(component: Component, eventName: string) => container.listenTo<D>(component, eventName),
+    bkb: bkb as any
+  })
+  if (container.app.root && container.app.root !== container)
+    dash.app = container.app.root.getInstance()
+  Object.freeze(dash)
+  return dash
 }

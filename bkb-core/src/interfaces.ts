@@ -63,8 +63,6 @@ interface Bkb {
   find<E>(filter?: ChildFilter): E[]
   /**
    * Find a single child (an Error is thrown if there isn't one result)
-   *
-   * Notice: Cannot be accessed during the initialization.
    */
   findSingle<E>(filter?: ChildFilter): E
   /**
@@ -86,34 +84,44 @@ interface Bkb {
   /**
    * Notice: Cannot be accessed during the initialization.
    */
-  getInstance(): Component
-  getParent(filter?: ParentFilter): Component|undefined
+  readonly instance: Component // TODO: Not during init & use getter `instance`
+  readonly parent: Component | undefined // TODO: Not during init & use getter `instance`
+  getParent(filter?: ParentFilter): Component | undefined // TODO: add a getter `parent`
+}
+
+interface ApplicationBkb extends Bkb {
+  nextTick(cb: () => void): void
+  readonly log: Log
 }
 
 interface BasicDash<A> extends Bkb {
+  /**
+   * Call this method if the instance must be available during the execution of the constructor
+   */
+  setInstance(inst: any): void
   exposeEvents(eventNames: string[]): this
 
   /**
-   * Notice: Cannot be accessed during the initialization.
+   * Notice: Cannot be accessed during the initialization. // TODO: allow on init
    */
-  create<C>(Cl: {new(dash: Dash<A>, ...args: any[]): C}, properties?: NewComponentProperties): C & Component
+  create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): C & Component
 
   /**
-   * Notice: Cannot be accessed during the initialization.
+   * Notice: Cannot be accessed during the initialization. // TODO: allow on init
    */
   toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
 
   /**
    * Notice: Cannot be accessed during the initialization.
    */
-  emit(eventName: string, data?: any, options?: EmitterOptions): this
+  emit(eventName: string, data?: any, options?: EmitterOptions): this // TODO: allow on init when deferred
 
   /**
    * Notice: Cannot be accessed during the initialization.
    *
    * The event will NOT bubble up to parent hierarchy.
    */
-  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this
+  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this // TODO: allow on init when deferred
 
   /**
    * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches
@@ -136,11 +144,6 @@ interface BasicDash<A> extends Bkb {
 interface Dash<A> extends BasicDash<A> {
   readonly app: Application & A
   readonly bkb: Bkb
-}
-
-interface ApplicationBkb extends Bkb {
-  nextTick(cb: () => void): void
-  readonly log: Log
 }
 
 interface ApplicationDash<A> extends BasicDash<A>, ApplicationBkb {

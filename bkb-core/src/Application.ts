@@ -1,6 +1,6 @@
 function createApplication<A>(Cl: {new(dash: ApplicationDash<A>, ...args: any[]): A}, ...args: any[]): A & Application {
   let container = new ApplicationContainer<A>(Cl, false, args)
-  return container.root.inst as any
+  return container.root.getInstance() as any
 }
 
 function toApplication<A>(obj: A) {
@@ -44,11 +44,11 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     this.nodes.set(componentId, {
       container: this.root
     })
-    this.root.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], false)
+    this.root.emitter.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], false)
     if (asObject)
-      this.root.createFromObject(objOrCl)
+      this.root.setInstance(objOrCl)
     else
-      this.root.createInstance(objOrCl, args || [])
+      this.root.makeInstance(objOrCl, args || [])
   }
 
   public getParentOf(componentId: number): Container<any>|undefined {
@@ -87,11 +87,11 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       parentNode.children = new Map()
     parentNode.children.set(componentId, node)
     if (asObject)
-      container.createFromObject(objOrCl)
+      container.setInstance(objOrCl)
     else
-      container.createInstance(objOrCl, properties.args || [])
-    this.root.dash.emit('addComponent', {component: container.inst})
-    this.root.dash.emit('changeComponent', {component: container.inst, type: 'add'})
+      container.makeInstance(objOrCl, properties.args || [])
+    this.root.dash.emit('addComponent', {component: container.getInstance()})
+    this.root.dash.emit('changeComponent', {component: container.getInstance(), type: 'add'})
     return container
   }
 
@@ -102,8 +102,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     try {
       if (mainRm) {
         this.insideRmComp = true
-        this.root.dash.emit('removeComponent', {component: container.inst}, {sync: true})
-        this.root.dash.emit('changeComponent', {component: container.inst, type: 'remove'}, {sync: true})
+        this.root.dash.emit('removeComponent', {component: container.getInstance()}, {sync: true})
+        this.root.dash.emit('changeComponent', {component: container.getInstance(), type: 'remove'}, {sync: true})
       }
       const componentId = container.componentId,
         node = this.findNode(componentId)
