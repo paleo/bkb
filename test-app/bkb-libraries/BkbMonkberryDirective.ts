@@ -1,10 +1,10 @@
-import {Log, Component} from 'bkb'
+import { Log, Component } from 'bkb'
 
 type Comp = Component & MonkberryComponent
 
 export interface MonkberryComponent {
   attachTo(el: HTMLElement): void
-  update?(value: string): void
+  update?(value?: string): void
 }
 
 export interface ComponentMakers {
@@ -20,10 +20,10 @@ export default function createBkbDirectives(log: Log, makers: ComponentMakers) {
   return directives
 }
 
-function createDirective(log: Log, maker: (el: HTMLElement, value: string) => Comp, directiveName: string) {
+function createDirective(log: Log, maker: (el: HTMLElement, value?: string) => Comp, directiveName: string) {
   return class {
-    private comp: Comp
-    private el: HTMLElement
+    private comp: Comp | null
+    private el: HTMLElement | null
 
     bind(node) {
       this.el = node
