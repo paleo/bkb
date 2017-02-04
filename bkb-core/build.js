@@ -137,7 +137,7 @@ function makeTsCode(srcPath, readInterfacesTs) {
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
     return `declare module 'bkb' {
-function createApplication<A>(Cl: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A & Application
+function createApplication<A>(Cl: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
 function toApplication<A>(obj: A): ApplicationDash<A>
 
 ${interfacesStr}
@@ -149,7 +149,7 @@ ${exportsTsCode}
 
 function makeIndexTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare function createApplication<A>(Cl: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A & Application
+    return `declare function createApplication<A>(Cl: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
 declare function toApplication<A>(obj: A): ApplicationDash<A>
 
 ${interfacesStr}

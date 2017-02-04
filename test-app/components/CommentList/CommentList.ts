@@ -10,20 +10,18 @@ const templates = new RawTemplateProvider(require("html-loader!./CommentList.htm
 // import tplStr from './CommentList.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 
-export default class CommentList implements Component {
+export default class CommentList {
   static readonly componentName = 'CommentList'
-  readonly bkb: Bkb
   private $container: JQuery
   private $ul: JQuery
 
   constructor(private dash: Dash<TestApp>, el: HTMLElement, title: string) {
-    console.log("-->", dash.parent)
     this.$container = $(templates.getTemplate('.CommentList'))
     this.$container.find('.CommentList-h1').text(title)
     this.$ul = this.$container.find('.CommentList-ul')
     const $addBtn = this.$container.find('.CommentList-addBtn').click(() => this.add())
     dash.listenToParent('enabled').call(evt => {
-      console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data}`)
+      console.log(`[parent-Event] [${dash.componentName} ${dash.componentId}] enabled ${evt.data}`)
       if (evt.data)
         $addBtn.show()
       else
@@ -36,9 +34,9 @@ export default class CommentList implements Component {
   public add() {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
-    const comment = this.dash.create(Comment).attachTo($li[0])
+    const comment = this.dash.create(Comment, {args: [$li[0]]}).test()
     const listener = this.dash.listenToParent('enabled').call(evt => {
-      console.log(`[parent-Event] [${this.bkb.componentName} ${this.bkb.componentId}] enabled ${evt.data} (for li)`)
+      console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)
         $rmBtn.show()
       else

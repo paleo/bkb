@@ -8,9 +8,8 @@ const templates = new RawTemplateProvider(require("html-loader!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new RawTemplateProvider(tplStr)
 
-export default class Task implements Component {
+export default class Task {
   static readonly componentName = 'Task'
-  readonly bkb: Bkb
   private $container: JQuery
   private $update: JQuery
   private $read: JQuery

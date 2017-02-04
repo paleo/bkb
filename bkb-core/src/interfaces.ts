@@ -1,12 +1,16 @@
-interface Component {
+type Component<T> = T & {
   readonly bkb: Bkb
+}
+
+type Application<T> = T & {
+  readonly bkb: ApplicationBkb
 }
 
 interface ComponentEvent<D> {
   readonly eventName: string
   readonly sourceName: string
   readonly sourceId: number
-  readonly source: Component
+  readonly source: Component<Object>
   readonly data?: D
   stopPropagation(): void
 }
@@ -78,15 +82,15 @@ interface Bkb {
   /**
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly instance: Component
+  readonly instance: Component<Object>
   /**
    * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly parent: Component | undefined
+  readonly parent: Component<Object> | undefined
   /**
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  getParent(filter?: ParentFilter): Component | undefined
+  getParent(filter?: ParentFilter): Component<Object> | undefined
 }
 
 interface ApplicationBkb extends Bkb {
@@ -101,14 +105,14 @@ interface BasicDash<A> extends Bkb {
   setInstance(inst: any): void
   exposeEvents(eventNames: string[]): this
 
-  create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): C & Component
+  create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): Component<C>
 
   toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    */
-  emit(eventName: string, data?: any, options?: EmitterOptions): this // TODO: allow on init when deferred
+  emit(eventName: string, data?: any, options?: EmitterOptions): this
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
@@ -132,11 +136,11 @@ interface BasicDash<A> extends Bkb {
    */
   listenToChildren<D>(eventName: string, filter?: ChildFilter): Transmitter<D>
 
-  listenTo<D>(component: Component, eventName: string): Transmitter<D>
+  listenTo<D>(component: Component<Object>, eventName: string): Transmitter<D>
 }
 
 interface Dash<A> extends BasicDash<A> {
-  readonly app: Application & A
+  readonly app: Application<A>
   readonly bkb: Bkb
 }
 
@@ -158,8 +162,4 @@ interface Log {
   info(...messages: any[]): void
   debug(...messages: any[]): void
   trace(...messages: any[]): void
-}
-
-interface Application extends Component {
-  readonly bkb: ApplicationBkb
 }

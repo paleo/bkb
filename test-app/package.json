@@ -15,9 +15,9 @@
     "system-text": "*",
     "systemjs": "*",
     "ts-loader": "*",
-    "typescript": "*",
+    "typescript": "^2.2.0",
     "vue": "*",
-    "webpack": "^2.2.0-rc.4"
+    "webpack": "^2.2.1"
   },
   "devDependencies": {},
   "scripts": {},

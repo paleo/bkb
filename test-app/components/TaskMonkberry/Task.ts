@@ -9,9 +9,8 @@ import 'monkberry-events'
 
 import * as Template from './Task.monk'
 
-export default class Task implements Component {
+export default class Task {
   public static componentName = 'Task'
-  readonly bkb: Bkb
   private view: any
 
   private state = {

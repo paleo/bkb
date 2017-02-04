@@ -8,9 +8,8 @@ import TestApp from '../TestApp/TestApp'
 
 const templates = new RawTemplateProvider(require("html-loader!./TodoList.html"))
 
-export default class TodoList implements Component {
+export default class TodoList {
   static readonly componentName = 'TodoList'
-  readonly bkb: Bkb
   private $container: JQuery
   private $ul: JQuery
 
@@ -20,8 +19,8 @@ export default class TodoList implements Component {
     this.$ul = this.$container.find('.TodoList-ul')
     this.$container.find('.TodoList-addBtn').click(() => this.add())
     dash.listenToChildren('grabFocus', { group: 'items' }).call((evt) => {
-      console.log(`[Event] [${this.bkb.componentName} ${this.bkb.componentId}] grabFocus`)
-      for (const child of dash.find<Task>({ group: 'items', componentName: 'Task' })) {
+      console.log(`[Event] [${this.dash.componentName} ${this.dash.componentId}] grabFocus`)
+      for (const child of dash.find<Component<Task>>({ group: 'items', componentName: 'Task' })) {
         if (child !== evt.source)
           child.setUpdateMode(false)
       }

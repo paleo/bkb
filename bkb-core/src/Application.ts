@@ -1,4 +1,4 @@
-function createApplication<A>(Cl: {new(dash: ApplicationDash<A>, ...args: any[]): A}, ...args: any[]): A & Application {
+function createApplication<A>(Cl: {new(dash: ApplicationDash<A>, ...args: any[]): A}, ...args: any[]): Application<A> {
   let container = new ApplicationContainer<A>(Cl, false, args)
   return container.root.getInstance() as any
 }

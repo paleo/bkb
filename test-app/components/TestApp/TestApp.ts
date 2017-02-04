@@ -3,8 +3,7 @@ import {Application, ApplicationDash, ApplicationBkb, Log, LogItem} from 'bkb'
 import TodoList from "../TodoList/TodoList"
 import {createEasyRouter, EasyRouter} from '../../libraries-ts/EasyRouter'
 
-export default class TestApp implements Application {
-  readonly bkb: ApplicationBkb
+export default class TestApp {
   readonly log: Log
   readonly nextTick: (cb: () => void) => void
 
@@ -29,8 +28,8 @@ export default class TestApp implements Application {
       const type = evt.data.type,
         evtBkb = evt.data.component.bkb,
         msg = `change component (${type} ${evtBkb.componentName} ${evtBkb.componentId})\n`
-      this.bkb.nextTick(() => {
-        console.log(msg, publicNodesToString(this.bkb.find()))
+      this.nextTick(() => {
+        console.log(msg, publicNodesToString(dash.bkb.find()))
       })
     })
 

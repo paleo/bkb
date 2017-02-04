@@ -8,9 +8,8 @@ enum SmallDialogType {
   Info, Warning, Error, Confirm
 }
 
-export default class BkbDialogs implements Component {
+export default class BkbDialogs {
   static readonly componentName = 'Task'
-  readonly bkb: Bkb
 
   // --
   // -- Initialisation

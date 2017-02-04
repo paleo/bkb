@@ -1,13 +1,13 @@
 import { Log, Component } from 'bkb'
 
-type Comp = Component & MonkberryComponent
+type Comp = Component<MonkberryComponent>
 
 export interface MonkberryComponent {
   update?(value?: string): void
 }
 
 export interface ComponentMakers {
-  [directiveName: string]: (el: HTMLElement, value?: string) => Component & MonkberryComponent
+  [directiveName: string]: (el: HTMLElement, value?: string) => Component<MonkberryComponent>
 }
 
 export default function createBkbDirectives(log: Log, makers: ComponentMakers) {

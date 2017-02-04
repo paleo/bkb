@@ -4,7 +4,7 @@ class Container<C> {
   public emitter: Emitter
   public childEmitter: ChildEmitter
 
-  private inst: (C & Component) | null
+  private inst: Component<C> | null
   private childGroups: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol('canPropagate')
@@ -161,7 +161,7 @@ class Container<C> {
     return Emitter.empty()
   }
 
-  public listenTo<D>(component: Component, eventName: string): Transmitter<D> {
+  public listenTo<D>(component: Component<Object>, eventName: string): Transmitter<D> {
     return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
   }
 
@@ -279,7 +279,7 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
       return this
     },
     create: <C>(Cl: { new (): C }, properties: NewComponentProperties = {}) => container.createComponent<C>(Cl, properties, false).getInstance(),
-    toComponent: <C>(obj, properties: NewComponentProperties = {}) => (container.createComponent<C>(obj, properties, true) as any).dash,
+    toComponent: <C>(obj, properties: NewComponentProperties = {}) => (container.createComponent<C>(obj, properties, true) as any).dash!,
     emit: function<D>(eventName: string, data?: D, options?: EmitterOptions) {
       container.emit<D>(eventName, data, options)
       return this
@@ -290,7 +290,7 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
     },
     listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => container.listenToParent<D>(eventName, filter),
     listenToChildren: <D>(eventName: string, filter?: ChildFilter) => container.childEmitter.listen<D>(eventName, filter),
-    listenTo: <D>(component: Component, eventName: string) => container.listenTo<D>(component, eventName),
+    listenTo: <D>(component: Component<Object>, eventName: string) => container.listenTo<D>(component, eventName),
     bkb: bkb as any
   })
   if (container.app.root && container.app.root !== container)

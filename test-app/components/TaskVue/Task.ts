@@ -7,9 +7,8 @@ const templates = new BkbVueProvider(require("html-loader!./Task.html"))
 // import tplStr from './Task.html!text'
 // const templates = new BkbVueProvider(tplStr)
 
-export default class Task implements Component {
+export default class Task {
   static readonly componentName = 'Task'
-  readonly bkb: Bkb
 
   private vm = {
     label: '',
