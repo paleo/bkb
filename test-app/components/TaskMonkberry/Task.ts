@@ -29,7 +29,7 @@ export default class Task implements Component {
     }
   }
 
-  constructor(private dash: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>, el: HTMLElement) {
     this.state.compId = dash.bkb.componentId
     this.setUpdateMode(true)
     dash.on('destroy', () => {
@@ -39,9 +39,6 @@ export default class Task implements Component {
         this.view = null
       }
     });
-  }
-
-  public attachTo(el: HTMLElement) {
     this.view = Monkberry.render(Template, el, {
       noCache: true,
       directives: {
@@ -49,7 +46,7 @@ export default class Task implements Component {
         ...createBkbDirectives(this.dash.app.log, {
           'CommentList': (el: HTMLElement, value: string) => {
             return this.dash.create(CommentList, {
-              args: [value]
+              args: [el, value]
             })
           }
         })

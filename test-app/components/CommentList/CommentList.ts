@@ -16,7 +16,8 @@ export default class CommentList implements Component {
   private $container: JQuery
   private $ul: JQuery
 
-  constructor(private dash: Dash<TestApp>, title: string) {
+  constructor(private dash: Dash<TestApp>, el: HTMLElement, title: string) {
+    console.log("-->", dash.parent)
     this.$container = $(templates.getTemplate('.CommentList'))
     this.$container.find('.CommentList-h1').text(title)
     this.$ul = this.$container.find('.CommentList-ul')
@@ -29,9 +30,6 @@ export default class CommentList implements Component {
         $addBtn.hide()
       dash.broadcast(evt)
     })
-  }
-
-  public attachTo(el: HTMLElement) {
     $(el).append(this.$container)
   }
 

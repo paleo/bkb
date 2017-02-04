@@ -57,8 +57,6 @@ interface Bkb {
   listen<D>(eventName: string): Transmitter<D>
   /**
    * Find children
-   *
-   * Notice: Cannot be accessed during the initialization.
    */
   find<E>(filter?: ChildFilter): E[]
   /**
@@ -67,14 +65,10 @@ interface Bkb {
   findSingle<E>(filter?: ChildFilter): E
   /**
    * @returns The count of children that validate the filter
-   *
-   * Notice: Cannot be accessed during the initialization.
    */
   count(filter?: ChildFilter): number
   /**
    * @returns true if there is one or more children that validate the filter
-   *
-   * Notice: Cannot be accessed during the initialization.
    */
   has(filter?: ChildFilter): boolean
 
@@ -82,11 +76,17 @@ interface Bkb {
   readonly componentName: string
   readonly componentId: number
   /**
-   * Notice: Cannot be accessed during the initialization.
+   * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly instance: Component // TODO: Not during init & use getter `instance`
-  readonly parent: Component | undefined // TODO: Not during init & use getter `instance`
-  getParent(filter?: ParentFilter): Component | undefined // TODO: add a getter `parent`
+  readonly instance: Component
+  /**
+   * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
+   */
+  readonly parent: Component | undefined
+  /**
+   * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
+   */
+  getParent(filter?: ParentFilter): Component | undefined
 }
 
 interface ApplicationBkb extends Bkb {
@@ -101,27 +101,21 @@ interface BasicDash<A> extends Bkb {
   setInstance(inst: any): void
   exposeEvents(eventNames: string[]): this
 
-  /**
-   * Notice: Cannot be accessed during the initialization. // TODO: allow on init
-   */
   create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): C & Component
 
-  /**
-   * Notice: Cannot be accessed during the initialization. // TODO: allow on init
-   */
   toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
 
   /**
-   * Notice: Cannot be accessed during the initialization.
+   * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    */
   emit(eventName: string, data?: any, options?: EmitterOptions): this // TODO: allow on init when deferred
 
   /**
-   * Notice: Cannot be accessed during the initialization.
+   * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    *
    * The event will NOT bubble up to parent hierarchy.
    */
-  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this // TODO: allow on init when deferred
+  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this
 
   /**
    * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches

@@ -273,7 +273,7 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
 
 function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | ApplicationDash<any> {
   let dash = Object.assign(Object.create(bkb), {
-    setInstance: inst => container.setInstance,
+    setInstance: inst => container.setInstance(inst),
     exposeEvents: function (eventNames: string[]) {
       container.emitter.exposeEvents(eventNames, true)
       return this

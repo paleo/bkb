@@ -16,11 +16,8 @@ export default class Task implements Component {
     updMode: true
   };
 
-  constructor(private dash: Dash<TestApp>) {
+  constructor(private dash: Dash<TestApp>, el: HTMLElement) {
     this.setUpdateMode(true)
-  }
-
-  public attachTo(el: HTMLElement): this {
     templates.attachVue(this.dash, {
       el: el,
       templateName: '.TaskV',

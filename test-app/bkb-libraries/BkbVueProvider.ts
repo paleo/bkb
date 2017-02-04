@@ -1,4 +1,4 @@
-import {Dash} from 'bkb'
+import { Dash } from 'bkb'
 
 declare type Vue = any
 declare let Vue: any // { new(config: any): Vue }
@@ -75,11 +75,11 @@ class VueTemplate {
   }
 
   private createBkbVue(dash: Dash<any>, config: VueConfig) {
-// console.log('............. yop', config)
+    // console.log('............. yop', config)
     let BkbVue = Vue.extend()
     BkbVue.directive('bkb', {
       bind: function (el, binding, vnode) {
-// console.log('............. bind', el, binding, vnode)
+        // console.log('............. bind', el, binding, vnode)
         if (!config.childComponents)
           return
         const Cl = config.childComponents[binding.arg]
@@ -88,22 +88,19 @@ class VueTemplate {
         try {
           if (binding.bkbChildComp)
             binding.bkbChildComp.bkb.destroy()
-          binding.bkbChildComp = dash.create(Cl)
-          if (!binding.bkbChildComp.attachTo)
-            throw new Error('Component created by a Vue directive must have a method "attachTo"')
-          binding.bkbChildComp.attachTo(el)
+          binding.bkbChildComp = dash.create(Cl, { args: [el] })
         } catch (e) {
           dash.app.bkb.log.error(e)
         }
       },
       inserted: function (el) {
-// console.log('............. inserted', el)
+        // console.log('............. inserted', el)
       },
       update: function (value) {
-// console.log('............. update', value)
+        // console.log('............. update', value)
       },
       unbind: function (el, binding) {
-// console.log('............. unbind', arguments)
+        // console.log('............. unbind', arguments)
         if (binding.bkbChildComp) {
           try {
             binding.bkbChildComp.bkb.destroy()

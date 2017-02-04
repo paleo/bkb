@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Dash, Bkb} from 'bkb'
+import { Component, Dash, Bkb } from 'bkb'
 import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'
@@ -17,8 +17,9 @@ export default class Task implements Component {
   private $input: JQuery
   private $lbl: JQuery
   private updMode: boolean
-  
-  constructor(private dash: Dash<TestApp>) {
+
+  constructor(private dash: Dash<TestApp>, el: HTMLElement) {
+    dash.setInstance(this)
     this.$container = $(templates.getTemplate('.Task'))
     this.$update = this.$container.find('.js-update')
     this.$read = this.$container.find('.js-read')
@@ -28,10 +29,7 @@ export default class Task implements Component {
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-  }
-
-  public attachTo(el: HTMLElement) {
-    this.dash.create(CommentList).attachTo(this.$container.find('.Task-comments')[0])
+    this.dash.create(CommentList, { args: [this.$container.find('.Task-comments')[0]] })
     this.setUpdateMode(true)
     $(el).append(this.$container)
     this.dash.emit('grabFocus')
