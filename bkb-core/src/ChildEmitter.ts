@@ -16,21 +16,21 @@ class ChildEmitter {
   constructor(private app: InternalApplicationContainer) {
   }
 
-  public emit<D>(evt: ComponentEvent<D>, deep: boolean, groupNames: Set<string>): void {
+  public emit<D>(ev: ComponentEvent<D>, deep: boolean, groupNames: Set<string>): void {
     if (!this.callbacks)
       return
-    let cbList = this.callbacks.get(evt.eventName)
+    let cbList = this.callbacks.get(ev.eventName)
     if (!cbList)
       return
     const filtered: ChildCallback[] = []
     for (const cb of cbList) {
-      if ((cb.filter.componentName && cb.filter.componentName === evt.sourceName)
+      if ((cb.filter.componentName && cb.filter.componentName === ev.sourceName)
         || (!cb.filter.deep && deep)
         || (cb.filter.group && !ChildEmitter.hasGroup(cb.filter.group, groupNames)))
         continue
       filtered.push(cb)
     }
-    this.callCbList<D>(filtered, evt)
+    this.callCbList<D>(filtered, ev)
   }
 
   public listen<D>(eventName: string, filter: ChildFilter = {}): Transmitter<D> {
@@ -49,7 +49,7 @@ class ChildEmitter {
           this.callbacks.set(eventName, cbList = [])
         const id = cbList.length
         idList.push(id)
-        if (typeof modeOrCb === 'string') {
+        if (typeof modeOrCb === "string") {
           cbList[id] = {
             mode: modeOrCb as any,
             callback: cbOrThisArg,
@@ -58,7 +58,7 @@ class ChildEmitter {
           }
         } else {
           cbList[id] = {
-            mode: 'eventOnly',
+            mode: "eventOnly",
             callback: modeOrCb,
             thisArg: cbOrThisArg,
             filter: filter
@@ -87,7 +87,7 @@ class ChildEmitter {
   }
 
   private static hasGroup(needle: string | string[], groupNames: Set<string>) {
-    const groups = <string[]>(typeof needle === 'string' ? [needle] : needle)
+    const groups = <string[]>(typeof needle === "string" ? [needle] : needle)
     for (const group of groups) {
       if (groupNames.has(group))
         return true
@@ -95,10 +95,10 @@ class ChildEmitter {
     return false
   }
 
-  private callCbList<D>(cbList: ChildCallback[], evt: ComponentEvent<D>) {
+  private callCbList<D>(cbList: ChildCallback[], ev: ComponentEvent<D>) {
     for (const cb of cbList) {
       try {
-        call(cb, evt)
+        call(cb, ev)
       } catch (e) {
         this.app.errorHandler(e)
       }

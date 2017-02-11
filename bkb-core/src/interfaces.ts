@@ -16,10 +16,10 @@ interface ComponentEvent<D> {
 }
 
 interface Transmitter<D> {
-  call(callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
+  call(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  call(mode: "eventOnly", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  call(mode: "dataFirst", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  call(mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
   disable(): void
   isDisabled(): boolean
 }
@@ -54,10 +54,10 @@ interface EmitterOptions {
 }
 
 interface Bkb {
-  on<D>(eventName: string, callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: 'eventOnly', callback: (evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: 'dataFirst', callback: (data: D, evt: ComponentEvent<D>) => void, thisArg?: any): this
-  on(eventName: string, mode: 'arguments', callback: (...args: any[]) => void, thisArg?: any): this
+  on<D>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: "eventOnly", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  on<D>(eventName: string, mode: "dataFirst", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  on(eventName: string, mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
   listen<D>(eventName: string): Transmitter<D>
   /**
    * Find children
@@ -119,7 +119,7 @@ interface BasicDash<A> extends Bkb {
    *
    * The event will NOT bubble up to parent hierarchy.
    */
-  broadcast(evt: ComponentEvent<any>, options?: EmitterOptions): this
+  broadcast(ev: ComponentEvent<any>, options?: EmitterOptions): this
 
   /**
    * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches

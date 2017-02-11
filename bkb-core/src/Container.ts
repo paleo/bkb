@@ -7,11 +7,11 @@ class Container<C> {
   private inst: Component<C> | null
   private childGroups: Map<string, Set<number>>
 
-  private static canPropagateSymb = Symbol('canPropagate')
+  private static canPropagateSymb = Symbol("canPropagate")
 
   constructor(public app: ApplicationContainer<any>, readonly componentName, readonly componentId: number,
     bkbMethods?: any) {
-    this.emitter = new Emitter(app, ['destroy'])
+    this.emitter = new Emitter(app, ["destroy"])
     this.childEmitter = new ChildEmitter(app)
     this.bkb = makeBkb(this, bkbMethods)
     this.dash = makeDash(this, this.bkb)
@@ -31,7 +31,7 @@ class Container<C> {
     //  * Thanks to http://stackoverflow.com/q/10428603/3786294
     //  */
     // this.inst = Object.create(Cl.prototype)
-    // Object.defineProperty(this.inst, 'bkb', {get: () => this.bkb})
+    // Object.defineProperty(this.inst, "bkb", {get: () => this.bkb})
     // let retVal = Cl.call(this.inst, this.dash, ...args)
     // if (Object(retVal) === retVal && retVal !== this.inst) {
     //   this.inst = retVal
@@ -47,7 +47,7 @@ class Container<C> {
       throw new Error(`Destroyed component`)
     if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
-    Object.defineProperty(inst, 'bkb', { get: () => this.bkb })
+    Object.defineProperty(inst, "bkb", { get: () => this.bkb })
     this.inst = inst
   }
 
@@ -55,13 +55,13 @@ class Container<C> {
     if (!this.inst) {
       if (this.bkb)
         throw new Error(`The component instance is still not initialized`)
-      throw new Error('Destroyed component')
+      throw new Error("Destroyed component")
     }
     return this.inst
   }
 
   public destroy() {
-    this.emit('destroy', undefined, { sync: true })
+    this.emit("destroy", undefined, { sync: true })
     this.app.removeComponent(this)
     if (this.childGroups)
       this.childGroups.clear()
@@ -88,7 +88,7 @@ class Container<C> {
     if (properties.group) {
       if (!this.childGroups)
         this.childGroups = new Map()
-      const groupNames = (typeof properties.group === 'string' ? [properties.group] : properties.group) as string[]
+      const groupNames = (typeof properties.group === "string" ? [properties.group] : properties.group) as string[]
       for (const name of groupNames) {
         let g = this.childGroups.get(name)
         if (!g)
@@ -103,11 +103,11 @@ class Container<C> {
   // -- [makeBkb and makeDash] Emit events
   // --
 
-  public broadcast(evt: ComponentEvent<any>, options?: EmitterOptions) {
+  public broadcast(ev: ComponentEvent<any>, options?: EmitterOptions) {
     if (options && options.sync)
-      this.emitter.emit(evt)
+      this.emitter.emit(ev)
     else
-      this.app.nextTick(() => this.emitter.emit(evt))
+      this.app.nextTick(() => this.emitter.emit(ev))
   }
 
   public emit<D>(eventName: string, data?: D, options?: EmitterOptions) {
@@ -132,20 +132,20 @@ class Container<C> {
     } as ComponentEvent<D>)
   }
 
-  private emitSync<D>(evt: ComponentEvent<D>) {
-    this.emitter.emit(evt)
+  private emitSync<D>(ev: ComponentEvent<D>) {
+    this.emitter.emit(ev)
     const parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<D>(evt, false, this.componentId)
+      parent.bubbleUpEvent<D>(ev, false, this.componentId)
   }
 
-  private bubbleUpEvent<D>(evt: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
-    if (evt[Container.canPropagateSymb] && !evt[Container.canPropagateSymb]())
+  private bubbleUpEvent<D>(ev: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
+    if (ev[Container.canPropagateSymb] && !ev[Container.canPropagateSymb]())
       return
-    this.childEmitter.emit<D>(evt, isFromDeep, this.getGroupsOf(childId))
+    this.childEmitter.emit<D>(ev, isFromDeep, this.getGroupsOf(childId))
     const parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<D>(evt, true, this.componentId)
+      parent.bubbleUpEvent<D>(ev, true, this.componentId)
   }
 
   // --
@@ -194,7 +194,7 @@ class Container<C> {
 
   public find<C>(filter: ChildFilter): C[] {
     if (filter.deep)
-      throw new Error('Cannot call "find" with filter deep')
+      throw new Error(`Cannot call "find" with filter deep`)
     const containers = this.getChildContainers(filter.group),
       result: C[] = []
     for (const child of containers) {
@@ -224,7 +224,7 @@ class Container<C> {
       return this.app.getChildrenOf(this.componentId)
     if (!this.childGroups)
       return []
-    const names = <string[]>(typeof groupName === 'string' ? [groupName] : groupName)
+    const names = <string[]>(typeof groupName === "string" ? [groupName] : groupName)
     const idSet = new Set<number>()
     for (const name of names) {
       const group = this.childGroups.get(name)
@@ -284,8 +284,8 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
       container.emit<D>(eventName, data, options)
       return this
     },
-    broadcast: function(evt: ComponentEvent<any>, options?: EmitterOptions) {
-      container.broadcast(evt, options)
+    broadcast: function(ev: ComponentEvent<any>, options?: EmitterOptions) {
+      container.broadcast(ev, options)
       return this
     },
     listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => container.listenToParent<D>(eventName, filter),

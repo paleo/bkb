@@ -35,16 +35,16 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   private insideRmComp = false
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
-    const logTypes = ['error', 'warn', 'info', 'debug', 'trace'],
+    const logTypes = ["error", "warn", "info", "debug", "trace"],
       componentId = this.newId()
-    this.root = new Container<A>(this, 'root', componentId, {
+    this.root = new Container<A>(this, "root", componentId, {
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
     })
     this.nodes.set(componentId, {
       container: this.root
     })
-    this.root.emitter.exposeEvents(['log', ...logTypes, 'addComponent', 'removeComponent', 'changeComponent'], false)
+    this.root.emitter.exposeEvents(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
     if (asObject)
       this.root.setInstance(objOrCl)
     else
@@ -73,7 +73,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   public createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean,
                             properties: NewComponentProperties): Container<C> {
     if (!this.root.dash)
-      throw new Error('Destroyed root component')
+      throw new Error("Destroyed root component")
     const componentName = properties.componentName || ApplicationContainer.getComponentName(objOrCl),
       componentId = this.newId(),
       container = new Container<C>(this, componentName, componentId)
@@ -90,20 +90,20 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       container.setInstance(objOrCl)
     else
       container.makeInstance(objOrCl, properties.args || [])
-    this.root.dash.emit('addComponent', {component: container.getInstance()})
-    this.root.dash.emit('changeComponent', {component: container.getInstance(), type: 'add'})
+    this.root.dash.emit("addComponent", {component: container.getInstance()})
+    this.root.dash.emit("changeComponent", {component: container.getInstance(), type: "add"})
     return container
   }
 
   public removeComponent<C>(container: Container<C>): void {
     if (!this.root.dash)
-      throw new Error('Destroyed root component')
+      throw new Error("Destroyed root component")
     const mainRm = !this.insideRmComp
     try {
       if (mainRm) {
         this.insideRmComp = true
-        this.root.dash.emit('removeComponent', {component: container.getInstance()}, {sync: true})
-        this.root.dash.emit('changeComponent', {component: container.getInstance(), type: 'remove'}, {sync: true})
+        this.root.dash.emit("removeComponent", {component: container.getInstance()}, {sync: true})
+        this.root.dash.emit("changeComponent", {component: container.getInstance(), type: "remove"}, {sync: true})
       }
       const componentId = container.componentId,
         node = this.findNode(componentId)
@@ -127,8 +127,11 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
 
   public errorHandler(err: any): void {
     if (!this.root.dash)
-      throw new Error('Destroyed root component')
-    this.root.dash.emit('error', err, {sync: true})
+      throw new Error("Destroyed root component")
+    this.root.dash.emit("log", {
+      type: "error",
+      messages: [err]
+    }, {sync: true})
   }
 
   public nextTick(cb: () => void): void {
@@ -166,8 +169,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     for (const type of logTypes) {
       log[type] = (...messages: any[]) => {
         if (!this.root.dash)
-          throw new Error('Destroyed root component')
-        this.root.dash.emit('log', {
+          throw new Error("Destroyed root component")
+        this.root.dash.emit("log", {
           type: type,
           messages: messages
         }, {sync: true})
@@ -177,14 +180,14 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   private static getComponentName(objOrCl): string {
-    if (typeof objOrCl.componentName === 'string')
+    if (typeof objOrCl.componentName === "string")
       return objOrCl.componentName
     if (objOrCl.constructor && objOrCl.constructor.name)
       return objOrCl.constructor.name
     const results = /function (.+)\(/.exec((this).constructor.toString())
     if (results && results.length > 1)
       return results[1]
-    return 'Function'
+    return "Function"
     //throw new Error(`Missing static property "componentName" in component ${objOrCl}`)
   }
 }

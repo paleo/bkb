@@ -76,12 +76,13 @@ const fsp = {
 function build(projectPath) {
   const srcPath = path.join(projectPath, 'src'),
     targetBkbTs = path.join(projectPath, 'dist_ts', 'bkb.ts'),
-    targetDistDefTs = path.join(projectPath, 'dist_ts', 'bkb.d.ts'),
+    targetDistDefTs = path.join(projectPath, 'dist_ts', 'bkb-global.d.ts'),
     targetNpmDefTs = path.join(projectPath, 'dist_npm', 'bkb.d.ts'),
     //targetBkbJs = path.join(projectPath, 'dist', 'bkb.js'),
     targetBkbMinJs = path.join(projectPath, 'dist_npm', 'bkb.min.js')
 
-  const readInterfacesTs = fsp.readFile(path.join(srcPath, 'interfaces.ts'))
+  const readInterfacesTs = fsp.readFile(path.join(srcPath, 'interfaces.ts'), "utf-8")
+    .then(text => text.trim() )
 
   return makeTsCode(srcPath, readInterfacesTs).then(tsCode => {
     return fsp.writeFile(targetBkbTs, tsCode).then(() => tsCode)
@@ -127,10 +128,10 @@ function makeTsCode(srcPath, readInterfacesTs) {
     return Promise.all(files.map((file) => {
       if (file === 'interfaces.ts')
         return readInterfacesTs
-      return fsp.readFile(path.join(srcPath, file))
+      return fsp.readFile(path.join(srcPath, file), "utf-8")
     }))
   }).then((contents) => {
-    return contents.join('\n') + '\n\n' + exportsTsCode
+    return contents.map(text => text.trim()).join('\n\n') + '\n\n' + exportsTsCode
   })
 }
 

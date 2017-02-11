@@ -1,15 +1,15 @@
 interface CallbackEventOnly {
-  mode: 'eventOnly'
-  callback: (evt: ComponentEvent<any>) => void
+  mode: "eventOnly"
+  callback: (ev: ComponentEvent<any>) => void
   thisArg?: any
 }
 interface CallbackDataFirst {
-  mode: 'dataFirst'
-  callback: (data: any, evt: ComponentEvent<any>) => void
+  mode: "dataFirst"
+  callback: (data: any, ev: ComponentEvent<any>) => void
   thisArg?: any
 }
 interface CallbackArguments {
-  mode: 'arguments'
+  mode: "arguments"
   callback: (...args: any[]) => void
   thisArg?: any
 }
@@ -50,14 +50,14 @@ class Emitter {
       this.strictEvents = true
   }
 
-  public emit(evt: ComponentEvent<any>): void {
+  public emit(ev: ComponentEvent<any>): void {
     if (!this.callbacks)
       return
-    if (this.strictEvents && this.eventNames && !this.eventNames.has(evt.eventName))
-      throw new Error(`Unexposed event: ${evt.eventName}`)
-    let cbList = this.callbacks.get(evt.eventName)
+    if (this.strictEvents && this.eventNames && !this.eventNames.has(ev.eventName))
+      throw new Error(`Unexposed event: ${ev.eventName}`)
+    let cbList = this.callbacks.get(ev.eventName)
     if (cbList)
-      this.callCbList(cbList, evt)
+      this.callCbList(cbList, ev)
   }
 
   public listen(eventName: string, from?: Container<any>): Transmitter<any> {
@@ -78,7 +78,7 @@ class Emitter {
           this.callbacks.set(eventName, cbList = [])
         const id = cbList.length
         idList.push(id)
-        if (typeof modeOrCb === 'string') {
+        if (typeof modeOrCb === "string") {
           cbList[id] = {
             mode: modeOrCb as any,
             callback: cbOrThisArg,
@@ -86,7 +86,7 @@ class Emitter {
           }
         } else {
           cbList[id] = {
-            mode: 'eventOnly',
+            mode: "eventOnly",
             callback: modeOrCb,
             thisArg: cbOrThisArg
           }
@@ -111,7 +111,7 @@ class Emitter {
     }
     let fromEolCanceler
     if (from) {
-      const destroyTransmitter = from.bkb!.listen('destroy').call(() => transmitter.disable()),
+      const destroyTransmitter = from.bkb!.listen("destroy").call(() => transmitter.disable()),
         cancelerId = this.fromEolCancelers.length
       this.fromEolCancelers[cancelerId] = destroyTransmitter
       fromEolCanceler = () => {
@@ -137,12 +137,12 @@ class Emitter {
     this.destroyed = true
   }
 
-  private callCbList(cbList: Callback[], evt: ComponentEvent<any>) {
+  private callCbList(cbList: Callback[], ev: ComponentEvent<any>) {
     for (const i in cbList) {
       if (!cbList.hasOwnProperty(i))
         continue
       try {
-        call(cbList[i], evt)
+        call(cbList[i], ev)
       } catch (e) {
         this.app.errorHandler(e)
       }
@@ -150,26 +150,26 @@ class Emitter {
   }
 }
 
-function call(cb: Callback, evt: ComponentEvent<any>) {
+function call(cb: Callback, ev: ComponentEvent<any>) {
   switch (cb.mode) {
-    case 'dataFirst':
+    case "dataFirst":
       if (cb.thisArg)
-        cb.callback.call(cb.thisArg, evt.data, evt)
+        cb.callback.call(cb.thisArg, ev.data, ev)
       else
-        cb.callback(evt.data, evt)
+        cb.callback(ev.data, ev)
       break
-    case 'arguments':
+    case "arguments":
       if (cb.thisArg)
-        cb.callback.apply(cb.thisArg, evt.data)
+        cb.callback.apply(cb.thisArg, ev.data)
       else
-        cb.callback(...evt.data)
+        cb.callback(...ev.data)
       break
-    case 'eventOnly':
+    case "eventOnly":
     default:
       if (cb.thisArg)
-        cb.callback.call(cb.thisArg, evt)
+        cb.callback.call(cb.thisArg, ev)
       else
-        cb.callback(evt)
+        cb.callback(ev)
       break
   }
 }
