@@ -294,7 +294,7 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
     bkb: bkb as any
   })
   if (container.app.root && container.app.root !== container)
-    dash.app = container.app.root.getInstance()
+    Object.defineProperty(dash, "app", {get: () => container.app.root.getInstance()})
   Object.freeze(dash)
   return dash
 }

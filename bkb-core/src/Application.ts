@@ -180,11 +180,13 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   private static getComponentName(objOrCl): string {
+    // if (Symbol && Symbol.toStringTag && objOrCl[Symbol.toStringTag])
+    //   return objOrCl[Symbol.toStringTag]
     if (typeof objOrCl.componentName === "string")
       return objOrCl.componentName
     if (objOrCl.constructor && objOrCl.constructor.name)
       return objOrCl.constructor.name
-    const results = /function (.+)\(/.exec((this).constructor.toString())
+    const results = /function (.+)\(/.exec(objOrCl.toString())
     if (results && results.length > 1)
       return results[1]
     return "Function"
