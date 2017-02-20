@@ -103,6 +103,8 @@ interface BasicDash<A> extends Bkb {
    * Call this method if the instance must be available during the execution of the constructor
    */
   setInstance(inst: any): void
+
+  exposeEvents(...eventNames: string[]): this
   exposeEvents(eventNames: string[]): this
 
   create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): Component<C>
@@ -112,7 +114,7 @@ interface BasicDash<A> extends Bkb {
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    */
-  emit(eventName: string, data?: any, options?: EmitterOptions): this
+  emit(eventName: string | string[], data?: any, options?: EmitterOptions): this
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.

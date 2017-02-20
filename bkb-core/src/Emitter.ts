@@ -28,11 +28,11 @@ class Emitter {
     return transmitter
   }
 
-  private eventNames: Set<string>|null
+  private eventNames: Set<string> | null
   private strictEvents = false
-  private callbacks: Map<string, Callback[]>|null
+  private callbacks: Map<string, Callback[]> | null
   private destroyed = false
-  private fromEolCancelers: Transmitter<any>[]|null = []
+  private fromEolCancelers: Transmitter<any>[] | null = []
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
@@ -67,7 +67,7 @@ class Emitter {
       throw new Error(`Cannot call listen from a destroyed component`)
     if (!this.callbacks)
       this.callbacks = new Map()
-    let idList: number[]|null = []
+    let idList: number[] | null = []
     const isDisabled = () => this.destroyed || !idList
     const transmitter: Transmitter<any> = {
       call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {

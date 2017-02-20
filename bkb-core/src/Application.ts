@@ -1,4 +1,4 @@
-function createApplication<A>(Cl: {new(dash: ApplicationDash<A>, ...args: any[]): A}, ...args: any[]): Application<A> {
+function createApplication<A>(Cl: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A> {
   let container = new ApplicationContainer<A>(Cl, false, args)
   return container.root.getInstance() as any
 }
@@ -12,7 +12,7 @@ interface InternalApplicationContainer {
   root: Container<any>
   createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean, properties: NewComponentProperties): Container<C>
   getChildrenOf(componentId: number): Container<any>[]
-  getParentOf(componentId: number): Container<any>|undefined
+  getParentOf(componentId: number): Container<any> | undefined
   getContainer(componentId: number): Container<any>
   removeComponent<C>(container: Container<C>): void
   errorHandler(err: any): void
@@ -21,8 +21,8 @@ interface InternalApplicationContainer {
 
 interface CompNode {
   container: Container<any>
-  parent?: CompNode|null
-  children?: Map<number, CompNode>|null
+  parent?: CompNode | null
+  children?: Map<number, CompNode> | null
 }
 
 class ApplicationContainer<A> implements InternalApplicationContainer {
@@ -31,7 +31,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
 
   private compCount = 0
   private nodes = new Map<number, CompNode>()
-  private tickList: (() => void)[]|null = null
+  private tickList: (() => void)[] | null = null
   private insideRmComp = false
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
@@ -51,7 +51,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       this.root.makeInstance(objOrCl, args || [])
   }
 
-  public getParentOf(componentId: number): Container<any>|undefined {
+  public getParentOf(componentId: number): Container<any> | undefined {
     const node = this.findNode(componentId)
     return node.parent ? node.parent.container : undefined
   }
@@ -71,7 +71,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
   }
 
   public createComponent<C>(objOrCl, parent: Container<any>, asObject: boolean,
-                            properties: NewComponentProperties): Container<C> {
+    properties: NewComponentProperties): Container<C> {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     const componentName = properties.componentName || ApplicationContainer.getComponentName(objOrCl),
@@ -90,8 +90,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       container.setInstance(objOrCl)
     else
       container.makeInstance(objOrCl, properties.args || [])
-    this.root.dash.emit("addComponent", {component: container.getInstance()})
-    this.root.dash.emit("changeComponent", {component: container.getInstance(), type: "add"})
+    this.root.dash.emit("addComponent", { component: container.getInstance() })
+    this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })
     return container
   }
 
@@ -102,8 +102,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     try {
       if (mainRm) {
         this.insideRmComp = true
-        this.root.dash.emit("removeComponent", {component: container.getInstance()}, {sync: true})
-        this.root.dash.emit("changeComponent", {component: container.getInstance(), type: "remove"}, {sync: true})
+        this.root.dash.emit("removeComponent", { component: container.getInstance() }, { sync: true })
+        this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "remove" }, { sync: true })
       }
       const componentId = container.componentId,
         node = this.findNode(componentId)
@@ -131,7 +131,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     this.root.dash.emit("log", {
       type: "error",
       messages: [err]
-    }, {sync: true})
+    }, { sync: true })
   }
 
   public nextTick(cb: () => void): void {
@@ -173,7 +173,7 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
         this.root.dash.emit("log", {
           type: type,
           messages: messages
-        }, {sync: true})
+        }, { sync: true })
       }
     }
     return <any>Object.freeze(log)

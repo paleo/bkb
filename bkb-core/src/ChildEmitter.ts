@@ -10,7 +10,7 @@ interface ChildCallbackArguments extends CallbackArguments {
 type ChildCallback = ChildCallbackEventOnly | ChildCallbackDataFirst | ChildCallbackArguments
 
 class ChildEmitter {
-  private callbacks: Map<string, ChildCallback[]>|null
+  private callbacks: Map<string, ChildCallback[]> | null
   private destroyed = false
 
   constructor(private app: InternalApplicationContainer) {
@@ -38,7 +38,7 @@ class ChildEmitter {
       throw new Error(`Cannot call listen in a destroyed child-emitter`)
     if (!this.callbacks)
       this.callbacks = new Map()
-    let idList: number[]|null = []
+    let idList: number[] | null = []
     const isDisabled = () => this.destroyed || !idList
     const transmitter = {
       call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {

@@ -47,7 +47,7 @@ class Container<C> {
       throw new Error(`Destroyed component`)
     if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
-    Object.defineProperty(inst, "bkb", { get: () => this.bkb })
+    Object.defineProperties(inst, { bkb: { get: () => this.bkb } })
     this.inst = inst
   }
 
@@ -252,7 +252,7 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
       let parent = container.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
-    on: function<D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) {
+    on: function <D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) {
       container.emitter.listen(eventName).call(modeOrCb, cbOrThisArg, thisArg)
       return this
     },
@@ -274,17 +274,20 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
 function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | ApplicationDash<any> {
   let dash = Object.assign(Object.create(bkb), {
     setInstance: inst => container.setInstance(inst),
-    exposeEvents: function (eventNames: string[]) {
-      container.emitter.exposeEvents(eventNames, true)
+    exposeEvents: function (...eventNames: any[]) {
+      let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
+      container.emitter.exposeEvents(names, true)
       return this
     },
     create: <C>(Cl: { new (): C }, properties: NewComponentProperties = {}) => container.createComponent<C>(Cl, properties, false).getInstance(),
     toComponent: <C>(obj, properties: NewComponentProperties = {}) => (container.createComponent<C>(obj, properties, true) as any).dash!,
-    emit: function<D>(eventName: string, data?: D, options?: EmitterOptions) {
-      container.emit<D>(eventName, data, options)
+    emit: function <D>(eventName: string | string[], data?: D, options?: EmitterOptions) {
+      let names = Array.isArray(eventName) ? eventName : [eventName]
+      for (let name of names)
+        container.emit<D>(name, data, options)
       return this
     },
-    broadcast: function(ev: ComponentEvent<any>, options?: EmitterOptions) {
+    broadcast: function (ev: ComponentEvent<any>, options?: EmitterOptions) {
       container.broadcast(ev, options)
       return this
     },
@@ -293,8 +296,11 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
     listenTo: <D>(component: Component<Object>, eventName: string) => container.listenTo<D>(component, eventName),
     bkb: bkb as any
   })
-  if (container.app.root && container.app.root !== container)
-    Object.defineProperty(dash, "app", {get: () => container.app.root.getInstance()})
+  if (container.app.root && container.app.root !== container) {
+    Object.defineProperties(dash, {
+      app: { get: () => container.app.root.getInstance() }
+    })
+  }
   Object.freeze(dash)
   return dash
 }
