@@ -11,7 +11,7 @@ interface ListenerDataMode {
 type Listener = ListenerEventMode | ListenerDataMode
 
 class Emitter {
-  public static empty(): Transmitter<any> {
+  public static empty(): Transmitter {
     let transmitter = {
       onData: () => {
         return transmitter
@@ -30,7 +30,7 @@ class Emitter {
   private strictEvents = false
   private callbacks: Map<string, Listener[]> | null
   private destroyed = false
-  private fromEolCancelers: Transmitter<any>[] | null = []
+  private fromEolCancelers: Transmitter[] | null = []
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
@@ -58,7 +58,7 @@ class Emitter {
       this.callCbList(cbList, ev)
   }
 
-  public listen(eventName: string, from?: Container<any>): Transmitter<any> {
+  public listen(eventName: string, from?: Container): Transmitter {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
     if (from && !from.bkb)
@@ -83,7 +83,7 @@ class Emitter {
       }
     }
 
-    let transmitter: Transmitter<any> = {
+    let transmitter: Transmitter = {
       onEvent: (cb: any, thisArg?: any) => {
         on("event", cb, thisArg)
         return transmitter

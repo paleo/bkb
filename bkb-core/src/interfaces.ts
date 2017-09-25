@@ -10,12 +10,12 @@ interface ComponentEvent<D> {
   readonly eventName: string
   readonly sourceName: string
   readonly sourceId: number
-  readonly source: Component<Object>
+  readonly source: Component<object>
   readonly data?: D
   stopPropagation(): void
 }
 
-interface Transmitter<D> {
+interface Transmitter<D = any> {
   // call(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
 
   onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
@@ -93,15 +93,15 @@ interface Bkb {
   /**
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly instance: Component<Object>
+  readonly instance: Component<object>
   /**
    * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly parent: Component<Object> | undefined
+  readonly parent: Component<object> | undefined
   /**
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  getParent(filter?: ParentFilter): Component<Object> | undefined
+  getParent(filter?: ParentFilter): Component<object> | undefined
 }
 
 interface ApplicationBkb extends Bkb {
@@ -149,7 +149,9 @@ interface BasicDash<A> extends Bkb {
    */
   listenToChildren<D = any>(eventName: string, filter?: ChildFilter): Transmitter<D>
 
-  listenTo<D = any>(component: Component<Object>, eventName: string): Transmitter<D>
+  listenTo<D = any>(component: object, eventName: string): Transmitter<D>
+
+  getBkbOf(component: object): Bkb
 }
 
 interface Dash<A> extends BasicDash<A> {

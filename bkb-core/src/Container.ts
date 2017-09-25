@@ -1,15 +1,15 @@
-class Container<C> {
-  public bkb: Bkb | null
-  public dash: Dash<any> | ApplicationDash<any> | null
+class Container<C = any> {
+  public bkb: Bkb | undefined
+  public dash: Dash<any> | ApplicationDash<any> | undefined
   public emitter: Emitter
   public childEmitter: ChildEmitter
 
-  private inst: Component<C> | null
+  private inst: Component<C> | undefined
   private childGroups: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol("canPropagate")
 
-  constructor(public app: ApplicationContainer<any>, readonly componentName, readonly componentId: number,
+  constructor(public app: ApplicationContainer, readonly componentName, readonly componentId: number,
     bkbMethods?: any) {
     this.emitter = new Emitter(app, ["destroy"])
     this.childEmitter = new ChildEmitter(app)
@@ -21,8 +21,10 @@ class Container<C> {
   // -- Used by Application
   // --
 
-  public makeInstance(Cl, args: any[]) {
-    this.setInstance(new Cl(this.dash, ...args))
+  public makeInstance(Cl, args: any[]): Component<C> {
+    if (this.inst)
+      return this.inst
+    return this.setInstance(new Cl(this.dash, ...args))
 
     // /*
     //  * Simulate the "new" operator. The Container member `inst` and the instance member `bkb` are defined before the
@@ -40,15 +42,16 @@ class Container<C> {
     // }
   }
 
-  public setInstance(inst) {
+  public setInstance(inst: any): Component<C> {
     if (this.inst)
-      return
+      return this.inst
     if (!this.bkb)
       throw new Error(`Destroyed component`)
     if (inst.bkb)
       throw new Error(`A component cannot have a member "bkb"`)
     Object.defineProperties(inst, { bkb: { get: () => this.bkb } })
     this.inst = inst
+    return this.inst as Component<C>
   }
 
   public getInstance() {
@@ -62,20 +65,20 @@ class Container<C> {
 
   public destroy() {
     this.emit("destroy", undefined, { sync: true })
-    this.app.removeComponent(this)
+    this.app.removeComponent(this, this.inst)
     if (this.childGroups)
       this.childGroups.clear()
     this.emitter.destroy()
     this.childEmitter.destroy()
-    this.bkb = null
-    this.dash = null
-    this.inst = null
+    this.bkb = undefined
+    this.dash = undefined
+    this.inst = undefined
   }
 
-  public forgetChild(componentId: number) {
+  public forgetChild(compId: number) {
     if (this.childGroups) {
-      for (let group of Array.from(this.childGroups.values()))
-        group.delete(componentId)
+      for (let group of this.childGroups.values())
+        group.delete(compId)
     }
   }
 
@@ -161,8 +164,8 @@ class Container<C> {
     return Emitter.empty()
   }
 
-  public listenTo<D>(component: Component<Object>, eventName: string): Transmitter<D> {
-    return this.app.getContainer(component.bkb.componentId).emitter.listen(eventName, this)
+  public listenTo<D>(inst: object, eventName: string): Transmitter<D> {
+    return this.app.getContainerByInst(inst).emitter.listen(eventName, this)
   }
 
   // --
@@ -180,8 +183,8 @@ class Container<C> {
     return result
   }
 
-  public getParent(filter?: ParentFilter): Container<any> | undefined {
-    let parent: Container<any> | undefined = this
+  public getParent(filter?: ParentFilter): Container | undefined {
+    let parent: Container | undefined = this
     while (parent = this.app.getParentOf(parent.componentId)) {
       if (!filter || !filter.componentName || filter.componentName === parent.componentName)
         return parent
@@ -219,22 +222,22 @@ class Container<C> {
     return this.count(filter) > 0
   }
 
-  private getChildContainers(groupName?: string | string[]): Container<any>[] {
+  private getChildContainers(groupName?: string | string[]): Iterable<Container> {
     if (!groupName)
       return this.app.getChildrenOf(this.componentId)
     if (!this.childGroups)
       return []
     let names = <string[]>(typeof groupName === "string" ? [groupName] : groupName)
-    let idSet = new Set<number>()
+    let identifiers = new Set<number>()
     for (let name of names) {
       let group = this.childGroups.get(name)
       if (!group)
         continue
-      for (let id of Array.from(group.values()))
-        idSet.add(id)
+      for (let id of group.values())
+        identifiers.add(id)
     }
-    let containers: Container<any>[] = []
-    for (let id of Array.from(idSet.values()))
+    let containers: Container[] = []
+    for (let id of identifiers.values())
       containers.push(this.app.getContainer(id))
     return containers
   }
@@ -315,7 +318,8 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
     },
     listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => container.listenToParent<D>(eventName, filter),
     listenToChildren: <D>(eventName: string, filter?: ChildFilter) => container.childEmitter.listen<D>(eventName, filter),
-    listenTo: <D>(component: Component<Object>, eventName: string) => container.listenTo<D>(component, eventName),
+    listenTo: <D>(inst: object, eventName: string) => container.listenTo<D>(inst, eventName),
+    getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb,
     bkb: bkb as any
   })
   if (container.app.root && container.app.root !== container) {

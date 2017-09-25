@@ -9,56 +9,56 @@ function asApplication<A>(obj: A) {
 }
 
 interface InternalApplicationContainer {
-  // root: Container<any>
-  // createComponent<C>(nc: InternalNewComponent, parent: Container<any>): Container<C>
-  // getChildrenOf(componentId: number): Container<any>[]
-  // getParentOf(componentId: number): Container<any> | undefined
-  // getContainer(componentId: number): Container<any>
+  // root: Container
+  // createComponent<C>(nc: InternalNewComponent, parent: Container): Container<C>
+  // getChildrenOf(componentId: number): Container[]
+  // getParentOf(componentId: number): Container | undefined
+  // getContainer(componentId: number): Container
   // removeComponent<C>(container: Container<C>): void
   errorHandler(err: any): void
   // nextTick(cb: () => void): void
 }
 
 interface CompNode {
-  container: Container<any>
+  container: Container
   parent?: CompNode | null
   children?: Map<number, CompNode> | null
 }
 
-class ApplicationContainer<A> implements InternalApplicationContainer {
+class ApplicationContainer<A = any> implements InternalApplicationContainer {
 
   public root: Container<A>
 
   private compCount = 0
+  private nodesByInst = new WeakMap<object, CompNode>()
   private nodes = new Map<number, CompNode>()
   private tickList: (() => void)[] | null = null
   private insideRmComp = false
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
     let logTypes = ["error", "warn", "info", "debug", "trace"],
-      componentId = this.newId()
-    this.root = new Container<A>(this, "root", componentId, {
+      compId = this.newId()
+    this.root = new Container<A>(this, "root", compId, {
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
     })
-    this.nodes.set(componentId, {
+    let node = {
       container: this.root
-    })
+    }
+    this.nodes.set(compId, node)
     this.root.emitter.exposeEvents(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
-    if (asObject)
-      this.root.setInstance(objOrCl)
-    else
-      this.root.makeInstance(objOrCl, args || [])
+    let inst = asObject ? this.root.setInstance(objOrCl) : this.root.makeInstance(objOrCl, args || [])
+    this.nodesByInst.set(inst, node)
   }
 
-  public getParentOf(componentId: number): Container<any> | undefined {
-    let node = this.findNode(componentId)
+  public getParentOf(compId: number): Container | undefined {
+    let node = this.findNode(compId)
     return node.parent ? node.parent.container : undefined
   }
 
-  public getChildrenOf(componentId: number): Container<any>[] {
-    let result: Container<any>[] = [],
-      children = this.findNode(componentId).children
+  public getChildrenOf(compId: number): Container[] {
+    let result: Container[] = [],
+      children = this.findNode(compId).children
     if (children) {
       for (let child of Array.from(children.values()))
         result.push(child.container)
@@ -66,11 +66,15 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     return result
   }
 
-  public getContainer(componentId: number): Container<any> {
-    return this.findNode(componentId).container
+  public getContainer(compId: number): Container {
+    return this.findNode(compId).container
   }
 
-  public createComponent<C>(nc: InternalNewComponent, parent: Container<any>): Container<C> {
+  public getContainerByInst(inst: object): Container {
+    return this.findNodeByInst(inst).container
+  }
+
+  public createComponent<C>(nc: InternalNewComponent, parent: Container): Container<C> {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     let compName = nc.props.componentName || ApplicationContainer.getComponentName(nc.asObj ? nc.obj : nc.props.Class),
@@ -85,16 +89,14 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
     if (!parentNode.children)
       parentNode.children = new Map()
     parentNode.children.set(compId, node)
-    if (nc.asObj)
-      container.setInstance(nc.obj)
-    else
-      container.makeInstance(nc.props.Class, nc.props.arguments || [])
+    let inst = nc.asObj ? container.setInstance(nc.obj) : container.makeInstance(nc.props.Class, nc.props.arguments || [])
+    this.nodesByInst.set(inst, node)
     this.root.dash.emit("addComponent", { component: container.getInstance() })
     this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })
     return container
   }
 
-  public removeComponent<C>(container: Container<C>): void {
+  public removeComponent<C>(container: Container<C>, inst?: object): void {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     let mainRm = !this.insideRmComp
@@ -104,8 +106,8 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
         this.root.dash.emit("removeComponent", { component: container.getInstance() }, { sync: true })
         this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "remove" }, { sync: true })
       }
-      let componentId = container.componentId,
-        node = this.findNode(componentId)
+      let compId = container.componentId,
+        node = this.findNode(compId)
       if (node.children) {
         for (let child of Array.from(node.children.values())) {
           child.parent = null
@@ -114,10 +116,12 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
         node.children.clear()
       }
       if (node.parent) {
-        node.parent.container.forgetChild(componentId)
-        node.parent.children!.delete(componentId)
+        node.parent.container.forgetChild(compId)
+        node.parent.children!.delete(compId)
       }
-      this.nodes.delete(componentId)
+      this.nodes.delete(compId)
+      if (inst)
+        this.nodesByInst.delete(inst)
     } finally {
       if (mainRm)
         this.insideRmComp = false
@@ -152,10 +156,17 @@ class ApplicationContainer<A> implements InternalApplicationContainer {
       this.tickList.push(cb)
   }
 
-  private findNode(componentId: number): CompNode {
-    let node = this.nodes.get(componentId)
+  private findNode(compId: number): CompNode {
+    let node = this.nodes.get(compId)
     if (!node)
-      throw new Error(`Missing node of component ${componentId}`)
+      throw new Error(`Missing node of component "${compId}"`)
+    return node
+  }
+
+  private findNodeByInst(inst: object): CompNode {
+    let node = this.nodesByInst.get(inst)
+    if (!node)
+      throw new Error(`Cannot find a component for the instance: ${inst}`)
     return node
   }
 

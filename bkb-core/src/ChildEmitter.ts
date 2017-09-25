@@ -50,7 +50,7 @@ class ChildEmitter {
       }
     }
 
-    let transmitter: Transmitter<any> = {
+    let transmitter: Transmitter = {
       onEvent: (cb: any, thisArg?: any) => {
         on("event", cb, thisArg)
         return transmitter
