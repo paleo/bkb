@@ -1,24 +1,22 @@
-interface CallbackEventOnly {
-  mode: "eventOnly"
-  callback: (ev: ComponentEvent<any>) => void
+interface ListenerEventMode {
+  mode: "event"
+  cb: (ev: ComponentEvent<any>) => void
   thisArg?: any
 }
-interface CallbackDataFirst {
-  mode: "dataFirst"
-  callback: (data: any, ev: ComponentEvent<any>) => void
+interface ListenerDataMode {
+  mode: "data"
+  cb: (data: any, ev: ComponentEvent<any>) => void
   thisArg?: any
 }
-interface CallbackArguments {
-  mode: "arguments"
-  callback: (...args: any[]) => void
-  thisArg?: any
-}
-type Callback = CallbackEventOnly | CallbackDataFirst | CallbackArguments
+type Listener = ListenerEventMode | ListenerDataMode
 
 class Emitter {
   public static empty(): Transmitter<any> {
-    const transmitter = {
-      call: () => {
+    let transmitter = {
+      onData: () => {
+        return transmitter
+      },
+      onEvent: () => {
         return transmitter
       },
       disable: () => {
@@ -30,7 +28,7 @@ class Emitter {
 
   private eventNames: Set<string> | null
   private strictEvents = false
-  private callbacks: Map<string, Callback[]> | null
+  private callbacks: Map<string, Listener[]> | null
   private destroyed = false
   private fromEolCancelers: Transmitter<any>[] | null = []
 
@@ -44,7 +42,7 @@ class Emitter {
       throw new Error(`Cannot call exposeEvents in a destroyed transmitter`)
     if (!this.eventNames)
       this.eventNames = new Set()
-    for (const name of eventNames)
+    for (let name of eventNames)
       this.eventNames.add(name)
     if (strictEventsMode)
       this.strictEvents = true
@@ -68,29 +66,30 @@ class Emitter {
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[] | null = []
-    const isDisabled = () => this.destroyed || !idList
-    const transmitter: Transmitter<any> = {
-      call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
-        if (this.destroyed || !idList || !this.callbacks)
-          return transmitter
-        let cbList = this.callbacks.get(eventName)
-        if (!cbList)
-          this.callbacks.set(eventName, cbList = [])
-        const id = cbList.length
-        idList.push(id)
-        if (typeof modeOrCb === "string") {
-          cbList[id] = {
-            mode: modeOrCb as any,
-            callback: cbOrThisArg,
-            thisArg
-          }
-        } else {
-          cbList[id] = {
-            mode: "eventOnly",
-            callback: modeOrCb,
-            thisArg: cbOrThisArg
-          }
-        }
+    let isDisabled = () => this.destroyed || !idList
+
+    const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
+      if (this.destroyed || !idList || !this.callbacks)
+        return transmitter
+      let cbList = this.callbacks.get(eventName)
+      if (!cbList)
+        this.callbacks.set(eventName, cbList = [])
+      let id = cbList.length
+      idList.push(id)
+      cbList[id] = {
+        mode: mode as any,
+        cb,
+        thisArg
+      }
+    }
+
+    let transmitter: Transmitter<any> = {
+      onEvent: (cb: any, thisArg?: any) => {
+        on("event", cb, thisArg)
+        return transmitter
+      },
+      onData: (cb: any, thisArg?: any) => {
+        on("data", cb, thisArg)
         return transmitter
       },
       disable: () => {
@@ -98,7 +97,7 @@ class Emitter {
           return
         let cbList = this.callbacks.get(eventName)
         if (cbList) {
-          for (const id of idList!)
+          for (let id of idList!)
             delete cbList[id]
         }
         idList = null
@@ -109,9 +108,10 @@ class Emitter {
       },
       isDisabled
     }
+
     let fromEolCanceler
     if (from) {
-      const destroyTransmitter = from.bkb!.listen("destroy").call(() => transmitter.disable()),
+      let destroyTransmitter = from.bkb!.listen("destroy").onEvent(() => transmitter.disable()),
         cancelerId = this.fromEolCancelers.length
       this.fromEolCancelers[cancelerId] = destroyTransmitter
       fromEolCanceler = () => {
@@ -126,7 +126,7 @@ class Emitter {
 
   public destroy(): void {
     if (this.fromEolCancelers) {
-      for (const i in this.fromEolCancelers) {
+      for (let i in this.fromEolCancelers) {
         if (this.fromEolCancelers.hasOwnProperty(i))
           this.fromEolCancelers[i].disable()
       }
@@ -137,8 +137,8 @@ class Emitter {
     this.destroyed = true
   }
 
-  private callCbList(cbList: Callback[], ev: ComponentEvent<any>) {
-    for (const i in cbList) {
+  private callCbList(cbList: Listener[], ev: ComponentEvent<any>) {
+    for (let i in cbList) {
       if (!cbList.hasOwnProperty(i))
         continue
       try {
@@ -150,26 +150,20 @@ class Emitter {
   }
 }
 
-function call(cb: Callback, ev: ComponentEvent<any>) {
+function call(cb: Listener, ev: ComponentEvent<any>) {
   switch (cb.mode) {
-    case "dataFirst":
+    case "data":
       if (cb.thisArg)
-        cb.callback.call(cb.thisArg, ev.data, ev)
+        cb.cb.call(cb.thisArg, ev.data, ev)
       else
-        cb.callback(ev.data, ev)
+        cb.cb(ev.data, ev)
       break
-    case "arguments":
-      if (cb.thisArg)
-        cb.callback.apply(cb.thisArg, ev.data)
-      else
-        cb.callback(...ev.data)
-      break
-    case "eventOnly":
+    case "event":
     default:
       if (cb.thisArg)
-        cb.callback.call(cb.thisArg, ev)
+        cb.cb.call(cb.thisArg, ev)
       else
-        cb.callback(ev)
+        cb.cb(ev)
       break
   }
 }

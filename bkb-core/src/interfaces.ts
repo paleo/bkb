@@ -16,10 +16,15 @@ interface ComponentEvent<D> {
 }
 
 interface Transmitter<D> {
-  call(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: "eventOnly", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: "dataFirst", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  call(mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
+  // call(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+
+  onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  onEvent(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+
+  // call(mode: "event", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  // call(mode: "data", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  // call(mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
+
   disable(): void
   isDisabled(): boolean
 }
@@ -37,13 +42,20 @@ interface ChildFilter {
   deep?: boolean
 }
 
-interface NewComponentProperties {
+interface CreateComponentProperties<A, C> {
+  Class: { new(dash: Dash<A>, ...args: any[]): C },
+  arguments?: any[]
+  group?: string | string[]
+  componentName?: string
+}
+
+interface AsComponentProperties {
   group?: string | string[]
   componentName?: string
   /**
-   * NB: Used only with instance components. Ignored for object components.
+   * Default is: `false`
    */
-  args?: any[]
+  defineBkb?: boolean
 }
 
 interface EmitterOptions {
@@ -54,11 +66,10 @@ interface EmitterOptions {
 }
 
 interface Bkb {
-  on<D>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: "eventOnly", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  on<D>(eventName: string, mode: "dataFirst", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  on(eventName: string, mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
-  listen<D>(eventName: string): Transmitter<D>
+  onEvent<D>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  onData<D>(eventName: string, callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  listen<D = any>(eventName: string): Transmitter<D>
+
   /**
    * Find children
    */
@@ -107,9 +118,9 @@ interface BasicDash<A> extends Bkb {
   exposeEvents(...eventNames: string[]): this
   exposeEvents(eventNames: string[]): this
 
-  create<C>(Cl: { new (dash: Dash<A>, ...args: any[]): C }, properties?: NewComponentProperties): Component<C>
-
-  toComponent(obj: any, properties?: NewComponentProperties): Dash<A>
+  create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): Component<C>
+  customCreate<C>(properties: CreateComponentProperties<A, C>): Component<C>
+  asComponent(obj: object, properties?: AsComponentProperties): Dash<A>
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
@@ -130,15 +141,15 @@ interface BasicDash<A> extends Bkb {
    * @param eventName The event to listen
    * @param filter A filter that has to match with the targeted parent
    */
-  listenToParent<D>(eventName: string, filter?: ParentFilter): Transmitter<D>
+  listenToParent<D = any>(eventName: string, filter?: ParentFilter): Transmitter<D>
 
   /**
    * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
    * descendant that match the filter.
    */
-  listenToChildren<D>(eventName: string, filter?: ChildFilter): Transmitter<D>
+  listenToChildren<D = any>(eventName: string, filter?: ChildFilter): Transmitter<D>
 
-  listenTo<D>(component: Component<Object>, eventName: string): Transmitter<D>
+  listenTo<D = any>(component: Component<Object>, eventName: string): Transmitter<D>
 }
 
 interface Dash<A> extends BasicDash<A> {

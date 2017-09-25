@@ -1,13 +1,6 @@
-interface ChildCallbackEventOnly extends CallbackEventOnly {
+type ChildCallback = (ListenerEventMode | ListenerDataMode) & {
   filter: ChildFilter
 }
-interface ChildCallbackDataFirst extends CallbackDataFirst {
-  filter: ChildFilter
-}
-interface ChildCallbackArguments extends CallbackArguments {
-  filter: ChildFilter
-}
-type ChildCallback = ChildCallbackEventOnly | ChildCallbackDataFirst | ChildCallbackArguments
 
 class ChildEmitter {
   private callbacks: Map<string, ChildCallback[]> | null
@@ -22,8 +15,8 @@ class ChildEmitter {
     let cbList = this.callbacks.get(ev.eventName)
     if (!cbList)
       return
-    const filtered: ChildCallback[] = []
-    for (const cb of cbList) {
+    let filtered: ChildCallback[] = []
+    for (let cb of cbList) {
       if ((cb.filter.componentName && cb.filter.componentName === ev.sourceName)
         || (!cb.filter.deep && deep)
         || (cb.filter.group && !ChildEmitter.hasGroup(cb.filter.group, groupNames)))
@@ -35,35 +28,35 @@ class ChildEmitter {
 
   public listen<D>(eventName: string, filter: ChildFilter = {}): Transmitter<D> {
     if (this.destroyed)
-      throw new Error(`Cannot call listen in a destroyed child-emitter`)
+      throw new Error("Cannot call 'listen' in a destroyed child-emitter")
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[] | null = []
-    const isDisabled = () => this.destroyed || !idList
-    const transmitter = {
-      call: (modeOrCb: any, cbOrThisArg?: any, thisArg?: any) => {
-        if (this.destroyed || !idList || !this.callbacks)
-          return transmitter
-        let cbList = this.callbacks.get(eventName)
-        if (!cbList)
-          this.callbacks.set(eventName, cbList = [])
-        const id = cbList.length
-        idList.push(id)
-        if (typeof modeOrCb === "string") {
-          cbList[id] = {
-            mode: modeOrCb as any,
-            callback: cbOrThisArg,
-            thisArg,
-            filter: filter
-          }
-        } else {
-          cbList[id] = {
-            mode: "eventOnly",
-            callback: modeOrCb,
-            thisArg: cbOrThisArg,
-            filter: filter
-          }
-        }
+    let isDisabled = () => this.destroyed || !idList
+
+    const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
+      if (this.destroyed || !idList || !this.callbacks)
+        return transmitter
+      let cbList = this.callbacks.get(eventName)
+      if (!cbList)
+        this.callbacks.set(eventName, cbList = [])
+      let id = cbList.length
+      idList.push(id)
+      cbList[id] = {
+        mode: mode as any,
+        cb,
+        thisArg,
+        filter
+      }
+    }
+
+    let transmitter: Transmitter<any> = {
+      onEvent: (cb: any, thisArg?: any) => {
+        on("event", cb, thisArg)
+        return transmitter
+      },
+      onData: (cb: any, thisArg?: any) => {
+        on("data", cb, thisArg)
         return transmitter
       },
       disable: () => {
@@ -71,7 +64,7 @@ class ChildEmitter {
           return
         let cbList = this.callbacks.get(eventName)
         if (cbList) {
-          for (const id of idList!)
+          for (let id of idList!)
             delete cbList[id]
         }
         idList = null
@@ -87,8 +80,8 @@ class ChildEmitter {
   }
 
   private static hasGroup(needle: string | string[], groupNames: Set<string>) {
-    const groups = <string[]>(typeof needle === "string" ? [needle] : needle)
-    for (const group of groups) {
+    let groups = <string[]>(typeof needle === "string" ? [needle] : needle)
+    for (let group of groups) {
       if (groupNames.has(group))
         return true
     }
@@ -96,7 +89,7 @@ class ChildEmitter {
   }
 
   private callCbList<D>(cbList: ChildCallback[], ev: ComponentEvent<D>) {
-    for (const cb of cbList) {
+    for (let cb of cbList) {
       try {
         call(cb, ev)
       } catch (e) {

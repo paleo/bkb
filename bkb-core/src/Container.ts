@@ -74,7 +74,7 @@ class Container<C> {
 
   public forgetChild(componentId: number) {
     if (this.childGroups) {
-      for (const group of Array.from(this.childGroups.values()))
+      for (let group of Array.from(this.childGroups.values()))
         group.delete(componentId)
     }
   }
@@ -83,13 +83,13 @@ class Container<C> {
   // -- [makeBkb and makeDash]
   // --
 
-  public createComponent<E>(objOrCl, properties: NewComponentProperties, asObject: boolean): Container<E> {
-    const child = this.app.createComponent<E>(objOrCl, this, asObject, properties)
-    if (properties.group) {
+  public createComponent<E>(nc: InternalNewComponent): Container<E> {
+    let child = this.app.createComponent<E>(nc, this)
+    if (nc.props.group) {
       if (!this.childGroups)
         this.childGroups = new Map()
-      const groupNames = (typeof properties.group === "string" ? [properties.group] : properties.group) as string[]
-      for (const name of groupNames) {
+      let groupNames = (typeof nc.props.group === "string" ? [nc.props.group] : nc.props.group) as string[]
+      for (let name of groupNames) {
         let g = this.childGroups.get(name)
         if (!g)
           this.childGroups.set(name, g = new Set())
@@ -134,7 +134,7 @@ class Container<C> {
 
   private emitSync<D>(ev: ComponentEvent<D>) {
     this.emitter.emit(ev)
-    const parent = this.app.getParentOf(this.componentId)
+    let parent = this.app.getParentOf(this.componentId)
     if (parent)
       parent.bubbleUpEvent<D>(ev, false, this.componentId)
   }
@@ -143,7 +143,7 @@ class Container<C> {
     if (ev[Container.canPropagateSymb] && !ev[Container.canPropagateSymb]())
       return
     this.childEmitter.emit<D>(ev, isFromDeep, this.getGroupsOf(childId))
-    const parent = this.app.getParentOf(this.componentId)
+    let parent = this.app.getParentOf(this.componentId)
     if (parent)
       parent.bubbleUpEvent<D>(ev, true, this.componentId)
   }
@@ -170,9 +170,9 @@ class Container<C> {
   // --
 
   private getGroupsOf(childId: number): Set<string> {
-    const result = new Set<string>()
+    let result = new Set<string>()
     if (this.childGroups) {
-      for (const [groupName, idSet] of Array.from(this.childGroups.entries())) {
+      for (let [groupName, idSet] of Array.from(this.childGroups.entries())) {
         if (idSet.has(childId))
           result.add(groupName)
       }
@@ -195,9 +195,9 @@ class Container<C> {
   public find<C>(filter: ChildFilter): C[] {
     if (filter.deep)
       throw new Error(`Cannot call "find" with filter deep`)
-    const containers = this.getChildContainers(filter.group),
+    let containers = this.getChildContainers(filter.group),
       result: C[] = []
-    for (const child of containers) {
+    for (let child of containers) {
       if (!filter.componentName || filter.componentName === child.componentName)
         result.push(child.getInstance())
     }
@@ -205,7 +205,7 @@ class Container<C> {
   }
 
   public findSingle<C>(filter: ChildFilter): C {
-    const list = this.find<C>(filter)
+    let list = this.find<C>(filter)
     if (list.length !== 1)
       throw new Error(`Cannot find single ${JSON.stringify(filter)} in ${this.componentName} ${this.componentId}`)
     return list[0]
@@ -224,17 +224,17 @@ class Container<C> {
       return this.app.getChildrenOf(this.componentId)
     if (!this.childGroups)
       return []
-    const names = <string[]>(typeof groupName === "string" ? [groupName] : groupName)
-    const idSet = new Set<number>()
-    for (const name of names) {
-      const group = this.childGroups.get(name)
+    let names = <string[]>(typeof groupName === "string" ? [groupName] : groupName)
+    let idSet = new Set<number>()
+    for (let name of names) {
+      let group = this.childGroups.get(name)
       if (!group)
         continue
-      for (const id of Array.from(group.values()))
+      for (let id of Array.from(group.values()))
         idSet.add(id)
     }
-    const containers: Container<any>[] = []
-    for (const id of Array.from(idSet.values()))
+    let containers: Container<any>[] = []
+    for (let id of Array.from(idSet.values()))
       containers.push(this.app.getContainer(id))
     return containers
   }
@@ -252,8 +252,12 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
       let parent = container.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
-    on: function <D>(eventName: string, modeOrCb: any, cbOrThisArg?: any, thisArg?: any) {
-      container.emitter.listen(eventName).call(modeOrCb, cbOrThisArg, thisArg)
+    onData: function <D>(eventName: string, cb: any, thisArg?: any) {
+      container.emitter.listen(eventName).onData(cb, thisArg)
+      return this
+    },
+    onEvent: function <D>(eventName: string, cb: any, thisArg?: any) {
+      container.emitter.listen(eventName).onEvent(cb, thisArg)
       return this
     },
     listen: (eventName: string) => container.emitter.listen(eventName),
@@ -271,6 +275,17 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
   return bkb
 }
 
+interface InternalNewComponentAsObj {
+  asObj: true
+  props: AsComponentProperties
+  obj: object
+}
+interface InternalNewComponentNew {
+  asObj: false
+  props: CreateComponentProperties<any, any>
+}
+type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
+
 function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | ApplicationDash<any> {
   let dash = Object.assign(Object.create(bkb), {
     setInstance: inst => container.setInstance(inst),
@@ -279,8 +294,15 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
       container.emitter.exposeEvents(names, true)
       return this
     },
-    create: <C>(Cl: { new (): C }, properties: NewComponentProperties = {}) => container.createComponent<C>(Cl, properties, false).getInstance(),
-    toComponent: <C>(obj, properties: NewComponentProperties = {}) => (container.createComponent<C>(obj, properties, true) as any).dash!,
+    create: <C>(Class: { new(): C }, ...args: any[]) => container.createComponent<C>(
+      { asObj: false, props: { Class, arguments: args } }
+    ).getInstance(),
+    customCreate: <C>(props: CreateComponentProperties<any, C>) => container.createComponent<C>(
+      { asObj: false, props }
+    ).getInstance(),
+    asComponent: (obj: object, props: AsComponentProperties = {}) => container.createComponent<C>(
+      { asObj: true, props, obj }
+    ).dash!,
     emit: function <D>(eventName: string | string[], data?: D, options?: EmitterOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)

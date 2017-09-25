@@ -1,7 +1,7 @@
-const fs = require('fs')
-const path = require('path')
-const ts = require('typescript')
-const uglifyJS = require('uglify-js')
+const fs = require("fs")
+const path = require("path")
+const ts = require("typescript")
+const uglifyJS = require("uglify-js")
 
 const fsp = {
   exists: function (path) {
@@ -15,7 +15,7 @@ const fsp = {
     return new Promise((resolve, reject) => {
       fs.mkdir(path, null, (err) => {
         if (err)
-          reject(Error('Cannot create directory: ' + path))
+          reject(Error("Cannot create directory: " + path))
         else
           resolve()
       })
@@ -25,7 +25,7 @@ const fsp = {
     return new Promise((resolve, reject) => {
       fs.readdir(path, (err, fileNames) => {
         if (err)
-          reject(Error('Cannot read directory: ' + path))
+          reject(Error("Cannot read directory: " + path))
         else
           resolve(fileNames)
       })
@@ -74,28 +74,28 @@ const fsp = {
 }
 
 function build(projectPath) {
-  const srcPath = path.join(projectPath, 'src'),
-    targetBkbTs = path.join(projectPath, 'dist_ts', 'bkb.ts'),
-    targetDistDefTs = path.join(projectPath, 'dist_ts', 'bkb-global.d.ts'),
-    targetNpmDefTs = path.join(projectPath, 'dist_npm', 'bkb.d.ts'),
-    //targetBkbJs = path.join(projectPath, 'dist', 'bkb.js'),
-    targetBkbMinJs = path.join(projectPath, 'dist_npm', 'bkb.min.js')
+  let srcPath = path.join(projectPath, "src"),
+    targetBkbTs = path.join(projectPath, "dist_ts", "bkb.ts"),
+    targetDistDefTs = path.join(projectPath, "dist_ts", "bkb-global.d.ts"),
+    targetNpmDefTs = path.join(projectPath, "dist_npm", "bkb.d.ts"),
+    //targetBkbJs = path.join(projectPath, "dist", "bkb.js"),
+    targetBkbMinJs = path.join(projectPath, "dist_npm", "bkb.min.js")
 
-  const readInterfacesTs = fsp.readFile(path.join(srcPath, 'interfaces.ts'), "utf-8")
+  let readInterfacesTs = fsp.readFile(path.join(srcPath, "interfaces.ts"), "utf-8")
     .then(text => text.trim() )
 
   return makeTsCode(srcPath, readInterfacesTs).then(tsCode => {
     return fsp.writeFile(targetBkbTs, tsCode).then(() => tsCode)
   }).then((tsCode) => {
-    const jsCode = ts.transpile(tsCode, {
-      'module': ts.ModuleKind.CommonJS, // UMD
-      'target': ts.ScriptTarget.ES5
-      //'lib': ['dom', 'es5', 'es2015.core', 'es2015.iterable', 'es2015.collection', 'es2015.promise']
+    let jsCode = ts.transpile(tsCode, {
+      "module": ts.ModuleKind.CommonJS, // UMD
+      "target": ts.ScriptTarget.ES5
+      //"lib": ["dom", "es5", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise"]
     })
     //return fsp.writeFile(targetBkbJs, jsCode).then(() => jsCode)
     return jsCode
   }).then((jsCode) => {
-    const minified = uglifyJS.minify(jsCode, {fromString: true})
+    let minified = uglifyJS.minify(jsCode, {fromString: true})
     return fsp.writeFile(targetBkbMinJs, minified.code)
   }).then(() => makeTsDefCode(srcPath, readInterfacesTs)).then(tsCode => {
     return fsp.writeFile(targetDistDefTs, tsCode)
@@ -126,18 +126,18 @@ const exportsTsCode = `export {
 function makeTsCode(srcPath, readInterfacesTs) {
   return fsp.readdir(srcPath).then((files) => {
     return Promise.all(files.map((file) => {
-      if (file === 'interfaces.ts')
+      if (file === "interfaces.ts")
         return readInterfacesTs
       return fsp.readFile(path.join(srcPath, file), "utf-8")
     }))
   }).then((contents) => {
-    return contents.map(text => text.trim()).join('\n\n') + '\n\n' + exportsTsCode
+    return contents.map(text => text.trim()).join("\n\n") + "\n\n" + exportsTsCode
   })
 }
 
 function makeTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare module 'bkb' {
+    return `declare module "bkb" {
 function createApplication<A>(Cl: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
 function toApplication<A>(obj: A): ApplicationDash<A>
 
@@ -150,8 +150,8 @@ ${exportsTsCode}
 
 function makeIndexTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare function createApplication<A>(Cl: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
-declare function toApplication<A>(obj: A): ApplicationDash<A>
+    return `declare function createApplication<A>(Class: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
+declare function asApplication<A>(obj: A): ApplicationDash<A>
 
 ${interfacesStr}
 
@@ -160,5 +160,5 @@ ${exportsTsCode}`
 }
 
 build(__dirname).then(() => { // TODO mkdir dist_ts if not exists
-  console.log('done')
+  console.log("done")
 }, err => console.log(err.message, err.stack))

@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "strictNullChecks": true,
+    "strict": true,
+    //"suppressImplicitAnyIndexErrors": true
+    "noImplicitAny": false,
+    // "noImplicitThis": false,
     "lib": ["dom", "es5", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise", "es2015.symbol"],
     "noEmit": true
   },
