@@ -1,10 +1,10 @@
-function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A> {
-  let container = new ApplicationContainer<A>(Class, false, args)
+function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A {
+  let container = new ApplicationContainer(Class, false, args)
   return container.root.getInstance() as any
 }
 
 function asApplication<A>(obj: A) {
-  let container = new ApplicationContainer<A>(obj, true)
+  let container = new ApplicationContainer(obj, true)
   return container.root.dash as ApplicationDash<A>
 }
 
@@ -25,9 +25,9 @@ interface CompNode {
   children?: Map<number, CompNode> | null
 }
 
-class ApplicationContainer<A = any> implements InternalApplicationContainer {
+class ApplicationContainer implements InternalApplicationContainer {
 
-  public root: Container<A>
+  public root: Container
 
   private compCount = 0
   private nodesByInst = new WeakMap<object, CompNode>()
@@ -38,7 +38,7 @@ class ApplicationContainer<A = any> implements InternalApplicationContainer {
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
     let logTypes = ["error", "warn", "info", "debug", "trace"],
       compId = this.newId()
-    this.root = new Container<A>(this, "root", compId, {
+    this.root = new Container(this, "root", compId, {
       nextTick: (cb: () => void) => this.nextTick(cb),
       log: this.createLog(logTypes)
     })
@@ -74,12 +74,12 @@ class ApplicationContainer<A = any> implements InternalApplicationContainer {
     return this.findNodeByInst(inst).container
   }
 
-  public createComponent<C>(nc: InternalNewComponent, parent: Container): Container<C> {
+  public createComponent(nc: InternalNewComponent, parent: Container): Container {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     let compName = nc.props.componentName || ApplicationContainer.getComponentName(nc.asObj ? nc.obj : nc.props.Class),
       compId = this.newId(),
-      container = new Container<C>(this, compName, compId)
+      container = new Container(this, compName, compId)
     let parentNode = this.findNode(parent.componentId),
       node = {
         container: container,
@@ -96,7 +96,7 @@ class ApplicationContainer<A = any> implements InternalApplicationContainer {
     return container
   }
 
-  public removeComponent<C>(container: Container<C>, inst?: object): void {
+  public removeComponent<C>(container: Container, inst?: object): void {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     let mainRm = !this.insideRmComp
@@ -186,7 +186,7 @@ class ApplicationContainer<A = any> implements InternalApplicationContainer {
         }, { sync: true })
       }
     }
-    return <any>Object.freeze(log)
+    return Object.freeze(log) as any
   }
 
   private static getComponentName(objOrCl): string {

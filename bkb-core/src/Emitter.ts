@@ -1,11 +1,11 @@
 interface ListenerEventMode {
   mode: "event"
-  cb: (ev: ComponentEvent<any>) => void
+  cb: (ev: ComponentEvent) => void
   thisArg?: any
 }
 interface ListenerDataMode {
   mode: "data"
-  cb: (data: any, ev: ComponentEvent<any>) => void
+  cb: (data: any, ev: ComponentEvent) => void
   thisArg?: any
 }
 type Listener = ListenerEventMode | ListenerDataMode
@@ -48,7 +48,7 @@ class Emitter {
       this.strictEvents = true
   }
 
-  public emit(ev: ComponentEvent<any>): void {
+  public emit(ev: ComponentEvent): void {
     if (!this.callbacks)
       return
     if (this.strictEvents && this.eventNames && !this.eventNames.has(ev.eventName))
@@ -137,7 +137,7 @@ class Emitter {
     this.destroyed = true
   }
 
-  private callCbList(cbList: Listener[], ev: ComponentEvent<any>) {
+  private callCbList(cbList: Listener[], ev: ComponentEvent) {
     for (let i in cbList) {
       if (!cbList.hasOwnProperty(i))
         continue
@@ -150,7 +150,7 @@ class Emitter {
   }
 }
 
-function call(cb: Listener, ev: ComponentEvent<any>) {
+function call(cb: Listener, ev: ComponentEvent) {
   switch (cb.mode) {
     case "data":
       if (cb.thisArg)

@@ -1,30 +1,18 @@
-type Component<T> = T & {
-  readonly bkb: Bkb
-}
-
-type Application<T> = T & {
-  readonly bkb: ApplicationBkb
-}
-
-interface ComponentEvent<D> {
+interface ComponentEvent<D = any> {
   readonly eventName: string
   readonly sourceName: string
   readonly sourceId: number
-  readonly source: Component<object>
+  /**
+   * The component source
+   */
+  readonly source: object
   readonly data?: D
   stopPropagation(): void
 }
 
 interface Transmitter<D = any> {
-  // call(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-
   onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   onEvent(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-
-  // call(mode: "event", callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  // call(mode: "data", callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  // call(mode: "arguments", callback: (...args: any[]) => void, thisArg?: any): this
-
   disable(): void
   isDisabled(): boolean
 }
@@ -42,7 +30,7 @@ interface ChildFilter {
   deep?: boolean
 }
 
-interface CreateComponentProperties<A, C> {
+interface CreateComponentProperties<A = any, C = any> {
   Class: { new(dash: Dash<A>, ...args: any[]): C },
   arguments?: any[]
   group?: string | string[]
@@ -52,10 +40,6 @@ interface CreateComponentProperties<A, C> {
 interface AsComponentProperties {
   group?: string | string[]
   componentName?: string
-  /**
-   * Default is: `false`
-   */
-  defineBkb?: boolean
 }
 
 interface EmitterOptions {
@@ -66,18 +50,18 @@ interface EmitterOptions {
 }
 
 interface Bkb {
-  onEvent<D>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  onData<D>(eventName: string, callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  onEvent<D = any>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  onData<D = any>(eventName: string, callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   listen<D = any>(eventName: string): Transmitter<D>
 
   /**
    * Find children
    */
-  find<E>(filter?: ChildFilter): E[]
+  find<C = any>(filter?: ChildFilter): C[]
   /**
    * Find a single child (an Error is thrown if there isn't one result)
    */
-  findSingle<E>(filter?: ChildFilter): E
+  findSingle<C = any>(filter?: ChildFilter): C
   /**
    * @returns The count of children that validate the filter
    */
@@ -93,15 +77,15 @@ interface Bkb {
   /**
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly instance: Component<object>
+  readonly instance: object
   /**
    * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly parent: Component<object> | undefined
+  readonly parent: object | undefined
   /**
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  getParent(filter?: ParentFilter): Component<object> | undefined
+  getParent(filter?: ParentFilter): object | undefined
 }
 
 interface ApplicationBkb extends Bkb {
@@ -109,7 +93,7 @@ interface ApplicationBkb extends Bkb {
   readonly log: Log
 }
 
-interface BasicDash<A> extends Bkb {
+interface BasicDash<A = any> extends Bkb {
   /**
    * Call this method if the instance must be available during the execution of the constructor
    */
@@ -118,8 +102,8 @@ interface BasicDash<A> extends Bkb {
   exposeEvents(...eventNames: string[]): this
   exposeEvents(eventNames: string[]): this
 
-  create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): Component<C>
-  customCreate<C>(properties: CreateComponentProperties<A, C>): Component<C>
+  create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): C
+  customCreate<C>(properties: CreateComponentProperties<A, C>): C
   asComponent(obj: object, properties?: AsComponentProperties): Dash<A>
 
   /**
@@ -132,7 +116,7 @@ interface BasicDash<A> extends Bkb {
    *
    * The event will NOT bubble up to parent hierarchy.
    */
-  broadcast(ev: ComponentEvent<any>, options?: EmitterOptions): this
+  broadcast(ev: ComponentEvent, options?: EmitterOptions): this
 
   /**
    * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches
@@ -154,12 +138,12 @@ interface BasicDash<A> extends Bkb {
   getBkbOf(component: object): Bkb
 }
 
-interface Dash<A> extends BasicDash<A> {
-  readonly app: Application<A>
+interface Dash<A = any> extends BasicDash<A> {
+  readonly app: A
   readonly bkb: Bkb
 }
 
-interface ApplicationDash<A> extends BasicDash<A>, ApplicationBkb {
+interface ApplicationDash<A = any> extends BasicDash<A>, ApplicationBkb {
   readonly bkb: ApplicationBkb
 }
 

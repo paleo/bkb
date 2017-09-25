@@ -1,10 +1,10 @@
-class Container<C = any> {
+class Container {
   public bkb: Bkb | undefined
-  public dash: Dash<any> | ApplicationDash<any> | undefined
+  public dash: Dash | ApplicationDash | undefined
   public emitter: Emitter
   public childEmitter: ChildEmitter
 
-  private inst: Component<C> | undefined
+  private inst: object | undefined
   private childGroups: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol("canPropagate")
@@ -21,40 +21,22 @@ class Container<C = any> {
   // -- Used by Application
   // --
 
-  public makeInstance(Cl, args: any[]): Component<C> {
+  public makeInstance(Cl, args: any[]): object {
     if (this.inst)
       return this.inst
     return this.setInstance(new Cl(this.dash, ...args))
-
-    // /*
-    //  * Simulate the "new" operator. The Container member `inst` and the instance member `bkb` are defined before the
-    //  * execution of the constructor.
-    //  *
-    //  * Thanks to http://stackoverflow.com/q/10428603/3786294
-    //  */
-    // this.inst = Object.create(Cl.prototype)
-    // Object.defineProperty(this.inst, "bkb", {get: () => this.bkb})
-    // let retVal = Cl.call(this.inst, this.dash, ...args)
-    // if (Object(retVal) === retVal && retVal !== this.inst) {
-    //   this.inst = retVal
-    //   if (!retVal.bkb)
-    //     throw new Error(`Missing member "bkb" (${Cl})`)
-    // }
   }
 
-  public setInstance(inst: any): Component<C> {
+  public setInstance(inst: object): object {
     if (this.inst)
       return this.inst
     if (!this.bkb)
       throw new Error(`Destroyed component`)
-    if (inst.bkb)
-      throw new Error(`A component cannot have a member "bkb"`)
-    Object.defineProperties(inst, { bkb: { get: () => this.bkb } })
     this.inst = inst
-    return this.inst as Component<C>
+    return inst
   }
 
-  public getInstance() {
+  public getInstance(): object {
     if (!this.inst) {
       if (this.bkb)
         throw new Error(`The component instance is still not initialized`)
@@ -86,8 +68,8 @@ class Container<C = any> {
   // -- [makeBkb and makeDash]
   // --
 
-  public createComponent<E>(nc: InternalNewComponent): Container<E> {
-    let child = this.app.createComponent<E>(nc, this)
+  public createChild(nc: InternalNewComponent): Container {
+    let child = this.app.createComponent(nc, this)
     if (nc.props.group) {
       if (!this.childGroups)
         this.childGroups = new Map()
@@ -106,7 +88,7 @@ class Container<C = any> {
   // -- [makeBkb and makeDash] Emit events
   // --
 
-  public broadcast(ev: ComponentEvent<any>, options?: EmitterOptions) {
+  public broadcast(ev: ComponentEvent, options?: EmitterOptions) {
     if (options && options.sync)
       this.emitter.emit(ev)
     else
@@ -195,11 +177,11 @@ class Container<C = any> {
   // -- [makeBkb and makeDash] Navigate to children
   // --
 
-  public find<C>(filter: ChildFilter): C[] {
+  public find(filter: ChildFilter): object[] {
     if (filter.deep)
       throw new Error(`Cannot call "find" with filter deep`)
     let containers = this.getChildContainers(filter.group),
-      result: C[] = []
+      result: object[] = []
     for (let child of containers) {
       if (!filter.componentName || filter.componentName === child.componentName)
         result.push(child.getInstance())
@@ -207,15 +189,15 @@ class Container<C = any> {
     return result
   }
 
-  public findSingle<C>(filter: ChildFilter): C {
-    let list = this.find<C>(filter)
+  public findSingle(filter: ChildFilter): object {
+    let list = this.find(filter)
     if (list.length !== 1)
       throw new Error(`Cannot find single ${JSON.stringify(filter)} in ${this.componentName} ${this.componentId}`)
     return list[0]
   }
 
   public count(filter: ChildFilter): number {
-    return this.find<any>(filter).length
+    return this.find(filter).length
   }
 
   public has(filter: ChildFilter): boolean {
@@ -243,7 +225,7 @@ class Container<C = any> {
   }
 }
 
-function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
+function makeBkb(container: Container, additionalMembers?: any): Bkb {
   let bkb: Bkb = {
     get instance() {
       return container.getInstance()
@@ -267,8 +249,8 @@ function makeBkb<C>(container: Container<C>, additionalMembers?: any): Bkb {
     destroy: () => container.destroy(),
     componentName: container.componentName,
     componentId: container.componentId,
-    find: <E>(filter: ChildFilter = {}) => container.find<E>(filter),
-    findSingle: <E>(filter: ChildFilter = {}) => container.findSingle<E>(filter),
+    find: <C>(filter: ChildFilter = {}) => container.find(filter) as any[],
+    findSingle: <C>(filter: ChildFilter = {}) => container.findSingle(filter) as any,
     count: (filter: ChildFilter = {}) => container.count(filter),
     has: (filter: ChildFilter = {}) => container.has(filter)
   }
@@ -289,7 +271,7 @@ interface InternalNewComponentNew {
 }
 type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
-function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | ApplicationDash<any> {
+function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
   let dash = Object.assign(Object.create(bkb), {
     setInstance: inst => container.setInstance(inst),
     exposeEvents: function (...eventNames: any[]) {
@@ -297,13 +279,13 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
       container.emitter.exposeEvents(names, true)
       return this
     },
-    create: <C>(Class: { new(): C }, ...args: any[]) => container.createComponent<C>(
+    create: <C>(Class: { new(): C }, ...args: any[]) => container.createChild(
       { asObj: false, props: { Class, arguments: args } }
     ).getInstance(),
-    customCreate: <C>(props: CreateComponentProperties<any, C>) => container.createComponent<C>(
+    customCreate: <C>(props: CreateComponentProperties<any, C>) => container.createChild(
       { asObj: false, props }
     ).getInstance(),
-    asComponent: (obj: object, props: AsComponentProperties = {}) => container.createComponent<C>(
+    asComponent: (obj: object, props: AsComponentProperties = {}) => container.createChild(
       { asObj: true, props, obj }
     ).dash!,
     emit: function <D>(eventName: string | string[], data?: D, options?: EmitterOptions) {
@@ -312,7 +294,7 @@ function makeDash<C>(container: Container<C>, bkb: Bkb): Dash<any> | Application
         container.emit<D>(name, data, options)
       return this
     },
-    broadcast: function (ev: ComponentEvent<any>, options?: EmitterOptions) {
+    broadcast: function (ev: ComponentEvent, options?: EmitterOptions) {
       container.broadcast(ev, options)
       return this
     },
