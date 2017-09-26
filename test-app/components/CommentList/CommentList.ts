@@ -34,7 +34,7 @@ export default class CommentList {
   public add() {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
-    const comment = this.dash.create(Comment, {args: [$li[0]]}).test()
+    const comment = this.dash.create(Comment, $li[0]).test()
     const listener = this.dash.listenToParent('enabled').onEvent(evt => {
       console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)

@@ -32,9 +32,10 @@ export default class TodoList {
   public add() {
     this.dash.app.log.info('add from todolist')
     const $li = $(templates.getTemplate('.TodoLi'))
-    const task = this.dash.create(this.getTaskClass(), {
+    const task = this.dash.customCreate({
+      Class: this.getTaskClass(),
       group: 'items',
-      args: [$li.find('.TodoLi-content')[0]]
+      arguments: [$li.find('.TodoLi-content')[0]]
     })
     $li.appendTo(this.$ul).find('.TodoLi-rmBtn').click(() => {
       this.dash.getBkbOf(task).destroy()

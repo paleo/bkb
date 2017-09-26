@@ -88,7 +88,7 @@ class VueTemplate {
         try {
           if (binding.bkbChildComp)
             dash.getBkbOf(binding.bkbChildComp).destroy()
-          binding.bkbChildComp = dash.create(Cl, { args: [el] })
+          binding.bkbChildComp = dash.create(Cl, el)
         } catch (e) {
           dash.log.error(e)
         }

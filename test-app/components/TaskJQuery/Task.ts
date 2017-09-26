@@ -28,7 +28,7 @@ export default class Task {
       })
     this.$input = this.$container.find('.js-input')
     this.$lbl = this.$container.find('.js-lbl')
-    this.dash.create(CommentList, { args: [this.$container.find('.Task-comments')[0]] })
+    this.dash.create(CommentList, this.$container.find('.Task-comments')[0])
     this.setUpdateMode(true)
     $(el).append(this.$container)
     this.dash.emit('grabFocus')

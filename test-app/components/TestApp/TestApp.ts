@@ -38,9 +38,7 @@ export default class TestApp {
   }
 
   public start() {
-    const list = this.dash.create(TodoList, {
-      args: ['My TODO List', this.$app[0]]
-    })
+    const list = this.dash.create(TodoList, 'My TODO List', this.$app[0])
   }
 
   private createRouter(baseUrl: string, firstQueryString: string) {

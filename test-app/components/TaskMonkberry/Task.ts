@@ -44,9 +44,7 @@ export default class Task {
         ...monkberryDirectives,
         ...createBkbDirectives(this.dash.app.log, {
           'CommentList': (el: HTMLElement, value: string) => {
-            return this.dash.create(CommentList, {
-              args: [el, value]
-            })
+            return this.dash.create(CommentList, el, value)
           }
         }, this.dash)
       }
