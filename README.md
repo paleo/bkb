@@ -14,4 +14,4 @@ Bkb is a lightweight front-end framework.
 
 Public domain
 
-© 2016 Paleo; Released under the [CC0 License](http://creativecommons.org/publicdomain/zero/1.0/).
+© 2017 Paleo; Released under the [CC0 License](http://creativecommons.org/publicdomain/zero/1.0/).
