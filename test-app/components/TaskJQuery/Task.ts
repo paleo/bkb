@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import { Component, Dash, Bkb } from 'bkb'
+import { Dash, Bkb } from 'bkb'
 import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'
@@ -46,7 +46,7 @@ export default class Task {
     } else {
       this.$update.hide()
       this.$read.show()
-      this.$lbl.text(this.$input.val())
+      this.$lbl.text(this.$input.val() as string)
     }
     this.dash.emit('enabled', mode)
   }

@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb'
+import { Dash, Bkb } from 'bkb'
 import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import TestApp from '../TestApp/TestApp'
@@ -27,7 +27,7 @@ export default class Task {
           this.dash.emit('grabFocus')
         }
       },
-      childComponents: {CommentList}
+      childComponents: { CommentList }
     })
     this.dash.emit('grabFocus')
     return this

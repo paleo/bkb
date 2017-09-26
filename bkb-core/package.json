@@ -3,11 +3,10 @@
   "version": "0.0.0",
   "main": "build.js",
   "dependencies": {
-    "typescript": "*",
-    "uglify-js": "*"
+    "typescript": "2.5.2",
+    "uglify-es": "3.1.2"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Paleo",
   "private": true
 }

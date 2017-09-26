@@ -66,7 +66,7 @@ class VueTemplate {
         }
       }
     })
-    let destroyListener = this.dash.bkb.listen('destroy').call(() => {
+    let destroyListener = this.dash.listen('destroy').onEvent(() => {
       destroyListener.disable()
       destroyListener = null
       v.$destroy()
@@ -87,10 +87,10 @@ class VueTemplate {
           return
         try {
           if (binding.bkbChildComp)
-            binding.bkbChildComp.bkb.destroy()
+            dash.getBkbOf(binding.bkbChildComp).destroy()
           binding.bkbChildComp = dash.create(Cl, { args: [el] })
         } catch (e) {
-          dash.app.bkb.log.error(e)
+          dash.log.error(e)
         }
       },
       inserted: function (el) {
@@ -103,10 +103,10 @@ class VueTemplate {
         // console.log('............. unbind', arguments)
         if (binding.bkbChildComp) {
           try {
-            binding.bkbChildComp.bkb.destroy()
+            dash.getBkbOf(binding.bkbChildComp).destroy()
             binding.bkbChildComp = null
           } catch (e) {
-            dash.app.bkb.log.error(e)
+            dash.log.error(e)
           }
         }
       }

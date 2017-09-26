@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb'
+import {Dash, Bkb} from 'bkb'
 import createBkbDirectives from '../../bkb-libraries/BkbMonkberryDirective'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'
@@ -29,9 +29,9 @@ export default class Task {
   }
 
   constructor(private dash: Dash<TestApp>, el: HTMLElement) {
-    this.state.compId = dash.bkb.componentId
+    this.state.compId = dash.componentId
     this.setUpdateMode(true)
-    dash.on('destroy', () => {
+    dash.onEvent('destroy', () => {
       // console.log('destroy task')
       if (this.view) {
         this.view.remove()
@@ -48,7 +48,7 @@ export default class Task {
               args: [el, value]
             })
           }
-        })
+        }, this.dash)
       }
     })
     // this.view.on('click', 'input', (e: Event) => {

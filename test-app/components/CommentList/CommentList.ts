@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Dash, Bkb} from 'bkb'
+import {Dash, Bkb} from 'bkb'
 import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
@@ -20,7 +20,7 @@ export default class CommentList {
     this.$container.find('.CommentList-h1').text(title)
     this.$ul = this.$container.find('.CommentList-ul')
     const $addBtn = this.$container.find('.CommentList-addBtn').click(() => this.add())
-    dash.listenToParent('enabled').call(evt => {
+    dash.listenToParent('enabled').onEvent(evt => {
       console.log(`[parent-Event] [${dash.componentName} ${dash.componentId}] enabled ${evt.data}`)
       if (evt.data)
         $addBtn.show()
@@ -35,7 +35,7 @@ export default class CommentList {
     const $li = $(templates.getTemplate('.CommentLi'))
       .appendTo(this.$ul)
     const comment = this.dash.create(Comment, {args: [$li[0]]}).test()
-    const listener = this.dash.listenToParent('enabled').call(evt => {
+    const listener = this.dash.listenToParent('enabled').onEvent(evt => {
       console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${evt.data} (for li)`)
       if (evt.data)
         $rmBtn.show()
@@ -44,8 +44,14 @@ export default class CommentList {
     })
     const $rmBtn = $li.find('.js-rmBtn').click(() => {
       $li.remove()
-      comment.bkb.destroy()
+      this.dash.getBkbOf(comment).destroy()
       listener.disable()
     })
+  }
+
+  /**
+   * MonkberryComponent
+   */
+  public update() {
   }
 }

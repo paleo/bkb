@@ -272,7 +272,7 @@ interface InternalNewComponentNew {
 type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
 function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
-  let dash = Object.assign(Object.create(bkb), {
+  let source: any = {
     setInstance: inst => container.setInstance(inst),
     exposeEvents: function (...eventNames: any[]) {
       let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
@@ -303,7 +303,10 @@ function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
     listenTo: <D>(inst: object, eventName: string) => container.listenTo<D>(inst, eventName),
     getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb,
     bkb: bkb as any
-  })
+  }
+  if (!bkb["log"])
+    source.log = container.app.log
+  let dash = Object.assign(Object.create(bkb), source)
   if (container.app.root && container.app.root !== container) {
     Object.defineProperties(dash, {
       app: { get: () => container.app.root.getInstance() }

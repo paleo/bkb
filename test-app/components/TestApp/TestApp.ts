@@ -1,7 +1,7 @@
 import * as $ from 'jquery'
-import {Application, ApplicationDash, ApplicationBkb, Log, LogItem} from 'bkb'
+import { ApplicationDash, ApplicationBkb, Log, LogItem } from 'bkb'
 import TodoList from "../TodoList/TodoList"
-import {createEasyRouter, EasyRouter} from '../../libraries-ts/EasyRouter'
+import { createEasyRouter, EasyRouter } from '../../libraries-ts/EasyRouter'
 
 export default class TestApp {
   readonly log: Log
@@ -16,20 +16,20 @@ export default class TestApp {
   private _router: EasyRouter
 
   constructor(private dash: ApplicationDash<TestApp>) {
-    this.log = dash.bkb.log
-    this.nextTick = dash.bkb.nextTick
+    this.log = dash.log
+    this.nextTick = dash.nextTick
 
-    this.dash.on<LogItem>('log', 'dataFirst', data => {
+    this.dash.onData<LogItem>('log', data => {
       console.log(`[LOG] ${data.type} `, data.messages)
     })
 
-    dash.bkb.listen<any>('changeComponent').call((evt) => {
+    dash.listen<any>('changeComponent').onEvent(ev => {
       // console.log('EVENT', evt)
-      const type = evt.data.type,
-        evtBkb = evt.data.component.bkb,
-        msg = `change component (${type} ${evtBkb.componentName} ${evtBkb.componentId})\n`
+      const type = ev.data.type,
+        evBkb = dash.getBkbOf(ev.data.component),
+        msg = `change component (${type} ${evBkb.componentName} ${evBkb.componentId})\n`
       this.nextTick(() => {
-        console.log(msg, publicNodesToString(dash.bkb.find()))
+        console.log(msg, publicNodesToString(dash, dash.find()))
       })
     })
 
@@ -79,13 +79,14 @@ export default class TestApp {
 
 }
 
-function publicNodesToString(components: any[], indent = '') {
+function publicNodesToString(dash: ApplicationDash, components: any[], indent = '') {
   const lines = []
   for (const comp of components) {
-    let line = `${indent}- ${comp.bkb.componentName} (${comp.bkb.componentId})`
-    const children = comp.bkb.find()
+    let bkb = dash.getBkbOf(comp)
+    let line = `${indent}- ${bkb.componentName} (${bkb.componentId})`
+    const children = bkb.find()
     if (children.length > 0)
-      line += '\n' + publicNodesToString(children, `${indent}  `)
+      line += '\n' + publicNodesToString(dash, children, `${indent}  `)
     lines.push(line)
   }
   return lines.join('\n')

@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Component, Dash, Bkb} from 'bkb'
+import {Dash, Bkb} from 'bkb'
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
 
@@ -14,7 +14,7 @@ export default class Comment {
   constructor(private dash: Dash<TestApp>, el: HTMLElement) {
     this.$container = $(templates.getTemplate('.Comment'))
     const $input = this.$container.find('input')
-    dash.listenToParent('enabled').call('dataFirst', enabled => {
+    dash.listenToParent('enabled').onData(enabled => {
       console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${enabled}`)
       $input.prop('disabled', !enabled)
     })
@@ -24,7 +24,7 @@ export default class Comment {
     $(el).append(this.$container)
   }
 
-  public test(): Component<this> {
-    return this as Component<this>
+  public test(): this {
+    return this
   }
 }

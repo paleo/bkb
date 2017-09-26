@@ -1,7 +1,7 @@
 const fs = require("fs")
 const path = require("path")
 const ts = require("typescript")
-const uglifyJS = require("uglify-js")
+const uglifyEs = require("uglify-es")
 
 const fsp = {
   exists: function (path) {
@@ -88,14 +88,23 @@ function build(projectPath) {
     return fsp.writeFile(targetBkbTs, tsCode).then(() => tsCode)
   }).then((tsCode) => {
     let jsCode = ts.transpile(tsCode, {
-      "module": ts.ModuleKind.CommonJS, // UMD
-      "target": ts.ScriptTarget.ES5
+      "module": ts.ModuleKind.ES2015,
+      "target": ts.ScriptTarget.ES2017,
+      "lib": [
+        "dom",
+        "es2016",
+        "es2017.object"
+      ],
+      "strict": true,
+      "noImplicitAny": false
       //"lib": ["dom", "es5", "es2015.core", "es2015.iterable", "es2015.collection", "es2015.promise"]
     })
     //return fsp.writeFile(targetBkbJs, jsCode).then(() => jsCode)
     return jsCode
   }).then((jsCode) => {
-    let minified = uglifyJS.minify(jsCode, {fromString: true})
+    let minified = uglifyEs.minify(jsCode)
+    if (minified.error)
+      throw minified.error
     return fsp.writeFile(targetBkbMinJs, minified.code)
   }).then(() => makeTsDefCode(srcPath, readInterfacesTs)).then(tsCode => {
     return fsp.writeFile(targetDistDefTs, tsCode)
@@ -106,21 +115,20 @@ function build(projectPath) {
 
 const exportsTsCode = `export {
   createApplication,
-  toApplication,
-  Component,
+  asApplication,
   ComponentEvent,
   Transmitter,
   ParentFilter,
   ChildFilter,
-  NewComponentProperties,
+  CreateComponentProperties,
+  AsComponentProperties,
   EmitterOptions,
   Dash,
   Bkb,
   LogItem,
   Log,
   ApplicationBkb,
-  ApplicationDash,
-  Application
+  ApplicationDash
 }`
 
 function makeTsCode(srcPath, readInterfacesTs) {
@@ -150,7 +158,7 @@ ${exportsTsCode}
 
 function makeIndexTsDefCode(srcPath, readInterfacesTs) {
   return readInterfacesTs.then(interfacesStr => {
-    return `declare function createApplication<A>(Class: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): Application<A>
+    return `declare function createApplication<A>(Class: { new (dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A
 declare function asApplication<A>(obj: A): ApplicationDash<A>
 
 ${interfacesStr}

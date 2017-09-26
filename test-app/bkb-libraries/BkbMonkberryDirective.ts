@@ -1,25 +1,25 @@
-import { Log, Component } from 'bkb'
+import { Log, Dash } from 'bkb'
 
-type Comp = Component<MonkberryComponent>
+type Comp = MonkberryComponent
 
 export interface MonkberryComponent {
   update?(value?: string): void
 }
 
 export interface ComponentMakers {
-  [directiveName: string]: (el: HTMLElement, value?: string) => Component<MonkberryComponent>
+  [directiveName: string]: (el: HTMLElement, value?: string) => MonkberryComponent
 }
 
-export default function createBkbDirectives(log: Log, makers: ComponentMakers) {
+export default function createBkbDirectives(log: Log, makers: ComponentMakers, dash: Dash) {
   let directives = {}
   for (let name in makers) {
     if (makers.hasOwnProperty(name))
-      directives[name] = createDirective(log, makers[name], name)
+      directives[name] = createDirective(log, makers[name], name, dash)
   }
   return directives
 }
 
-function createDirective(log: Log, maker: (el: HTMLElement, value?: string) => Comp, directiveName: string) {
+function createDirective(log: Log, maker: (el: HTMLElement, value?: string) => Comp, directiveName: string, dash: Dash) {
   return class {
     private comp: Comp | null
     private el: HTMLElement | null
@@ -32,7 +32,7 @@ function createDirective(log: Log, maker: (el: HTMLElement, value?: string) => C
       this.el = null
       if (this.comp) {
         try {
-          this.comp.bkb.destroy()
+          dash.getBkbOf(this.comp).destroy()
           this.comp = null
         } catch (e) {
           log.error(e)

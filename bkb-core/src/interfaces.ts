@@ -33,6 +33,7 @@ interface ChildFilter {
 interface CreateComponentProperties<A = any, C = any> {
   Class: { new(dash: Dash<A>, ...args: any[]): C },
   arguments?: any[]
+  argument?: any
   group?: string | string[]
   componentName?: string
 }
@@ -135,6 +136,7 @@ interface BasicDash<A = any> extends Bkb {
 
   listenTo<D = any>(component: object, eventName: string): Transmitter<D>
 
+  readonly log: Log
   getBkbOf(component: object): Bkb
 }
 

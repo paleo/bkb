@@ -1,4 +1,4 @@
-import {Component, Dash, Bkb} from 'bkb'
+import {Dash, Bkb} from 'bkb'
 import {EasyRouter} from '../libraries-ts/EasyRouter'
 import 'dialog-polyfill'
 
@@ -146,7 +146,7 @@ export default class BkbDialogs {
       props['rmDialog']()
     if (props['handle'] !== handle) {
       var err = Error('Current dialog handle "' + handle + '" should match with "' + props['handle'] + '"')
-      this.dash.app.bkb.log.error(err)
+      this.dash.log.error(err)
       props['reject'](err)
     } else
       props['resolve'](val)
@@ -283,7 +283,7 @@ export default class BkbDialogs {
       }
       this.pleaseProcessShortDialogs()
     } catch (e) {
-      this.dash.app.bkb.log.error(e)
+      this.dash.log.error(e)
     }
   }
 
@@ -320,7 +320,7 @@ export default class BkbDialogs {
           this.curSmallProp = null
           this.pleaseProcessShortDialogs()
         } catch (e) {
-          this.dash.app.bkb.log.error(e)
+          this.dash.log.error(e)
         }
       }, props['delayInMs'])
     }

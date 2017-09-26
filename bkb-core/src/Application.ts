@@ -28,6 +28,7 @@ interface CompNode {
 class ApplicationContainer implements InternalApplicationContainer {
 
   public root: Container
+  public log: Log
 
   private compCount = 0
   private nodesByInst = new WeakMap<object, CompNode>()
@@ -38,9 +39,10 @@ class ApplicationContainer implements InternalApplicationContainer {
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
     let logTypes = ["error", "warn", "info", "debug", "trace"],
       compId = this.newId()
+    this.log = this.createLog(logTypes)
     this.root = new Container(this, "root", compId, {
       nextTick: (cb: () => void) => this.nextTick(cb),
-      log: this.createLog(logTypes)
+      log: this.log
     })
     let node = {
       container: this.root
@@ -89,7 +91,13 @@ class ApplicationContainer implements InternalApplicationContainer {
     if (!parentNode.children)
       parentNode.children = new Map()
     parentNode.children.set(compId, node)
-    let inst = nc.asObj ? container.setInstance(nc.obj) : container.makeInstance(nc.props.Class, nc.props.arguments || [])
+    let inst: object
+    if (nc.asObj)
+      inst = container.setInstance(nc.obj)
+    else {
+      let args = nc.props.arguments || (nc.props.argument ? [nc.props.argument] : [])
+      inst = container.makeInstance(nc.props.Class, args)
+    }
     this.nodesByInst.set(inst, node)
     this.root.dash.emit("addComponent", { component: container.getInstance() })
     this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })

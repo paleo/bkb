@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import { Component, Dash, Bkb } from 'bkb'
+import { Dash, Bkb } from 'bkb'
 import Task from "../TaskJQuery/Task"
 import Task2 from "../TaskMonkberry/Task"
 import Task3 from "../TaskVue/Task"
@@ -18,10 +18,11 @@ export default class TodoList {
     this.$container.find('.TodoList-h1').text(title)
     this.$ul = this.$container.find('.TodoList-ul')
     this.$container.find('.TodoList-addBtn').click(() => this.add())
-    dash.listenToChildren('grabFocus', { group: 'items' }).call((evt) => {
+
+    dash.listenToChildren('grabFocus', { group: 'items' }).onEvent(ev => {
       console.log(`[Event] [${this.dash.componentName} ${this.dash.componentId}] grabFocus`)
-      for (const child of dash.find<Component<Task>>({ group: 'items', componentName: 'Task' })) {
-        if (child !== evt.source)
+      for (const child of dash.find<Task>({ group: 'items', componentName: 'Task' })) {
+        if (child !== ev.source)
           child.setUpdateMode(false)
       }
     })
@@ -36,7 +37,7 @@ export default class TodoList {
       args: [$li.find('.TodoLi-content')[0]]
     })
     $li.appendTo(this.$ul).find('.TodoLi-rmBtn').click(() => {
-      task.bkb.destroy()
+      this.dash.getBkbOf(task).destroy()
       $li.remove()
     })
   }
