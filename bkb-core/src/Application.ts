@@ -9,14 +9,7 @@ function asApplication<A>(obj: A) {
 }
 
 interface InternalApplicationContainer {
-  // root: Container
-  // createComponent<C>(nc: InternalNewComponent, parent: Container): Container<C>
-  // getChildrenOf(componentId: number): Container[]
-  // getParentOf(componentId: number): Container | undefined
-  // getContainer(componentId: number): Container
-  // removeComponent<C>(container: Container<C>): void
   errorHandler(err: any): void
-  // nextTick(cb: () => void): void
 }
 
 interface CompNode {
@@ -40,8 +33,7 @@ class ApplicationContainer implements InternalApplicationContainer {
     let logTypes = ["error", "warn", "info", "debug", "trace"],
       compId = this.newId()
     this.log = this.createLog(logTypes)
-    this.root = new Container(this, "root", compId, {
-      nextTick: (cb: () => void) => this.nextTick(cb),
+    this.root = new Container(this, compId, {
       log: this.log
     })
     let node = {
@@ -79,9 +71,8 @@ class ApplicationContainer implements InternalApplicationContainer {
   public createComponent(nc: InternalNewComponent, parent: Container): Container {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
-    let compName = nc.props.componentName || ApplicationContainer.getComponentName(nc.asObj ? nc.obj : nc.props.Class),
-      compId = this.newId(),
-      container = new Container(this, compName, compId)
+    let compId = this.newId(),
+      container = new Container(this, compId)
     let parentNode = this.findNode(parent.componentId),
       node = {
         container: container,
@@ -145,7 +136,7 @@ class ApplicationContainer implements InternalApplicationContainer {
     }, { sync: true })
   }
 
-  public nextTick(cb: () => void): void {
+  public asyncCall(cb: () => void): void {
     if (!this.tickList) {
       this.tickList = [cb]
       setTimeout(() => {
@@ -195,19 +186,5 @@ class ApplicationContainer implements InternalApplicationContainer {
       }
     }
     return Object.freeze(log) as any
-  }
-
-  private static getComponentName(objOrCl): string {
-    // if (Symbol && Symbol.toStringTag && objOrCl[Symbol.toStringTag])
-    //   return objOrCl[Symbol.toStringTag]
-    if (typeof objOrCl.componentName === "string")
-      return objOrCl.componentName
-    if (objOrCl.constructor && objOrCl.constructor.name)
-      return objOrCl.constructor.name
-    let results = /function (.+)\(/.exec(objOrCl.toString())
-    if (results && results.length > 1)
-      return results[1]
-    return "Function"
-    //throw new Error(`Missing static property "componentName" in component ${objOrCl}`)
   }
 }

@@ -17,7 +17,7 @@ class ChildEmitter {
       return
     let filtered: ChildCallback[] = []
     for (let cb of cbList) {
-      if ((cb.filter.componentName && cb.filter.componentName === ev.sourceName)
+      if ((cb.filter.filter && cb.filter.filter(ev.source))
         || (!cb.filter.deep && deep)
         || (cb.filter.group && !ChildEmitter.hasGroup(cb.filter.group, groupNames)))
         continue

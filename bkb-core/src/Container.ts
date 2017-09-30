@@ -9,8 +9,7 @@ class Container {
 
   private static canPropagateSymb = Symbol("canPropagate")
 
-  constructor(public app: ApplicationContainer, readonly componentName, readonly componentId: number,
-    bkbMethods?: any) {
+  constructor(public app: ApplicationContainer, readonly componentId: number, bkbMethods?: any) {
     this.emitter = new Emitter(app, ["destroy"])
     this.childEmitter = new ChildEmitter(app)
     this.bkb = makeBkb(this, bkbMethods)
@@ -92,23 +91,24 @@ class Container {
     if (options && options.sync)
       this.emitter.emit(ev)
     else
-      this.app.nextTick(() => this.emitter.emit(ev))
+      this.app.asyncCall(() => this.emitter.emit(ev))
   }
 
   public emit<D>(eventName: string, data?: D, options?: EmitterOptions) {
     if (options && options.sync)
       this.emitSync(this.createEvent<D>(eventName, data))
     else
-      this.app.nextTick(() => this.emitSync<D>(this.createEvent<D>(eventName, data)))
+      this.app.asyncCall(() => this.emitSync<D>(this.createEvent<D>(eventName, data)))
   }
 
   private createEvent<D>(eventName, data?: D): ComponentEvent<D> {
-    let canPropagate = true
+    let that = this,
+      canPropagate = true
     return Object.freeze({
       eventName,
-      sourceName: this.componentName,
-      sourceId: this.componentId,
-      source: this.getInstance(),
+      get source() {
+        return that.getInstance()
+      },
       data,
       stopPropagation: () => {
         canPropagate = false
@@ -137,12 +137,12 @@ class Container {
   // -- [makeBkb and makeDash] Listen
   // --
 
-  public listenToParent<D>(eventName: string, filter: ParentFilter): Transmitter<D> {
+  public listenToParent<D>(eventName: string, filter?: ParentFilter): Transmitter<D> {
     let parent = this.getParent(filter)
     if (parent)
       return parent.emitter.listen(eventName, this)
-    if (filter.componentName)
-      throw new Error(`Unknown parent ${filter.componentName}`)
+    if (filter)
+      throw new Error(`Cannot find the filtered parent`)
     return Emitter.empty()
   }
 
@@ -168,7 +168,7 @@ class Container {
   public getParent(filter?: ParentFilter): Container | undefined {
     let parent: Container | undefined = this
     while (parent = this.app.getParentOf(parent.componentId)) {
-      if (!filter || !filter.componentName || filter.componentName === parent.componentName)
+      if (!filter || filter(parent))
         return parent
     }
   }
@@ -183,7 +183,7 @@ class Container {
     let containers = this.getChildContainers(filter.group),
       result: object[] = []
     for (let child of containers) {
-      if (!filter.componentName || filter.componentName === child.componentName)
+      if (!filter.filter || filter.filter(child))
         result.push(child.getInstance())
     }
     return result
@@ -192,7 +192,7 @@ class Container {
   public findSingle(filter: ChildFilter): object {
     let list = this.find(filter)
     if (list.length !== 1)
-      throw new Error(`Cannot find single ${JSON.stringify(filter)} in ${this.componentName} ${this.componentId}`)
+      throw new Error(`Cannot find single ${JSON.stringify(filter)} in component ${this.componentId}`)
     return list[0]
   }
 
@@ -247,8 +247,6 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
     },
     listen: (eventName: string) => container.emitter.listen(eventName),
     destroy: () => container.destroy(),
-    componentName: container.componentName,
-    componentId: container.componentId,
     find: <C>(filter: ChildFilter = {}) => container.find(filter) as any[],
     findSingle: <C>(filter: ChildFilter = {}) => container.findSingle(filter) as any,
     count: (filter: ChildFilter = {}) => container.count(filter),
@@ -265,15 +263,17 @@ interface InternalNewComponentAsObj {
   props: AsComponentProperties
   obj: object
 }
+
 interface InternalNewComponentNew {
   asObj: false
   props: CreateComponentProperties<any, any>
 }
+
 type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
 function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
   let source: any = {
-    setInstance: inst => container.setInstance(inst),
+    setInstance: (inst: any) => { container.setInstance(inst) },
     exposeEvents: function (...eventNames: any[]) {
       let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
       container.emitter.exposeEvents(names, true)
@@ -298,7 +298,7 @@ function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
       container.broadcast(ev, options)
       return this
     },
-    listenToParent: <D>(eventName: string, filter: ParentFilter = {}) => container.listenToParent<D>(eventName, filter),
+    listenToParent: <D>(eventName: string, filter?: ParentFilter) => container.listenToParent<D>(eventName, filter),
     listenToChildren: <D>(eventName: string, filter?: ChildFilter) => container.childEmitter.listen<D>(eventName, filter),
     listenTo: <D>(inst: object, eventName: string) => container.listenTo<D>(inst, eventName),
     getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb,

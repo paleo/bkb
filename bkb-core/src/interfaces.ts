@@ -1,7 +1,5 @@
 interface ComponentEvent<D = any> {
   readonly eventName: string
-  readonly sourceName: string
-  readonly sourceId: number
   /**
    * The component source
    */
@@ -18,12 +16,12 @@ interface Transmitter<D = any> {
 }
 
 interface ParentFilter {
-  componentName?: string
+  (parent: any): boolean
 }
 
 interface ChildFilter {
   group?: string | string[]
-  componentName?: string
+  filter?: (child: any) => boolean
   /**
    * Default value is <code>false</code>
    */
@@ -35,12 +33,10 @@ interface CreateComponentProperties<A = any, C = any> {
   arguments?: any[]
   argument?: any
   group?: string | string[]
-  componentName?: string
 }
 
 interface AsComponentProperties {
   group?: string | string[]
-  componentName?: string
 }
 
 interface EmitterOptions {
@@ -73,8 +69,7 @@ interface Bkb {
   has(filter?: ChildFilter): boolean
 
   destroy(): void
-  readonly componentName: string
-  readonly componentId: number
+
   /**
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
@@ -90,7 +85,6 @@ interface Bkb {
 }
 
 interface ApplicationBkb extends Bkb {
-  nextTick(cb: () => void): void
   readonly log: Log
 }
 
