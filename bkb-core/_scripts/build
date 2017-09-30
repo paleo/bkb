@@ -1,0 +1,7 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $DIR/..
+
+./node_modules/.bin/tsc || exit 1
+node build.js || exit 1

@@ -1,14 +1,17 @@
-function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A {
+import { ApplicationDash, Log } from "./interfaces"
+import { Container, InternalNewComponent } from "./Container"
+
+export function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A {
   let container = new ApplicationContainer(Class, false, args)
   return container.root.getInstance() as any
 }
 
-function asApplication<A>(obj: A) {
+export function asApplication<A>(obj: A) {
   let container = new ApplicationContainer(obj, true)
   return container.root.dash as ApplicationDash<A>
 }
 
-interface InternalApplicationContainer {
+export interface InternalApplicationContainer {
   errorHandler(err: any): void
 }
 
@@ -18,7 +21,7 @@ interface CompNode {
   children?: Map<number, CompNode> | null
 }
 
-class ApplicationContainer implements InternalApplicationContainer {
+export class ApplicationContainer implements InternalApplicationContainer {
 
   public root: Container
   public log: Log

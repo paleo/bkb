@@ -1,4 +1,9 @@
-class Container {
+import { ComponentEvent, EmitterOptions, Bkb, Dash, ApplicationDash, ParentFilter, Transmitter, ChildFilter, AsComponentProperties, CreateComponentProperties } from "./interfaces"
+import { Emitter } from "./Emitter"
+import { ChildEmitter } from "./ChildEmitter"
+import { ApplicationContainer } from "./Application"
+
+export class Container {
   public bkb: Bkb | undefined
   public dash: Dash | ApplicationDash | undefined
   public emitter: Emitter
@@ -258,18 +263,18 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
   return bkb
 }
 
-interface InternalNewComponentAsObj {
+export interface InternalNewComponentAsObj {
   asObj: true
   props: AsComponentProperties
   obj: object
 }
 
-interface InternalNewComponentNew {
+export interface InternalNewComponentNew {
   asObj: false
   props: CreateComponentProperties<any, any>
 }
 
-type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
+export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
 function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
   let source: any = {

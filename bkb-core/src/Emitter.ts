@@ -1,16 +1,22 @@
-interface ListenerEventMode {
+import { ComponentEvent, Transmitter } from "./interfaces"
+import { InternalApplicationContainer } from "./Application"
+import { Container } from "./Container"
+
+export interface ListenerEventMode {
   mode: "event"
   cb: (ev: ComponentEvent) => void
   thisArg?: any
 }
-interface ListenerDataMode {
+
+export interface ListenerDataMode {
   mode: "data"
   cb: (data: any, ev: ComponentEvent) => void
   thisArg?: any
 }
-type Listener = ListenerEventMode | ListenerDataMode
 
-class Emitter {
+export type Listener = ListenerEventMode | ListenerDataMode
+
+export class Emitter {
   public static empty(): Transmitter {
     let transmitter = {
       onData: () => {
@@ -150,7 +156,7 @@ class Emitter {
   }
 }
 
-function call(cb: Listener, ev: ComponentEvent) {
+export function call(cb: Listener, ev: ComponentEvent) {
   switch (cb.mode) {
     case "data":
       if (cb.thisArg)

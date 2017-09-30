@@ -1,8 +1,12 @@
-type ChildCallback = (ListenerEventMode | ListenerDataMode) & {
+import { ChildFilter, ComponentEvent, Transmitter } from "./interfaces"
+import { Listener, call } from "./Emitter"
+import { InternalApplicationContainer } from "./Application";
+
+type ChildCallback = Listener & {
   filter: ChildFilter
 }
 
-class ChildEmitter {
+export class ChildEmitter {
   private callbacks: Map<string, ChildCallback[]> | null
   private destroyed = false
 

@@ -2,6 +2,7 @@
 .sass-cache
 node_modules
 
+bkb-core/compiled
 bkb-core/dist_*/*
 !bkb-core/dist_*/package.json
 !bkb-core/dist_*/README.md

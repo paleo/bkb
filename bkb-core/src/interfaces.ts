@@ -1,4 +1,4 @@
-interface ComponentEvent<D = any> {
+export interface ComponentEvent<D = any> {
   readonly eventName: string
   /**
    * The component source
@@ -8,18 +8,18 @@ interface ComponentEvent<D = any> {
   stopPropagation(): void
 }
 
-interface Transmitter<D = any> {
+export interface Transmitter<D = any> {
   onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   onEvent(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
   disable(): void
   isDisabled(): boolean
 }
 
-interface ParentFilter {
+export interface ParentFilter {
   (parent: any): boolean
 }
 
-interface ChildFilter {
+export interface ChildFilter {
   group?: string | string[]
   filter?: (child: any) => boolean
   /**
@@ -28,25 +28,25 @@ interface ChildFilter {
   deep?: boolean
 }
 
-interface CreateComponentProperties<A = any, C = any> {
+export interface CreateComponentProperties<A = any, C = any> {
   Class: { new(dash: Dash<A>, ...args: any[]): C },
   arguments?: any[]
   argument?: any
   group?: string | string[]
 }
 
-interface AsComponentProperties {
+export interface AsComponentProperties {
   group?: string | string[]
 }
 
-interface EmitterOptions {
+export interface EmitterOptions {
   /**
    * Default value is <code>false</code>
    */
   sync?: boolean
 }
 
-interface Bkb {
+export interface Bkb {
   onEvent<D = any>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
   onData<D = any>(eventName: string, callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   listen<D = any>(eventName: string): Transmitter<D>
@@ -84,11 +84,11 @@ interface Bkb {
   getParent(filter?: ParentFilter): object | undefined
 }
 
-interface ApplicationBkb extends Bkb {
+export interface ApplicationBkb extends Bkb {
   readonly log: Log
 }
 
-interface BasicDash<A = any> extends Bkb {
+export interface BasicDash<A = any> extends Bkb {
   /**
    * Call this method if the instance must be available during the execution of the constructor
    */
@@ -134,24 +134,24 @@ interface BasicDash<A = any> extends Bkb {
   getBkbOf(component: object): Bkb
 }
 
-interface Dash<A = any> extends BasicDash<A> {
+export interface Dash<A = any> extends BasicDash<A> {
   readonly app: A
   readonly bkb: Bkb
 }
 
-interface ApplicationDash<A = any> extends BasicDash<A>, ApplicationBkb {
+export interface ApplicationDash<A = any> extends BasicDash<A>, ApplicationBkb {
   readonly bkb: ApplicationBkb
 }
 
 /**
  * The type of data for log event
  */
-interface LogItem {
+export interface LogItem {
   type: string
   messages: any[]
 }
 
-interface Log {
+export interface Log {
   error(...messages: any[]): void
   warn(...messages: any[]): void
   info(...messages: any[]): void
