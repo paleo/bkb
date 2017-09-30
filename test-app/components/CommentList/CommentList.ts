@@ -11,7 +11,6 @@ const templates = new RawTemplateProvider(require("html-loader!./CommentList.htm
 // const templates = new RawTemplateProvider(tplStr)
 
 export default class CommentList {
-  static readonly componentName = 'CommentList'
   private $container: JQuery
   private $ul: JQuery
 
@@ -21,7 +20,7 @@ export default class CommentList {
     this.$ul = this.$container.find('.CommentList-ul')
     const $addBtn = this.$container.find('.CommentList-addBtn').click(() => this.add())
     dash.listenToParent('enabled').onEvent(evt => {
-      console.log(`[parent-Event] [${dash.componentName} ${dash.componentId}] enabled ${evt.data}`)
+      console.log(`[parent-Event] enabled ${evt.data}`, this)
       if (evt.data)
         $addBtn.show()
       else
@@ -36,7 +35,7 @@ export default class CommentList {
       .appendTo(this.$ul)
     const comment = this.dash.create(Comment, $li[0]).test()
     const listener = this.dash.listenToParent('enabled').onEvent(evt => {
-      console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${evt.data} (for li)`)
+      console.log(`[parent-Event] enabled ${evt.data} (for li)`, this)
       if (evt.data)
         $rmBtn.show()
       else

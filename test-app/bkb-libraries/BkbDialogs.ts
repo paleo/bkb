@@ -9,7 +9,6 @@ enum SmallDialogType {
 }
 
 export default class BkbDialogs {
-  static readonly componentName = 'Task'
 
   // --
   // -- Initialisation

@@ -5,7 +5,6 @@ import { createEasyRouter, EasyRouter } from '../../libraries-ts/EasyRouter'
 
 export default class TestApp {
   readonly log: Log
-  readonly nextTick: (cb: () => void) => void
 
   private $app: JQuery
 
@@ -17,7 +16,6 @@ export default class TestApp {
 
   constructor(private dash: ApplicationDash<TestApp>) {
     this.log = dash.log
-    this.nextTick = dash.nextTick
 
     this.dash.onData<LogItem>('log', data => {
       console.log(`[LOG] ${data.type} `, data.messages)
@@ -27,10 +25,10 @@ export default class TestApp {
       // console.log('EVENT', evt)
       const type = ev.data.type,
         evBkb = dash.getBkbOf(ev.data.component),
-        msg = `change component (${type} ${evBkb.componentName} ${evBkb.componentId})\n`
-      this.nextTick(() => {
+        msg = `change component (${type})\n`
+      setTimeout(() => {
         console.log(msg, publicNodesToString(dash, dash.find()))
-      })
+      }, 0)
     })
 
     this.$app = $('.js-app')
@@ -81,11 +79,24 @@ function publicNodesToString(dash: ApplicationDash, components: any[], indent = 
   const lines = []
   for (const comp of components) {
     let bkb = dash.getBkbOf(comp)
-    let line = `${indent}- ${bkb.componentName} (${bkb.componentId})`
+    let compName = getComponentName(bkb.instance)
+    let line = `${indent}- ${compName})`
     const children = bkb.find()
     if (children.length > 0)
       line += '\n' + publicNodesToString(dash, children, `${indent}  `)
     lines.push(line)
   }
   return lines.join('\n')
+}
+
+
+function getComponentName(objOrCl): string {
+  if (Symbol && Symbol.toStringTag && objOrCl[Symbol.toStringTag])
+    return objOrCl[Symbol.toStringTag]
+  if (objOrCl.constructor && objOrCl.constructor.name)
+    return objOrCl.constructor.name
+  let results = /function (.+)\(/.exec(objOrCl.toString())
+  if (results && results.length > 1)
+    return results[1]
+  return "Function"
 }

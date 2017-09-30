@@ -6,5 +6,4 @@
     <p class="Task-text">{{ label }}</p>
   </div>
   <div class="Task-comments" :CommentList="Yes!"></div>
-  <span>{{compId}}</span>
 </div>

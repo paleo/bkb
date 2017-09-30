@@ -10,13 +10,11 @@ import 'monkberry-events'
 import * as Template from './Task.monk'
 
 export default class Task {
-  public static componentName = 'Task'
   private view: any
 
   private state = {
     label: 'Hop Monkberry',
     updMode: true,
-    compId: null,
     ctrl: {
       select: () => {
         this.setUpdateMode(true)
@@ -29,7 +27,6 @@ export default class Task {
   }
 
   constructor(private dash: Dash<TestApp>, el: HTMLElement) {
-    this.state.compId = dash.componentId
     this.setUpdateMode(true)
     dash.onEvent('destroy', () => {
       // console.log('destroy task')

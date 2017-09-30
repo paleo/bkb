@@ -8,7 +8,6 @@ const templates = new BkbVueProvider(require("html-loader!./Task.html"))
 // const templates = new BkbVueProvider(tplStr)
 
 export default class Task {
-  static readonly componentName = 'Task'
 
   private vm = {
     label: '',

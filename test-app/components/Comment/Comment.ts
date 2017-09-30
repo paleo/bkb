@@ -8,14 +8,13 @@ const templates = new RawTemplateProvider(require("html-loader!./Comment.html"))
 // const templates = new RawTemplateProvider(tplStr)
 
 export default class Comment {
-  static readonly componentName = 'Comment'
   private $container: JQuery
 
   constructor(private dash: Dash<TestApp>, el: HTMLElement) {
     this.$container = $(templates.getTemplate('.Comment'))
     const $input = this.$container.find('input')
     dash.listenToParent('enabled').onData(enabled => {
-      console.log(`[parent-Event] [${this.dash.componentName} ${this.dash.componentId}] enabled ${enabled}`)
+      console.log(`[parent-Event] enabled ${enabled}`, this)
       $input.prop('disabled', !enabled)
     })
     // $input.click(() => {
