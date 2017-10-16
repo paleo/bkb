@@ -13,6 +13,7 @@
     "search.exclude": {
         "**/node_modules": true,
         "**/bower_components": true,
+        "compiled/*": true,
         "dist*/*.ts": true,
         "dist*/*.js": true
     }

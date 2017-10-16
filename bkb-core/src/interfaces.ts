@@ -12,31 +12,23 @@ export interface Transmitter<D = any> {
   onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   onEvent(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
   disable(): void
-  isDisabled(): boolean
+  readonly isDisabled: boolean
 }
 
 export interface ParentFilter {
   (parent: any): boolean
 }
 
-export interface ChildFilter {
+export interface FindChildOptions {
   group?: string | string[]
   filter?: (child: any) => boolean
+}
+
+export interface ListenChildOptions extends FindChildOptions {
   /**
    * Default value is <code>false</code>
    */
   deep?: boolean
-}
-
-export interface CreateComponentProperties<A = any, C = any> {
-  Class: { new(dash: Dash<A>, ...args: any[]): C },
-  arguments?: any[]
-  argument?: any
-  group?: string | string[]
-}
-
-export interface AsComponentProperties {
-  group?: string | string[]
 }
 
 export interface EmitterOptions {
@@ -47,26 +39,29 @@ export interface EmitterOptions {
 }
 
 export interface Bkb {
-  onEvent<D = any>(eventName: string, callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  onData<D = any>(eventName: string, callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  listen<D = any>(eventName: string): Transmitter<D>
+  onEvent<D = any>(eventName: string | string[], callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
+  onData<D = any>(eventName: string | string[], callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
+  listen<D = any>(eventName: string | string[]): Transmitter<D>
 
   /**
    * Find children
    */
-  find<C = any>(filter?: ChildFilter): C[]
+  children<C = any>(filter?: FindChildOptions): C[]
   /**
-   * Find a single child (an Error is thrown if there isn't one result)
+   * Find a single child (or throws an Error if there isn't one result)
    */
-  findSingle<C = any>(filter?: ChildFilter): C
+  getChild<C = any>(filter?: FindChildOptions): C
   /**
    * @returns The count of children that validate the filter
    */
-  count(filter?: ChildFilter): number
+  countChildren(filter?: FindChildOptions): number
   /**
    * @returns true if there is one or more children that validate the filter
    */
-  has(filter?: ChildFilter): boolean
+  hasChildren(filter?: FindChildOptions): boolean
+
+  isChild(obj: object): boolean
+  isComponent(obj: object): boolean
 
   destroy(): void
 
@@ -94,12 +89,14 @@ export interface BasicDash<A = any> extends Bkb {
    */
   setInstance(inst: any): void
 
-  exposeEvents(...eventNames: string[]): this
-  exposeEvents(eventNames: string[]): this
+  exposeEvent(...eventNames: string[]): this
+  exposeEvent(eventNames: string[]): this
 
   create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): C
-  customCreate<C>(properties: CreateComponentProperties<A, C>): C
-  asComponent(obj: object, properties?: AsComponentProperties): Dash<A>
+  asComponent(obj: object): Dash<A>
+
+  addToGroup(child: object, group: string, ...groups: string[]): this
+  isInGroup(child: object, group: string, ...groups: string[]): boolean
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
@@ -120,15 +117,17 @@ export interface BasicDash<A = any> extends Bkb {
    * @param eventName The event to listen
    * @param filter A filter that has to match with the targeted parent
    */
-  listenToParent<D = any>(eventName: string, filter?: ParentFilter): Transmitter<D>
+  listenToParent<D = any>(eventName: string | string[], filter?: ParentFilter): Transmitter<D>
 
   /**
    * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
    * descendant that match the filter.
    */
-  listenToChildren<D = any>(eventName: string, filter?: ChildFilter): Transmitter<D>
+  listenToChildren<D = any>(eventName: string | string[], filter?: ListenChildOptions): Transmitter<D>
 
-  listenTo<D = any>(component: object, eventName: string): Transmitter<D>
+  listenTo<D = any>(component: object, eventName: string | string[]): Transmitter<D>
+
+  destroyChildren(filter?: FindChildOptions): this
 
   readonly log: Log
   getBkbOf(component: object): Bkb

@@ -43,7 +43,7 @@ export class ApplicationContainer implements InternalApplicationContainer {
       container: this.root
     }
     this.nodes.set(compId, node)
-    this.root.emitter.exposeEvents(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
+    this.root.emitter.exposeEvent(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
     let inst = asObject ? this.root.setInstance(objOrCl) : this.root.makeInstance(objOrCl, args || [])
     this.nodesByInst.set(inst, node)
   }
@@ -67,8 +67,12 @@ export class ApplicationContainer implements InternalApplicationContainer {
     return this.findNode(compId).container
   }
 
-  public getContainerByInst(inst: object): Container {
-    return this.findNodeByInst(inst).container
+  public getContainerByInst(obj: object): Container {
+    return this.findNodeByInst(obj).container
+  }
+
+  public isComponent(obj: object): boolean {
+    return this.nodesByInst.get(obj) ? true : false
   }
 
   public createComponent(nc: InternalNewComponent, parent: Container): Container {
@@ -88,10 +92,8 @@ export class ApplicationContainer implements InternalApplicationContainer {
     let inst: object
     if (nc.asObj)
       inst = container.setInstance(nc.obj)
-    else {
-      let args = nc.props.arguments || (nc.props.argument ? [nc.props.argument] : [])
-      inst = container.makeInstance(nc.props.Class, args)
-    }
+    else
+      inst = container.makeInstance(nc.Class, nc.args)
     this.nodesByInst.set(inst, node)
     this.root.dash.emit("addComponent", { component: container.getInstance() })
     this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })

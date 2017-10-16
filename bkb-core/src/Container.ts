@@ -1,4 +1,4 @@
-import { ComponentEvent, EmitterOptions, Bkb, Dash, ApplicationDash, ParentFilter, Transmitter, ChildFilter, AsComponentProperties, CreateComponentProperties } from "./interfaces"
+import { ComponentEvent, EmitterOptions, Bkb, Dash, ApplicationDash, ParentFilter, Transmitter, FindChildOptions, ListenChildOptions } from "./interfaces"
 import { Emitter } from "./Emitter"
 import { ChildEmitter } from "./ChildEmitter"
 import { ApplicationContainer } from "./Application"
@@ -73,19 +73,33 @@ export class Container {
   // --
 
   public createChild(nc: InternalNewComponent): Container {
-    let child = this.app.createComponent(nc, this)
-    if (nc.props.group) {
-      if (!this.childGroups)
-        this.childGroups = new Map()
-      let groupNames = (typeof nc.props.group === "string" ? [nc.props.group] : nc.props.group) as string[]
-      for (let name of groupNames) {
-        let g = this.childGroups.get(name)
-        if (!g)
-          this.childGroups.set(name, g = new Set())
-        g.add(child.componentId)
-      }
+    return this.app.createComponent(nc, this)
+  }
+
+  public addToGroup(child: object, ...groups: string[]) {
+    let childId = this.app.getContainerByInst(child).componentId
+    if (this !== this.app.getParentOf(childId))
+      throw new Error(`The component ${childId} is not a child of ${this.componentId}`)
+    if (!this.childGroups)
+      this.childGroups = new Map()
+    for (let group of groups) {
+      let g = this.childGroups.get(group)
+      if (!g)
+        this.childGroups.set(group, g = new Set())
+      g.add(childId)
     }
-    return child
+  }
+
+  public isInGroup(child: object, ...groups: string[]) {
+    if (!this.childGroups)
+      return false
+    let childId = this.app.getContainerByInst(child).componentId
+    for (let group of groups) {
+      let idSet = this.childGroups.get(group)
+      if (idSet && idSet.has(childId))
+        return true
+    }
+    return false
   }
 
   // --
@@ -142,7 +156,7 @@ export class Container {
   // -- [makeBkb and makeDash] Listen
   // --
 
-  public listenToParent<D>(eventName: string, filter?: ParentFilter): Transmitter<D> {
+  public listenToParent<D>(eventName: string | string[], filter?: ParentFilter): Transmitter<D> {
     let parent = this.getParent(filter)
     if (parent)
       return parent.emitter.listen(eventName, this)
@@ -151,7 +165,7 @@ export class Container {
     return Emitter.empty()
   }
 
-  public listenTo<D>(inst: object, eventName: string): Transmitter<D> {
+  public listenTo<D>(inst: object, eventName: string | string[]): Transmitter<D> {
     return this.app.getContainerByInst(inst).emitter.listen(eventName, this)
   }
 
@@ -182,9 +196,7 @@ export class Container {
   // -- [makeBkb and makeDash] Navigate to children
   // --
 
-  public find(filter: ChildFilter): object[] {
-    if (filter.deep)
-      throw new Error(`Cannot call "find" with filter deep`)
+  public getChildren(filter: FindChildOptions): object[] {
     let containers = this.getChildContainers(filter.group),
       result: object[] = []
     for (let child of containers) {
@@ -194,19 +206,32 @@ export class Container {
     return result
   }
 
-  public findSingle(filter: ChildFilter): object {
-    let list = this.find(filter)
+  public getChild(filter: FindChildOptions): object {
+    let list = this.getChildren(filter)
     if (list.length !== 1)
       throw new Error(`Cannot find single ${JSON.stringify(filter)} in component ${this.componentId}`)
     return list[0]
   }
 
-  public count(filter: ChildFilter): number {
-    return this.find(filter).length
+  public countChildren(filter: FindChildOptions): number {
+    return this.getChildren(filter).length
   }
 
-  public has(filter: ChildFilter): boolean {
-    return this.count(filter) > 0
+  public hasChildren(filter: FindChildOptions): boolean {
+    return this.countChildren(filter) > 0
+  }
+
+  public isChild(obj: object): boolean {
+    let compId = this.app.getContainerByInst(obj).componentId
+    return this === this.app.getParentOf(compId)
+  }
+
+  public destroyChildren(filter: FindChildOptions) {
+    let containers = this.getChildContainers(filter.group)
+    for (let child of containers) {
+      if (!filter.filter || filter.filter(child))
+        child.destroy()
+    }
   }
 
   private getChildContainers(groupName?: string | string[]): Iterable<Container> {
@@ -244,18 +269,20 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
     },
     onData: function <D>(eventName: string, cb: any, thisArg?: any) {
       container.emitter.listen(eventName).onData(cb, thisArg)
-      return this
+      return bkb
     },
     onEvent: function <D>(eventName: string, cb: any, thisArg?: any) {
       container.emitter.listen(eventName).onEvent(cb, thisArg)
-      return this
+      return bkb
     },
     listen: (eventName: string) => container.emitter.listen(eventName),
     destroy: () => container.destroy(),
-    find: <C>(filter: ChildFilter = {}) => container.find(filter) as any[],
-    findSingle: <C>(filter: ChildFilter = {}) => container.findSingle(filter) as any,
-    count: (filter: ChildFilter = {}) => container.count(filter),
-    has: (filter: ChildFilter = {}) => container.has(filter)
+    children: <C>(filter: FindChildOptions = {}) => container.getChildren(filter) as any[],
+    getChild: <C>(filter: FindChildOptions = {}) => container.getChild(filter) as any,
+    countChildren: (filter: FindChildOptions = {}) => container.countChildren(filter),
+    hasChildren: (filter: FindChildOptions = {}) => container.hasChildren(filter),
+    isChild: (obj: object) => container.isChild(obj),
+    isComponent: (obj: object) => container.app.isComponent(obj)
   }
   if (additionalMembers)
     Object.assign(bkb, additionalMembers)
@@ -265,13 +292,13 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
 
 export interface InternalNewComponentAsObj {
   asObj: true
-  props: AsComponentProperties
   obj: object
 }
 
 export interface InternalNewComponentNew {
   asObj: false
-  props: CreateComponentProperties<any, any>
+  Class: any
+  args: any[]
 }
 
 export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
@@ -279,33 +306,38 @@ export type InternalNewComponent = InternalNewComponentAsObj | InternalNewCompon
 function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
   let source: any = {
     setInstance: (inst: any) => { container.setInstance(inst) },
-    exposeEvents: function (...eventNames: any[]) {
+    exposeEvent: function (...eventNames: any[]) {
       let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
-      container.emitter.exposeEvents(names, true)
-      return this
+      container.emitter.exposeEvent(names, true)
+      return dash
     },
-    create: <C>(Class: { new(): C }, ...args: any[]) => container.createChild(
-      { asObj: false, props: { Class, arguments: args } }
-    ).getInstance(),
-    customCreate: <C>(props: CreateComponentProperties<any, C>) => container.createChild(
-      { asObj: false, props }
-    ).getInstance(),
-    asComponent: (obj: object, props: AsComponentProperties = {}) => container.createChild(
-      { asObj: true, props, obj }
-    ).dash!,
+    create: <C>(Class: { new(): C }, ...args: any[]) =>
+      container.createChild({ asObj: false, Class, args }).getInstance(),
+    asComponent: (obj: object) => container.createChild({ asObj: true, obj }).dash!,
+    addToGroup: (child: object, ...groups: string[]) => {
+      container.addToGroup(child, ...groups)
+      return dash
+    },
+    isInGroup: (child: object, ...groups: string[]) => container.isInGroup(child, ...groups),
     emit: function <D>(eventName: string | string[], data?: D, options?: EmitterOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)
         container.emit<D>(name, data, options)
-      return this
+      return dash
     },
     broadcast: function (ev: ComponentEvent, options?: EmitterOptions) {
       container.broadcast(ev, options)
-      return this
+      return dash
     },
-    listenToParent: <D>(eventName: string, filter?: ParentFilter) => container.listenToParent<D>(eventName, filter),
-    listenToChildren: <D>(eventName: string, filter?: ChildFilter) => container.childEmitter.listen<D>(eventName, filter),
-    listenTo: <D>(inst: object, eventName: string) => container.listenTo<D>(inst, eventName),
+    listenToParent: <D>(eventName: string | string[], filter?: ParentFilter) =>
+      container.listenToParent<D>(eventName, filter),
+    listenToChildren: <D>(eventName: string | string[], filter?: ListenChildOptions) =>
+      container.childEmitter.listen<D>(eventName, filter),
+    listenTo: <D>(inst: object, eventName: string | string[]) => container.listenTo<D>(inst, eventName),
+    destroyChildren: (filter: FindChildOptions = {}) => {
+      container.destroyChildren(filter)
+      return dash
+    },
     getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb,
     bkb: bkb as any
   }

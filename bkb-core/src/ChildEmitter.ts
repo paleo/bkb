@@ -1,9 +1,9 @@
-import { ChildFilter, ComponentEvent, Transmitter } from "./interfaces"
+import { ComponentEvent, Transmitter, ListenChildOptions } from "./interfaces"
 import { Listener, call } from "./Emitter"
 import { InternalApplicationContainer } from "./Application";
 
 type ChildCallback = Listener & {
-  filter: ChildFilter
+  filter: ListenChildOptions
 }
 
 export class ChildEmitter {
@@ -30,9 +30,11 @@ export class ChildEmitter {
     this.callCbList<D>(filtered, ev)
   }
 
-  public listen<D>(eventName: string, filter: ChildFilter = {}): Transmitter<D> {
+  public listen<D>(eventNames: string | string[], filter: ListenChildOptions = {}): Transmitter<D> {
     if (this.destroyed)
       throw new Error("Cannot call 'listen' in a destroyed child-emitter")
+    if (typeof eventNames === "string")
+      eventNames = [eventNames]
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[] | null = []
@@ -41,16 +43,18 @@ export class ChildEmitter {
     const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
       if (this.destroyed || !idList || !this.callbacks)
         return transmitter
-      let cbList = this.callbacks.get(eventName)
-      if (!cbList)
-        this.callbacks.set(eventName, cbList = [])
-      let id = cbList.length
-      idList.push(id)
-      cbList[id] = {
-        mode: mode as any,
-        cb,
-        thisArg,
-        filter
+      for (let evName of eventNames) {
+        let cbList = this.callbacks.get(evName)
+        if (!cbList)
+          this.callbacks.set(evName, cbList = [])
+        let id = cbList.length
+        idList.push(id)
+        cbList[id] = {
+          mode: mode as any,
+          cb,
+          thisArg,
+          filter
+        }
       }
     }
 
@@ -66,14 +70,18 @@ export class ChildEmitter {
       disable: () => {
         if (isDisabled() || !this.callbacks)
           return
-        let cbList = this.callbacks.get(eventName)
-        if (cbList) {
-          for (let id of idList!)
-            delete cbList[id]
+        for (let evName of eventNames) {
+          let cbList = this.callbacks.get(evName)
+          if (cbList) {
+            for (let id of idList!)
+              delete cbList[id]
+          }
         }
         idList = null
       },
-      isDisabled
+      get isDisabled() {
+        return isDisabled()
+      }
     }
     return transmitter
   }

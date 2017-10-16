@@ -27,7 +27,9 @@ export class Emitter {
       },
       disable: () => {
       },
-      isDisabled: () => false
+      get isDisabled() {
+        return false
+      }
     }
     return transmitter
   }
@@ -40,12 +42,12 @@ export class Emitter {
 
   constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
     if (eventNames)
-      this.exposeEvents(eventNames, false)
+      this.exposeEvent(eventNames, false)
   }
 
-  public exposeEvents(eventNames: string[], strictEventsMode: boolean): void {
+  public exposeEvent(eventNames: string[], strictEventsMode: boolean): void {
     if (this.destroyed)
-      throw new Error(`Cannot call exposeEvents in a destroyed transmitter`)
+      throw new Error(`Cannot call exposeEvent in a destroyed transmitter`)
     if (!this.eventNames)
       this.eventNames = new Set()
     for (let name of eventNames)
@@ -64,11 +66,13 @@ export class Emitter {
       this.callCbList(cbList, ev)
   }
 
-  public listen(eventName: string, from?: Container): Transmitter {
+  public listen(eventNames: string | string[], from?: Container): Transmitter {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
     if (from && !from.bkb)
       throw new Error(`Cannot call listen from a destroyed component`)
+    if (typeof eventNames === "string")
+      eventNames = [eventNames]
     if (!this.callbacks)
       this.callbacks = new Map()
     let idList: number[] | null = []
@@ -77,15 +81,17 @@ export class Emitter {
     const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
       if (this.destroyed || !idList || !this.callbacks)
         return transmitter
-      let cbList = this.callbacks.get(eventName)
-      if (!cbList)
-        this.callbacks.set(eventName, cbList = [])
-      let id = cbList.length
-      idList.push(id)
-      cbList[id] = {
-        mode: mode as any,
-        cb,
-        thisArg
+      for (let evName of eventNames) {
+        let cbList = this.callbacks.get(evName)
+        if (!cbList)
+          this.callbacks.set(evName, cbList = [])
+        let id = cbList.length
+        idList.push(id)
+        cbList[id] = {
+          mode: mode as any,
+          cb,
+          thisArg
+        }
       }
     }
 
@@ -101,10 +107,12 @@ export class Emitter {
       disable: () => {
         if (isDisabled() || !this.callbacks)
           return
-        let cbList = this.callbacks.get(eventName)
-        if (cbList) {
-          for (let id of idList!)
-            delete cbList[id]
+        for (let evName of eventNames) {
+          let cbList = this.callbacks.get(evName)
+          if (cbList) {
+            for (let id of idList!)
+              delete cbList[id]
+          }
         }
         idList = null
         if (fromEolCanceler) {
@@ -112,7 +120,9 @@ export class Emitter {
           fromEolCanceler = null
         }
       },
-      isDisabled
+      get isDisabled() {
+        return isDisabled()
+      }
     }
 
     let fromEolCanceler

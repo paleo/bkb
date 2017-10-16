@@ -1,7 +1,7 @@
 {
   "name": "bkb",
-  "version": "0.18.1",
-  "description": "A JavaScript Framework for Front-end Applications.",
+  "version": "0.19.0",
+  "description": "A JavaScript Framework for Front-end Applications",
   "main": "bkb.min.js",
   "types": "bkb.d.ts",
   "repository": {
