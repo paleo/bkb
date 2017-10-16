@@ -1,11 +1,11 @@
-import { ComponentEvent, EmitterOptions, Bkb, Dash, ApplicationDash, ParentFilter, Transmitter, FindChildOptions, ListenChildOptions } from "./interfaces"
+import { ComponentEvent, EmitterOptions, PublicDash, Dash, ApplicationDash, ParentFilter, Transmitter, FindChildOptions, ListenChildOptions } from "./interfaces"
 import { Emitter } from "./Emitter"
 import { ChildEmitter } from "./ChildEmitter"
 import { ApplicationContainer } from "./Application"
 import { createMultiTransmitter } from "./MultiTransmitter";
 
 export class Container {
-  public bkb: Bkb | undefined
+  public pub: PublicDash | undefined
   public dash: Dash | ApplicationDash | undefined
   public emitter: Emitter
   public childEmitter: ChildEmitter
@@ -15,11 +15,11 @@ export class Container {
 
   private static canPropagateSymb = Symbol("canPropagate")
 
-  constructor(public app: ApplicationContainer, readonly componentId: number, bkbMethods?: any) {
+  constructor(public app: ApplicationContainer, readonly componentId: number) {
     this.emitter = new Emitter(app, ["destroy"])
     this.childEmitter = new ChildEmitter(app)
-    this.bkb = makeBkb(this, bkbMethods)
-    this.dash = makeDash(this, this.bkb)
+    this.pub = makePublicDash(this)
+    this.dash = makeDash(this, this.pub)
   }
 
   // --
@@ -35,7 +35,7 @@ export class Container {
   public setInstance(inst: object): object {
     if (this.inst)
       return this.inst
-    if (!this.bkb)
+    if (!this.pub)
       throw new Error(`Destroyed component`)
     this.inst = inst
     return inst
@@ -43,7 +43,7 @@ export class Container {
 
   public getInstance(): object {
     if (!this.inst) {
-      if (this.bkb)
+      if (this.pub)
         throw new Error(`The component instance is still not initialized`)
       throw new Error("Destroyed component")
     }
@@ -57,7 +57,7 @@ export class Container {
       this.childGroups.clear()
     this.emitter.destroy()
     this.childEmitter.destroy()
-    this.bkb = undefined
+    this.pub = undefined
     this.dash = undefined
     this.inst = undefined
   }
@@ -70,7 +70,7 @@ export class Container {
   }
 
   // --
-  // -- [makeBkb and makeDash]
+  // -- [make dashs]
   // --
 
   public createChild(nc: InternalNewComponent): Container {
@@ -104,7 +104,7 @@ export class Container {
   }
 
   // --
-  // -- [makeBkb and makeDash] Emit events
+  // -- [make dashs] Emit events
   // --
 
   public broadcast(ev: ComponentEvent, options?: EmitterOptions) {
@@ -154,7 +154,7 @@ export class Container {
   }
 
   // --
-  // -- [makeBkb and makeDash] Listen
+  // -- [make dashs] Listen
   // --
 
   public listenToParent<D>(eventName: string | string[], filter?: ParentFilter): Transmitter<D> {
@@ -176,7 +176,7 @@ export class Container {
   }
 
   // --
-  // -- [makeBkb and makeDash] Navigate to parents
+  // -- [make dashs] Navigate to parents
   // --
 
   private getGroupsOf(childId: number): Set<string> {
@@ -209,7 +209,7 @@ export class Container {
   }
 
   // --
-  // -- [makeBkb and makeDash] Navigate to children
+  // -- [make dashs] Navigate to children
   // --
 
   public getChildren(filter: FindChildOptions): object[] {
@@ -271,13 +271,13 @@ export class Container {
   }
 }
 
-function makeBkb(container: Container, additionalMembers?: any): Bkb {
-  let bkb: Bkb = {
+function makePublicDash(container: Container): PublicDash {
+  let pub: PublicDash = {
     get instance() {
       return container.getInstance()
     },
     get parent() {
-      return bkb.getParent()
+      return pub.getParent()
     },
     getParent: function (filter?: ParentFilter) {
       let parent = container.getParent(filter)
@@ -287,11 +287,11 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
       container.getAllParents(filter).map(parentContainer => parentContainer.getInstance()),
     onData: function <D>(eventName: string, cb: any, thisArg?: any) {
       container.emitter.listen(eventName).onData(cb, thisArg)
-      return bkb
+      return pub
     },
     onEvent: function <D>(eventName: string, cb: any, thisArg?: any) {
       container.emitter.listen(eventName).onEvent(cb, thisArg)
-      return bkb
+      return pub
     },
     listen: (eventName: string) => container.emitter.listen(eventName),
     destroy: () => container.destroy(),
@@ -301,13 +301,13 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
     hasChildren: (filter: FindChildOptions = {}) => container.hasChildren(filter),
     isChild: (obj: object) => container.isChild(obj),
     isComponent: (obj: object) => container.app.isComponent(obj),
-    getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb!,
+    getPublicDashOf: (inst: object) => container.app.getContainerByInst(inst).pub!,
     log: container.app.log
   }
-  if (additionalMembers)
-    Object.assign(bkb, additionalMembers)
-  Object.freeze(bkb)
-  return bkb
+  // if (additionalMembers)
+  //   Object.assign(pub, additionalMembers)
+  Object.freeze(pub)
+  return pub
 }
 
 export interface InternalNewComponentAsObj {
@@ -323,7 +323,7 @@ export interface InternalNewComponentNew {
 
 export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
-function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
+function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationDash {
   let source: any = {
     setInstance: (inst: any) => { container.setInstance(inst) },
     exposeEvent: function (...eventNames: any[]) {
@@ -360,9 +360,9 @@ function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
       container.destroyChildren(filter)
       return dash
     },
-    bkb
+    publicDash: pub
   }
-  let dash = Object.assign(Object.create(bkb), source)
+  let dash = Object.assign(Object.create(pub), source)
   if (container.app.root && container.app.root !== container) {
     Object.defineProperties(dash, {
       app: { get: () => container.app.root.getInstance() }

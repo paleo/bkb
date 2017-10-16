@@ -69,7 +69,7 @@ export class Emitter {
   public listen(eventNames: string | string[], from?: Container): Transmitter {
     if (this.destroyed || !this.fromEolCancelers)
       throw new Error(`Cannot call listen in a destroyed emitter`)
-    if (from && !from.bkb)
+    if (from && !from.pub)
       throw new Error(`Cannot call listen from a destroyed component`)
     if (typeof eventNames === "string")
       eventNames = [eventNames]
@@ -127,7 +127,7 @@ export class Emitter {
 
     let fromEolCanceler
     if (from) {
-      let destroyTransmitter = from.bkb!.listen("destroy").onEvent(() => transmitter.disable()),
+      let destroyTransmitter = from.pub!.listen("destroy").onEvent(() => transmitter.disable()),
         cancelerId = this.fromEolCancelers.length
       this.fromEolCancelers[cancelerId] = destroyTransmitter
       fromEolCanceler = () => {

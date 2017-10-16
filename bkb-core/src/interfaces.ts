@@ -46,14 +46,14 @@ interface ApplicationMembers {
   /**
    * This method is inherited from the application.
    */
-  getBkbOf(component: object): Bkb
+  getPublicDashOf(component: object): PublicDash
   /**
    * This member is inherited from the application.
    */
   readonly log: Log
 }
 
-export interface Bkb extends ApplicationMembers {
+export interface PublicDash extends ApplicationMembers {
   onEvent<D = any>(eventName: string | string[], callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
   onData<D = any>(eventName: string | string[], callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   listen<D = any>(eventName: string | string[]): Transmitter<D>
@@ -97,7 +97,7 @@ export interface Bkb extends ApplicationMembers {
   getAllParents(filter?: ParentFilter): object[]
 }
 
-export interface BasicDash<A = any> extends Bkb {
+export interface BasicDash<A = any> extends PublicDash {
   /**
    * Call this method if the instance must be available during the execution of the constructor
    */
@@ -145,7 +145,7 @@ export interface BasicDash<A = any> extends Bkb {
 
   destroyChildren(filter?: FindChildOptions): this
 
-  readonly bkb: Bkb
+  readonly publicDash: PublicDash
 }
 
 export interface ApplicationDash<A = any> extends BasicDash<A> {

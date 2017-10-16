@@ -5,7 +5,7 @@ export {
   FindChildOptions,
   EmitterOptions,
   Dash,
-  Bkb,
+  PublicDash,
   LogItem,
   Log,
   ApplicationDash

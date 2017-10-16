@@ -36,9 +36,7 @@ export class ApplicationContainer implements InternalApplicationContainer {
     let logTypes = ["error", "warn", "info", "debug", "trace"],
       compId = this.newId()
     this.log = this.createLog(logTypes)
-    this.root = new Container(this, compId, {
-      log: this.log
-    })
+    this.root = new Container(this, compId)
     let node = {
       container: this.root
     }
