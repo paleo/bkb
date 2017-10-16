@@ -38,7 +38,22 @@ export interface EmitterOptions {
   sync?: boolean
 }
 
-export interface Bkb {
+interface ApplicationMembers {
+  /**
+   * This method is inherited from the application.
+   */
+  isComponent(obj: object): boolean
+  /**
+   * This method is inherited from the application.
+   */
+  getBkbOf(component: object): Bkb
+  /**
+   * This member is inherited from the application.
+   */
+  readonly log: Log
+}
+
+export interface Bkb extends ApplicationMembers {
   onEvent<D = any>(eventName: string | string[], callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
   onData<D = any>(eventName: string | string[], callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
   listen<D = any>(eventName: string | string[]): Transmitter<D>
@@ -61,7 +76,6 @@ export interface Bkb {
   hasChildren(filter?: FindChildOptions): boolean
 
   isChild(obj: object): boolean
-  isComponent(obj: object): boolean
 
   destroy(): void
 
@@ -77,10 +91,10 @@ export interface Bkb {
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   getParent(filter?: ParentFilter): object | undefined
-}
-
-export interface ApplicationBkb extends Bkb {
-  readonly log: Log
+  /**
+   * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
+   */
+  getAllParents(filter?: ParentFilter): object[]
 }
 
 export interface BasicDash<A = any> extends Bkb {
@@ -119,6 +133,8 @@ export interface BasicDash<A = any> extends Bkb {
    */
   listenToParent<D = any>(eventName: string | string[], filter?: ParentFilter): Transmitter<D>
 
+  listenToAllParents<D = any>(eventName: string | string[], filter?: ParentFilter): Transmitter<D>
+
   /**
    * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
    * descendant that match the filter.
@@ -129,17 +145,14 @@ export interface BasicDash<A = any> extends Bkb {
 
   destroyChildren(filter?: FindChildOptions): this
 
-  readonly log: Log
-  getBkbOf(component: object): Bkb
+  readonly bkb: Bkb
+}
+
+export interface ApplicationDash<A = any> extends BasicDash<A> {
 }
 
 export interface Dash<A = any> extends BasicDash<A> {
   readonly app: A
-  readonly bkb: Bkb
-}
-
-export interface ApplicationDash<A = any> extends BasicDash<A>, ApplicationBkb {
-  readonly bkb: ApplicationBkb
 }
 
 /**

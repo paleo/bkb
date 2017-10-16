@@ -8,7 +8,6 @@ export {
   Bkb,
   LogItem,
   Log,
-  ApplicationBkb,
   ApplicationDash
 } from "./interfaces"
 

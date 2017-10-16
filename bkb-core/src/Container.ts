@@ -2,6 +2,7 @@ import { ComponentEvent, EmitterOptions, Bkb, Dash, ApplicationDash, ParentFilte
 import { Emitter } from "./Emitter"
 import { ChildEmitter } from "./ChildEmitter"
 import { ApplicationContainer } from "./Application"
+import { createMultiTransmitter } from "./MultiTransmitter";
 
 export class Container {
   public bkb: Bkb | undefined
@@ -165,6 +166,11 @@ export class Container {
     return Emitter.empty()
   }
 
+  public listenToAllParents<D>(eventName: string | string[], filter?: ParentFilter): Transmitter<D> {
+    let transmitters = this.getAllParents(filter).map(parent => parent.emitter.listen(eventName, this))
+    return createMultiTransmitter(transmitters)
+  }
+
   public listenTo<D>(inst: object, eventName: string | string[]): Transmitter<D> {
     return this.app.getContainerByInst(inst).emitter.listen(eventName, this)
   }
@@ -190,6 +196,16 @@ export class Container {
       if (!filter || filter(parent))
         return parent
     }
+  }
+
+  public getAllParents(filter?: ParentFilter): Container[] {
+    let parent: Container | undefined = this,
+      result = [] as Container[]
+    while (parent = this.app.getParentOf(parent.componentId)) {
+      if (!filter || filter(parent))
+        result.push(parent)
+    }
+    return result
   }
 
   // --
@@ -261,12 +277,14 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
       return container.getInstance()
     },
     get parent() {
-      return this.getParent()
+      return bkb.getParent()
     },
     getParent: function (filter?: ParentFilter) {
       let parent = container.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
+    getAllParents: (filter?: ParentFilter) =>
+      container.getAllParents(filter).map(parentContainer => parentContainer.getInstance()),
     onData: function <D>(eventName: string, cb: any, thisArg?: any) {
       container.emitter.listen(eventName).onData(cb, thisArg)
       return bkb
@@ -282,7 +300,9 @@ function makeBkb(container: Container, additionalMembers?: any): Bkb {
     countChildren: (filter: FindChildOptions = {}) => container.countChildren(filter),
     hasChildren: (filter: FindChildOptions = {}) => container.hasChildren(filter),
     isChild: (obj: object) => container.isChild(obj),
-    isComponent: (obj: object) => container.app.isComponent(obj)
+    isComponent: (obj: object) => container.app.isComponent(obj),
+    getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb!,
+    log: container.app.log
   }
   if (additionalMembers)
     Object.assign(bkb, additionalMembers)
@@ -331,6 +351,8 @@ function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
     },
     listenToParent: <D>(eventName: string | string[], filter?: ParentFilter) =>
       container.listenToParent<D>(eventName, filter),
+    listenToAllParents: <D>(eventName: string | string[], filter?: ParentFilter) =>
+      container.listenToAllParents<D>(eventName, filter),
     listenToChildren: <D>(eventName: string | string[], filter?: ListenChildOptions) =>
       container.childEmitter.listen<D>(eventName, filter),
     listenTo: <D>(inst: object, eventName: string | string[]) => container.listenTo<D>(inst, eventName),
@@ -338,11 +360,8 @@ function makeDash<C>(container: Container, bkb: Bkb): Dash | ApplicationDash {
       container.destroyChildren(filter)
       return dash
     },
-    getBkbOf: (inst: object) => container.app.getContainerByInst(inst).bkb,
-    bkb: bkb as any
+    bkb
   }
-  if (!bkb["log"])
-    source.log = container.app.log
   let dash = Object.assign(Object.create(bkb), source)
   if (container.app.root && container.app.root !== container) {
     Object.defineProperties(dash, {
