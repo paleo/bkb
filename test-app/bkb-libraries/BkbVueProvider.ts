@@ -87,7 +87,7 @@ class VueTemplate {
           return
         try {
           if (binding.bkbChildComp)
-            dash.getBkbOf(binding.bkbChildComp).destroy()
+            dash.getPublicDashOf(binding.bkbChildComp).destroy()
           binding.bkbChildComp = dash.create(Cl, el)
         } catch (e) {
           dash.log.error(e)
@@ -103,7 +103,7 @@ class VueTemplate {
         // console.log('............. unbind', arguments)
         if (binding.bkbChildComp) {
           try {
-            dash.getBkbOf(binding.bkbChildComp).destroy()
+            dash.getPublicDashOf(binding.bkbChildComp).destroy()
             binding.bkbChildComp = null
           } catch (e) {
             dash.log.error(e)

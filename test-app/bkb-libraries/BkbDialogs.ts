@@ -1,4 +1,4 @@
-import {Dash, Bkb} from 'bkb'
+import {Dash, PublicDash} from 'bkb'
 import {EasyRouter} from '../libraries-ts/EasyRouter'
 import 'dialog-polyfill'
 

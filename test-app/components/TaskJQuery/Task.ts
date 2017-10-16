@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import { Dash, Bkb } from 'bkb'
+import { Dash, PublicDash } from 'bkb'
 import RawTemplateProvider from '../../bkb-libraries/RawTemplateProvider'
 import CommentList from '../CommentList/CommentList'
 import TestApp from '../TestApp/TestApp'

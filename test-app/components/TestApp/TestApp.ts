@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import { ApplicationDash, ApplicationBkb, Log, LogItem } from 'bkb'
+import { ApplicationDash, Log, LogItem } from 'bkb'
 import TodoList from "../TodoList/TodoList"
 import { createEasyRouter, EasyRouter } from '../../libraries-ts/EasyRouter'
 
@@ -24,10 +24,10 @@ export default class TestApp {
     dash.listen<any>('changeComponent').onEvent(ev => {
       // console.log('EVENT', evt)
       const type = ev.data.type,
-        evBkb = dash.getBkbOf(ev.data.component),
+        evPub = dash.getPublicDashOf(ev.data.component),
         msg = `change component (${type})\n`
       setTimeout(() => {
-        console.log(msg, publicNodesToString(dash, dash.find()))
+        console.log(msg, publicNodesToString(dash, dash.children()))
       }, 0)
     })
 
@@ -72,16 +72,15 @@ export default class TestApp {
     })
     return router
   }
-
 }
 
 function publicNodesToString(dash: ApplicationDash, components: any[], indent = '') {
   const lines = []
   for (const comp of components) {
-    let bkb = dash.getBkbOf(comp)
-    let compName = getComponentName(bkb.instance)
+    let pub = dash.getPublicDashOf(comp)
+    let compName = getComponentName(pub.instance)
     let line = `${indent}- ${compName})`
-    const children = bkb.find()
+    const children = pub.children()
     if (children.length > 0)
       line += '\n' + publicNodesToString(dash, children, `${indent}  `)
     lines.push(line)

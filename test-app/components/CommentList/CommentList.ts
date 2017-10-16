@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import {Dash, Bkb} from 'bkb'
+import {Dash, PublicDash} from 'bkb'
 import Comment from "../Comment/Comment"
 import RawTemplateProvider from "../../bkb-libraries/RawTemplateProvider"
 import TestApp from '../TestApp/TestApp'
@@ -43,7 +43,7 @@ export default class CommentList {
     })
     const $rmBtn = $li.find('.js-rmBtn').click(() => {
       $li.remove()
-      this.dash.getBkbOf(comment).destroy()
+      this.dash.getPublicDashOf(comment).destroy()
       listener.disable()
     })
   }

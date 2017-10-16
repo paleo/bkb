@@ -1,5 +1,5 @@
 import * as $ from 'jquery'
-import { Dash, Bkb } from 'bkb'
+import { Dash, PublicDash } from 'bkb'
 import Task from "../TaskJQuery/Task"
 import Task2 from "../TaskMonkberry/Task"
 import Task3 from "../TaskVue/Task"
@@ -20,7 +20,7 @@ export default class TodoList {
 
     dash.listenToChildren('grabFocus', { group: 'items' }).onEvent(ev => {
       console.log(`[Event] grabFocus`, this)
-      for (const child of dash.find<Task>({ group: 'items' })) {
+      for (const child of dash.children<Task>({ group: 'items' })) {
         if (child !== ev.source)
           child.setUpdateMode(false)
       }
@@ -31,13 +31,10 @@ export default class TodoList {
   public add() {
     this.dash.app.log.info('add from todolist')
     const $li = $(templates.getTemplate('.TodoLi'))
-    const task = this.dash.customCreate({
-      Class: this.getTaskClass(),
-      group: 'items',
-      arguments: [$li.find('.TodoLi-content')[0]]
-    })
+    const task = this.dash.create(this.getTaskClass(), $li.find('.TodoLi-content')[0])
+    this.dash.addToGroup(task, 'items')
     $li.appendTo(this.$ul).find('.TodoLi-rmBtn').click(() => {
-      this.dash.getBkbOf(task).destroy()
+      this.dash.getPublicDashOf(task).destroy()
       $li.remove()
     })
   }

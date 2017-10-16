@@ -1,4 +1,4 @@
-import { Dash, Bkb } from 'bkb'
+import { Dash, PublicDash } from 'bkb'
 import CommentList from '../CommentList/CommentList'
 import BkbVueProvider from '../../bkb-libraries/BkbVueProvider';
 import TestApp from '../TestApp/TestApp'

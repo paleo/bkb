@@ -32,7 +32,7 @@ function createDirective(log: Log, maker: (el: HTMLElement, value?: string) => C
       this.el = null
       if (this.comp) {
         try {
-          dash.getBkbOf(this.comp).destroy()
+          dash.getPublicDashOf(this.comp).destroy()
           this.comp = null
         } catch (e) {
           log.error(e)
