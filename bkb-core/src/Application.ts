@@ -11,17 +11,17 @@ export function asApplication<A>(obj: A) {
   return container.root.dash as ApplicationDash<A>
 }
 
-export interface InternalApplicationContainer {
+export interface InternalLog {
   errorHandler(err: any): void
 }
 
 interface CompNode {
   container: Container
-  parent?: CompNode | null
-  children?: Map<number, CompNode> | null
+  parent?: CompNode | undefined
+  children?: Map<number, CompNode> | undefined
 }
 
-export class ApplicationContainer implements InternalApplicationContainer {
+export class ApplicationContainer implements InternalLog {
 
   public root: Container
   public log: Log
@@ -29,7 +29,7 @@ export class ApplicationContainer implements InternalApplicationContainer {
   private compCount = 0
   private nodesByInst = new WeakMap<object, CompNode>()
   private nodes = new Map<number, CompNode>()
-  private tickList: (() => void)[] | null = null
+  private tickList: (() => void)[] | undefined
   private insideRmComp = false
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
@@ -112,7 +112,7 @@ export class ApplicationContainer implements InternalApplicationContainer {
         node = this.findNode(compId)
       if (node.children) {
         for (let child of Array.from(node.children.values())) {
-          child.parent = null
+          child.parent = undefined
           child.container.destroy()
         }
         node.children.clear()
@@ -151,7 +151,7 @@ export class ApplicationContainer implements InternalApplicationContainer {
               this.errorHandler(e)
             }
           }
-          this.tickList = null
+          this.tickList = undefined
         }
       }, 0)
     } else

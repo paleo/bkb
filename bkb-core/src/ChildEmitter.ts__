@@ -1,16 +1,16 @@
-import { ComponentEvent, Transmitter, ListenChildOptions } from "./interfaces"
+import { ComponentEvent, ListenToChildrenOptions } from "./interfaces"
 import { Listener, call } from "./Emitter"
-import { InternalApplicationContainer } from "./Application";
+import { InternalLog } from "./Application";
 
 type ChildCallback = Listener & {
-  filter: ListenChildOptions
+  filter: ListenToChildrenOptions
 }
 
 export class ChildEmitter {
-  private callbacks: Map<string, ChildCallback[]> | null
+  private callbacks: Map<string, ChildCallback[]> | undefined
   private destroyed = false
 
-  constructor(private app: InternalApplicationContainer) {
+  constructor(private app: InternalLog) {
   }
 
   public emit<D>(ev: ComponentEvent<D>, deep: boolean, groupNames: Set<string>): void {
@@ -30,14 +30,14 @@ export class ChildEmitter {
     this.callCbList<D>(filtered, ev)
   }
 
-  public listen<D>(eventNames: string | string[], filter: ListenChildOptions = {}): Transmitter<D> {
+  public listen<D>(eventNames: string | string[], filter: ListenToChildrenOptions = {}): Transmitter<D> {
     if (this.destroyed)
       throw new Error("Cannot call 'listen' in a destroyed child-emitter")
     if (typeof eventNames === "string")
       eventNames = [eventNames]
     if (!this.callbacks)
       this.callbacks = new Map()
-    let idList: number[] | null = []
+    let idList: number[] | undefined = []
     let isDisabled = () => this.destroyed || !idList
 
     const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
@@ -77,7 +77,7 @@ export class ChildEmitter {
               delete cbList[id]
           }
         }
-        idList = null
+        idList = undefined
       },
       get isDisabled() {
         return isDisabled()
@@ -87,7 +87,7 @@ export class ChildEmitter {
   }
 
   public destroy(): void {
-    this.callbacks = null
+    this.callbacks = undefined
     this.destroyed = true
   }
 

@@ -46,7 +46,6 @@ async function build(projectPath) {
     input: path.join(compiledPath, "main.js")
   })
   let { code } = await bundle.generate({
-    file: "test.js",
     format: "es",
     sourcemap: false
   })

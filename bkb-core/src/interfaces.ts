@@ -1,41 +1,10 @@
-export interface ComponentEvent<D = any> {
-  readonly eventName: string
-  /**
-   * The component source
-   */
-  readonly source: object
-  readonly data?: D
-  stopPropagation(): void
+export interface ComponentFilter {
+  (comp: any): boolean
 }
 
-export interface Transmitter<D = any> {
-  onData(callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  onEvent(callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  disable(): void
-  readonly isDisabled: boolean
-}
-
-export interface ParentFilter {
-  (parent: any): boolean
-}
-
-export interface FindChildOptions {
+export interface FindChildFilter {
   group?: string | string[]
-  filter?: (child: any) => boolean
-}
-
-export interface ListenChildOptions extends FindChildOptions {
-  /**
-   * Default value is <code>false</code>
-   */
-  deep?: boolean
-}
-
-export interface EmitterOptions {
-  /**
-   * Default value is <code>false</code>
-   */
-  sync?: boolean
+  filter?: ComponentFilter
 }
 
 interface ApplicationMembers {
@@ -53,27 +22,50 @@ interface ApplicationMembers {
   readonly log: Log
 }
 
+export interface ComponentEvent<ED = any> {
+  readonly eventName: string
+  /**
+   * The component source
+   */
+  readonly source: object
+  readonly data?: ED
+  stopPropagation(): void
+}
+
+export type EventCallback<ED = any> = (evData: ED, compEv: ComponentEvent<ED>) => void
+export type EventName = string | string[]
+
+export interface EmitOptions {
+  /**
+   * Default value is `false`
+   */
+  sync?: boolean
+}
+
+export interface UnattendedEvents {
+  on<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
+  off(eventName: EventName, listener: EventCallback, thisArg?: any): void
+}
+
 export interface PublicDash extends ApplicationMembers {
-  onEvent<D = any>(eventName: string | string[], callback: (ev: ComponentEvent<D>) => void, thisArg?: any): this
-  onData<D = any>(eventName: string | string[], callback: (data: D, ev: ComponentEvent<D>) => void, thisArg?: any): this
-  listen<D = any>(eventName: string | string[]): Transmitter<D>
+  readonly unattendedEvents: UnattendedEvents
 
   /**
    * Find children
    */
-  children<C = any>(filter?: FindChildOptions): C[]
+  children<C = any>(filter?: FindChildFilter): C[]
   /**
    * Find a single child (or throws an Error if there isn't one result)
    */
-  getChild<C = any>(filter?: FindChildOptions): C
+  getChild<C = any>(filter?: FindChildFilter): C
   /**
    * @returns The count of children that validate the filter
    */
-  countChildren(filter?: FindChildOptions): number
+  countChildren(filter?: FindChildFilter): number
   /**
    * @returns true if there is one or more children that validate the filter
    */
-  hasChildren(filter?: FindChildOptions): boolean
+  hasChildren(filter?: FindChildFilter): boolean
 
   isChild(obj: object): boolean
 
@@ -90,65 +82,90 @@ export interface PublicDash extends ApplicationMembers {
   /**
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  getParent(filter?: ParentFilter): object | undefined
+  getParent(filter?: ComponentFilter): object | undefined
   /**
    * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
    */
-  getAllParents(filter?: ParentFilter): object[]
+  getParents(filter?: ComponentFilter): object[]
 }
 
 export interface BasicDash<A = any> extends PublicDash {
+  readonly publicDash: PublicDash
+
   /**
    * Call this method if the instance must be available during the execution of the constructor
    */
-  setInstance(inst: any): void
+  setInstance(inst: any): this
 
   exposeEvent(...eventNames: string[]): this
   exposeEvent(eventNames: string[]): this
 
   create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): C
-  asComponent(obj: object): Dash<A>
+  create<C>(Class: { new(dash: Dash<A>, args: any[]): C }, ...args: any[]): C // TODO:
+  toComponent(obj: object): Dash<A>
 
-  addToGroup(child: object, group: string, ...groups: string[]): this
-  isInGroup(child: object, group: string, ...groups: string[]): boolean
+  addToGroup(child: object, group: string, ...groups: string[]): void
+  addToGroup(child: object, groups: string[]): void // TODO:
+  inGroup(child: object, group: string, ...groups: string[]): boolean
+  inGroup(child: object, groups: string[]): boolean // TODO:
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    */
-  emit(eventName: string | string[], data?: any, options?: EmitterOptions): this
+  emit(eventName: EventName, data?: any, options?: EmitOptions): this
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    *
    * The event will NOT bubble up to parent hierarchy.
    */
-  broadcast(ev: ComponentEvent, options?: EmitterOptions): this
+  broadcast(ev: ComponentEvent, options?: EmitOptions): this
 
   /**
-   * Listen the nearest parent. If the parameter <code>filter<code> is defined, search the nearest ancestor that matches
-   * this filter.
-   *
-   * @param eventName The event to listen
-   * @param filter A filter that has to match with the targeted parent
+   * Listen to `eventName` on the current component
    */
-  listenToParent<D = any>(eventName: string | string[], filter?: ParentFilter): Transmitter<D>
-
-  listenToAllParents<D = any>(eventName: string | string[], filter?: ParentFilter): Transmitter<D>
+  listenTo<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
 
   /**
-   * Listen the children and descendants. If the parameter <code>filter<code> is defined, listen only the children or
-   * descendant that match the filter.
+   * Listen to `eventName` on the target `component`
    */
-  listenToChildren<D = any>(eventName: string | string[], filter?: ListenChildOptions): Transmitter<D>
+  listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
 
-  listenTo<D = any>(component: object, eventName: string | string[]): Transmitter<D>
+  /**
+   * Stop to listen everything for the `listener` and `thisArg`
+   */
+  stopListening(listener: EventCallback, thisArg?: any): void
 
-  destroyChildren(filter?: FindChildOptions): this
+  /**
+   * Stop to listen to `eventName` on the current component
+   */
+  stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): void
+  /**
+   * Stop to listen to `eventName` on the target `component`
+   */
+  stopListening(component: object, eventName: EventName, listener: EventCallback, thisArg?: any): void
 
-  readonly publicDash: PublicDash
+  // on<ED = any>(eventName: EventName, callback: EventCallback<ED>, thisArg?: any): void
+  // on<ED = any>(component: object, eventName: EventName, callback: EventCallback<ED>, thisArg?: any): void
+  // off(callback: EventCallback, thisArg?: any): void
+
+  destroyChildren(filter?: FindChildFilter): void
+}
+
+  // this.dash.model.on("updateContributor", (ev, stdEventObj) => {
+  // })
+  // this.dash.listenToModel("updateContributor", ev => {
+  // })
+  // this.dash.listenTo<UpdateModelEvent>(this.dash.app.model, "updateContributor", evData => {
+  // })
+  // this.dash.stopListening(this.dash.app.model, "updateContributor", cb)
+
+export interface DashAugmentation {
+  [property: string]: any
 }
 
 export interface ApplicationDash<A = any> extends BasicDash<A> {
+  registerDashAugmentation(augment: (dash: Dash) => DashAugmentation): void
 }
 
 export interface Dash<A = any> extends BasicDash<A> {

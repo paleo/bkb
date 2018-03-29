@@ -1,23 +1,21 @@
-import { ComponentEvent, EmitterOptions, PublicDash, Dash, ApplicationDash, ParentFilter, Transmitter, FindChildOptions, ListenChildOptions } from "./interfaces"
-import { Emitter } from "./Emitter"
-import { ChildEmitter } from "./ChildEmitter"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents } from "./interfaces"
 import { ApplicationContainer } from "./Application"
-import { createMultiTransmitter } from "./MultiTransmitter";
+import { Emitter } from "./Emitter"
+import { Subscriber } from "./Subscriber";
 
 export class Container {
   public pub: PublicDash | undefined
   public dash: Dash | ApplicationDash | undefined
   public emitter: Emitter
-  public childEmitter: ChildEmitter
+  public subscriber = new Subscriber()
 
   private inst: object | undefined
-  private childGroups: Map<string, Set<number>>
+  private childGroups?: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol("canPropagate")
 
   constructor(public app: ApplicationContainer, readonly componentId: number) {
     this.emitter = new Emitter(app, ["destroy"])
-    this.childEmitter = new ChildEmitter(app)
     this.pub = makePublicDash(this)
     this.dash = makeDash(this, this.pub)
   }
@@ -56,7 +54,7 @@ export class Container {
     if (this.childGroups)
       this.childGroups.clear()
     this.emitter.destroy()
-    this.childEmitter.destroy()
+    this.subscriber.destroy()
     this.pub = undefined
     this.dash = undefined
     this.inst = undefined
@@ -77,7 +75,7 @@ export class Container {
     return this.app.createComponent(nc, this)
   }
 
-  public addToGroup(child: object, ...groups: string[]) {
+  public addToGroup(child: object, groups: string[]) {
     let childId = this.app.getContainerByInst(child).componentId
     if (this !== this.app.getParentOf(childId))
       throw new Error(`The component ${childId} is not a child of ${this.componentId}`)
@@ -91,7 +89,7 @@ export class Container {
     }
   }
 
-  public isInGroup(child: object, ...groups: string[]) {
+  public inGroup(child: object, groups: string[]) {
     if (!this.childGroups)
       return false
     let childId = this.app.getContainerByInst(child).componentId
@@ -107,21 +105,21 @@ export class Container {
   // -- [make dashs] Emit events
   // --
 
-  public broadcast(ev: ComponentEvent, options?: EmitterOptions) {
+  public broadcast(ev: ComponentEvent, options?: EmitOptions) {
     if (options && options.sync)
       this.emitter.emit(ev)
     else
       this.app.asyncCall(() => this.emitter.emit(ev))
   }
 
-  public emit<D>(eventName: string, data?: D, options?: EmitterOptions) {
+  public emit(eventName: string, data?: any, options?: EmitOptions) {
     if (options && options.sync)
-      this.emitSync(this.createEvent<D>(eventName, data))
+      this.emitSync(this.createEvent(eventName, data))
     else
-      this.app.asyncCall(() => this.emitSync<D>(this.createEvent<D>(eventName, data)))
+      this.app.asyncCall(() => this.emitSync(this.createEvent(eventName, data)))
   }
 
-  private createEvent<D>(eventName, data?: D): ComponentEvent<D> {
+  private createEvent(eventName, data?: any): ComponentEvent {
     let that = this,
       canPropagate = true
     return Object.freeze({
@@ -134,63 +132,49 @@ export class Container {
         canPropagate = false
       },
       [Container.canPropagateSymb]: () => canPropagate
-    } as ComponentEvent<D>)
+    } as ComponentEvent)
   }
 
-  private emitSync<D>(ev: ComponentEvent<D>) {
+  private emitSync(ev: ComponentEvent) {
     this.emitter.emit(ev)
     let parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<D>(ev, false, this.componentId)
+      parent.bubbleUpEvent(ev)
   }
 
-  private bubbleUpEvent<D>(ev: ComponentEvent<D>, isFromDeep: boolean, childId: number) {
+  private bubbleUpEvent(ev: ComponentEvent) {
     if (ev[Container.canPropagateSymb] && !ev[Container.canPropagateSymb]())
       return
-    this.childEmitter.emit<D>(ev, isFromDeep, this.getGroupsOf(childId))
+    this.emitter.emit(ev)
     let parent = this.app.getParentOf(this.componentId)
     if (parent)
-      parent.bubbleUpEvent<D>(ev, true, this.componentId)
+      parent.bubbleUpEvent(ev)
   }
 
   // --
   // -- [make dashs] Listen
   // --
 
-  public listenToParent<D>(eventName: string | string[], filter?: ParentFilter): Transmitter<D> {
-    let parent = this.getParent(filter)
-    if (parent)
-      return parent.emitter.listen(eventName, this)
-    if (filter)
-      throw new Error(`Cannot find the filtered parent`)
-    return Emitter.empty()
-  }
-
-  public listenToAllParents<D>(eventName: string | string[], filter?: ParentFilter): Transmitter<D> {
-    let transmitters = this.getAllParents(filter).map(parent => parent.emitter.listen(eventName, this))
-    return createMultiTransmitter(transmitters)
-  }
-
-  public listenTo<D>(inst: object, eventName: string | string[]): Transmitter<D> {
-    return this.app.getContainerByInst(inst).emitter.listen(eventName, this)
-  }
+  // listenTo(component: object, eventName: EventName, listener: EventCallback, thisArg?: any) {
+  //   this.app.getContainerByInst(component).emitter.on(arr(eventName), listener, thisArg)
+  // }
 
   // --
   // -- [make dashs] Navigate to parents
   // --
 
-  private getGroupsOf(childId: number): Set<string> {
-    let result = new Set<string>()
-    if (this.childGroups) {
-      for (let [groupName, idSet] of Array.from(this.childGroups.entries())) {
-        if (idSet.has(childId))
-          result.add(groupName)
-      }
-    }
-    return result
-  }
+  // private getGroupsOf(childId: number): Set<string> {
+  //   let result = new Set<string>()
+  //   if (this.childGroups) {
+  //     for (let [groupName, idSet] of Array.from(this.childGroups.entries())) {
+  //       if (idSet.has(childId))
+  //         result.add(groupName)
+  //     }
+  //   }
+  //   return result
+  // }
 
-  public getParent(filter?: ParentFilter): Container | undefined {
+  public getParent(filter?: ComponentFilter): Container | undefined {
     let parent: Container | undefined = this
     while (parent = this.app.getParentOf(parent.componentId)) {
       if (!filter || filter(parent))
@@ -198,7 +182,7 @@ export class Container {
     }
   }
 
-  public getAllParents(filter?: ParentFilter): Container[] {
+  public getParents(filter?: ComponentFilter): Container[] {
     let parent: Container | undefined = this,
       result = [] as Container[]
     while (parent = this.app.getParentOf(parent.componentId)) {
@@ -212,7 +196,7 @@ export class Container {
   // -- [make dashs] Navigate to children
   // --
 
-  public getChildren(filter: FindChildOptions): object[] {
+  public getChildren(filter: FindChildFilter): object[] {
     let containers = this.getChildContainers(filter.group),
       result: object[] = []
     for (let child of containers) {
@@ -222,18 +206,18 @@ export class Container {
     return result
   }
 
-  public getChild(filter: FindChildOptions): object {
+  public getChild(filter: FindChildFilter): object {
     let list = this.getChildren(filter)
     if (list.length !== 1)
       throw new Error(`Cannot find single ${JSON.stringify(filter)} in component ${this.componentId}`)
     return list[0]
   }
 
-  public countChildren(filter: FindChildOptions): number {
+  public countChildren(filter: FindChildFilter): number {
     return this.getChildren(filter).length
   }
 
-  public hasChildren(filter: FindChildOptions): boolean {
+  public hasChildren(filter: FindChildFilter): boolean {
     return this.countChildren(filter) > 0
   }
 
@@ -242,7 +226,7 @@ export class Container {
     return this === this.app.getParentOf(compId)
   }
 
-  public destroyChildren(filter: FindChildOptions) {
+  public destroyChildren(filter: FindChildFilter) {
     let containers = this.getChildContainers(filter.group)
     for (let child of containers) {
       if (!filter.filter || filter.filter(child))
@@ -272,40 +256,40 @@ export class Container {
 }
 
 function makePublicDash(container: Container): PublicDash {
+  let unattendedEvents: UnattendedEvents = {
+    on: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
+      container.emitter.on(arr(eventName), listener, thisArg)
+    },
+    off: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
+      container.emitter.off(new Set(arr(eventName)), listener, thisArg)
+    }
+  }
   let pub: PublicDash = {
+    get unattendedEvents() {
+      return unattendedEvents
+    },
     get instance() {
       return container.getInstance()
     },
     get parent() {
       return pub.getParent()
     },
-    getParent: function (filter?: ParentFilter) {
+    getParent: function (filter?: ComponentFilter) {
       let parent = container.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
-    getAllParents: (filter?: ParentFilter) =>
-      container.getAllParents(filter).map(parentContainer => parentContainer.getInstance()),
-    onData: function <D>(eventName: string, cb: any, thisArg?: any) {
-      container.emitter.listen(eventName).onData(cb, thisArg)
-      return pub
-    },
-    onEvent: function <D>(eventName: string, cb: any, thisArg?: any) {
-      container.emitter.listen(eventName).onEvent(cb, thisArg)
-      return pub
-    },
-    listen: (eventName: string) => container.emitter.listen(eventName),
+    getParents: (filter?: ComponentFilter) =>
+      container.getParents(filter).map(parentContainer => parentContainer.getInstance()),
     destroy: () => container.destroy(),
-    children: <C>(filter: FindChildOptions = {}) => container.getChildren(filter) as any[],
-    getChild: <C>(filter: FindChildOptions = {}) => container.getChild(filter) as any,
-    countChildren: (filter: FindChildOptions = {}) => container.countChildren(filter),
-    hasChildren: (filter: FindChildOptions = {}) => container.hasChildren(filter),
+    children: <C>(filter: FindChildFilter = {}) => container.getChildren(filter) as any[],
+    getChild: <C>(filter: FindChildFilter = {}) => container.getChild(filter) as any,
+    countChildren: (filter: FindChildFilter = {}) => container.countChildren(filter),
+    hasChildren: (filter: FindChildFilter = {}) => container.hasChildren(filter),
     isChild: (obj: object) => container.isChild(obj),
     isComponent: (obj: object) => container.app.isComponent(obj),
     getPublicDashOf: (inst: object) => container.app.getContainerByInst(inst).pub!,
     log: container.app.log
   }
-  // if (additionalMembers)
-  //   Object.assign(pub, additionalMembers)
   Object.freeze(pub)
   return pub
 }
@@ -324,44 +308,55 @@ export interface InternalNewComponentNew {
 export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
 function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationDash {
-  let source: any = {
+  let source: Partial<Dash | ApplicationDash> = {
     setInstance: (inst: any) => { container.setInstance(inst) },
     exposeEvent: function (...eventNames: any[]) {
       let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
       container.emitter.exposeEvent(names, true)
       return dash
     },
-    create: <C>(Class: { new(): C }, ...args: any[]) =>
-      container.createChild({ asObj: false, Class, args }).getInstance(),
-    asComponent: (obj: object) => container.createChild({ asObj: true, obj }).dash!,
-    addToGroup: (child: object, ...groups: string[]) => {
-      container.addToGroup(child, ...groups)
-      return dash
+    create: <C>(Class: { new(): C }, ...args: any[]) => {
+      return container.createChild({ asObj: false, Class, args }).getInstance()
     },
-    isInGroup: (child: object, ...groups: string[]) => container.isInGroup(child, ...groups),
-    emit: function <D>(eventName: string | string[], data?: D, options?: EmitterOptions) {
+    toComponent: (obj: object) => container.createChild({ asObj: true, obj }).dash as any,
+    addToGroup: (child: object, ...groups) => {
+      container.addToGroup(child, flatten(groups))
+    },
+    inGroup: (child: object, ...groups: string[]) => container.inGroup(child, ...groups),
+    emit: function (eventName: string | string[], data?: D, options?: EmitOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)
-        container.emit<D>(name, data, options)
+        container.emit(name, data, options)
       return dash
     },
-    broadcast: function (ev: ComponentEvent, options?: EmitterOptions) {
+    broadcast: function (ev: ComponentEvent, options?: EmitOptions) {
       container.broadcast(ev, options)
       return dash
     },
-    listenToParent: <D>(eventName: string | string[], filter?: ParentFilter) =>
-      container.listenToParent<D>(eventName, filter),
-    listenToAllParents: <D>(eventName: string | string[], filter?: ParentFilter) =>
-      container.listenToAllParents<D>(eventName, filter),
-    listenToChildren: <D>(eventName: string | string[], filter?: ListenChildOptions) =>
-      container.childEmitter.listen<D>(eventName, filter),
-    listenTo: <D>(inst: object, eventName: string | string[]) => container.listenTo<D>(inst, eventName),
-    destroyChildren: (filter: FindChildOptions = {}) => {
+    listenTo: (...args) => {
+      let targetContainer: Container,
+        eventName: EventName,
+        listener: EventCallback,
+        thisArg
+      if (args.length === 2 || typeof args[0] === "string" || Array.isArray(args[0])) {
+        let component
+        [component, eventName, listener, thisArg] = args
+        targetContainer = container.app.getContainerByInst(component)
+      }
+      else {
+        [eventName, listener, thisArg] = args
+        targetContainer = container
+      }
+      container.subscriber.listenTo(targetContainer.emitter, arr(eventName), listener, thisArg)
+    },
+    destroyChildren: (filter: FindChildFilter = {}) => {
       container.destroyChildren(filter)
       return dash
     },
     publicDash: pub
   }
+  // if (additionalMembers)
+  //   Object.assign(pub, additionalMembers)
   let dash = Object.assign(Object.create(pub), source)
   if (container.app.root && container.app.root !== container) {
     Object.defineProperties(dash, {
@@ -370,4 +365,12 @@ function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationD
   }
   Object.freeze(dash)
   return dash
+}
+
+function arr(name: string | string[]): string[] {
+  return typeof name === "string" ? [name] : name
+}
+
+function flatten(args: any[]): string[] {
+  return args.length === 1 && Array.isArray(args[0]) ? args[0] : args
 }

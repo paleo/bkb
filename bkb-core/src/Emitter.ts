@@ -1,185 +1,93 @@
-import { ComponentEvent, Transmitter } from "./interfaces"
-import { InternalApplicationContainer } from "./Application"
+import { ComponentEvent, EventCallback } from "./interfaces"
+import { InternalLog } from "./Application"
 import { Container } from "./Container"
 
-export interface ListenerEventMode {
-  mode: "event"
-  cb: (ev: ComponentEvent) => void
+export interface Listener {
+  cb: EventCallback
   thisArg?: any
 }
 
-export interface ListenerDataMode {
-  mode: "data"
-  cb: (data: any, ev: ComponentEvent) => void
-  thisArg?: any
+function call(listener: Listener, ev: ComponentEvent) {
+  if (listener.thisArg)
+    listener.cb.call(listener.thisArg, ev.data, ev)
+  else
+    listener.cb(ev.data, ev)
 }
-
-export type Listener = ListenerEventMode | ListenerDataMode
 
 export class Emitter {
-  public static empty(): Transmitter {
-    let transmitter = {
-      onData: () => {
-        return transmitter
-      },
-      onEvent: () => {
-        return transmitter
-      },
-      disable: () => {
-      },
-      get isDisabled() {
-        return false
-      }
-    }
-    return transmitter
-  }
-
-  private eventNames: Set<string> | null
+  private eventNames = new Set<string>()
   private strictEvents = false
-  private callbacks: Map<string, Listener[]> | null
+  private listeners: Map<string, Listener[]> | undefined
   private destroyed = false
-  private fromEolCancelers: Transmitter[] | null = []
 
-  constructor(private app: InternalApplicationContainer, eventNames?: string[]) {
+  constructor(private log: InternalLog, eventNames?: string[]) {
     if (eventNames)
       this.exposeEvent(eventNames, false)
   }
 
-  public exposeEvent(eventNames: string[], strictEventsMode: boolean): void {
+  exposeEvent(eventNames: string[], strictEventsMode: boolean): void {
     if (this.destroyed)
       throw new Error(`Cannot call exposeEvent in a destroyed transmitter`)
-    if (!this.eventNames)
-      this.eventNames = new Set()
     for (let name of eventNames)
       this.eventNames.add(name)
     if (strictEventsMode)
       this.strictEvents = true
   }
 
-  public emit(ev: ComponentEvent): void {
-    if (!this.callbacks)
+  emit(ev: ComponentEvent) {
+    if (this.destroyed || !this.listeners)
       return
-    if (this.strictEvents && this.eventNames && !this.eventNames.has(ev.eventName))
+    if (this.strictEvents && !this.eventNames.has(ev.eventName))
       throw new Error(`Unexposed event: ${ev.eventName}`)
-    let cbList = this.callbacks.get(ev.eventName)
-    if (cbList)
-      this.callCbList(cbList, ev)
-  }
-
-  public listen(eventNames: string | string[], from?: Container): Transmitter {
-    if (this.destroyed || !this.fromEolCancelers)
-      throw new Error(`Cannot call listen in a destroyed emitter`)
-    if (from && !from.pub)
-      throw new Error(`Cannot call listen from a destroyed component`)
-    if (typeof eventNames === "string")
-      eventNames = [eventNames]
-    if (!this.callbacks)
-      this.callbacks = new Map()
-    let idList: number[] | null = []
-    let isDisabled = () => this.destroyed || !idList
-
-    const on = (mode: "event" | "data", cb: any, thisArg?: any) => {
-      if (this.destroyed || !idList || !this.callbacks)
-        return transmitter
-      for (let evName of eventNames) {
-        let cbList = this.callbacks.get(evName)
-        if (!cbList)
-          this.callbacks.set(evName, cbList = [])
-        let id = cbList.length
-        idList.push(id)
-        cbList[id] = {
-          mode: mode as any,
-          cb,
-          thisArg
+    let list = this.listeners.get(ev.eventName)
+    if (list) {
+      for (let item of list) {
+        try {
+          call(item, ev)
+        } catch (e) {
+          this.log.errorHandler(e)
         }
       }
     }
-
-    let transmitter: Transmitter = {
-      onEvent: (cb: any, thisArg?: any) => {
-        on("event", cb, thisArg)
-        return transmitter
-      },
-      onData: (cb: any, thisArg?: any) => {
-        on("data", cb, thisArg)
-        return transmitter
-      },
-      disable: () => {
-        if (isDisabled() || !this.callbacks)
-          return
-        for (let evName of eventNames) {
-          let cbList = this.callbacks.get(evName)
-          if (cbList) {
-            for (let id of idList!)
-              delete cbList[id]
-          }
-        }
-        idList = null
-        if (fromEolCanceler) {
-          fromEolCanceler()
-          fromEolCanceler = null
-        }
-      },
-      get isDisabled() {
-        return isDisabled()
-      }
-    }
-
-    let fromEolCanceler
-    if (from) {
-      let destroyTransmitter = from.pub!.listen("destroy").onEvent(() => transmitter.disable()),
-        cancelerId = this.fromEolCancelers.length
-      this.fromEolCancelers[cancelerId] = destroyTransmitter
-      fromEolCanceler = () => {
-        destroyTransmitter.disable()
-        if (this.fromEolCancelers)
-          delete this.fromEolCancelers[cancelerId]
-      }
-    } else
-      fromEolCanceler = null
-    return transmitter
   }
 
-  public destroy(): void {
-    if (this.fromEolCancelers) {
-      for (let i in this.fromEolCancelers) {
-        if (this.fromEolCancelers.hasOwnProperty(i))
-          this.fromEolCancelers[i].disable()
-      }
+  on(eventNames: string[], listener: EventCallback, thisArg?) {
+    if (this.destroyed)
+      return
+    if (!this.listeners)
+      this.listeners = new Map()
+    for (let evName of eventNames) {
+      let list = this.listeners.get(evName)
+      if (!list)
+        this.listeners.set(evName, list = [])
+      list.push({
+        cb: listener,
+        thisArg
+      })
     }
-    this.fromEolCancelers = null
-    this.callbacks = null
-    this.eventNames = null
-    this.destroyed = true
   }
 
-  private callCbList(cbList: Listener[], ev: ComponentEvent) {
-    for (let i in cbList) {
-      if (!cbList.hasOwnProperty(i))
+  /**
+   * This method doesn't need any optimisation. Because during the life of the `Emitter`, the arrays of listeners are inevitably scanned for each `emit`.
+   */
+  off(eventNames: Set<string> | undefined, listener: EventCallback, thisArg?: any) {
+    if (this.destroyed || !this.listeners)
+      return
+    for (let [evName, list] of this.listeners) {
+      if (eventNames && !eventNames.has(evName))
         continue
-      try {
-        call(cbList[i], ev)
-      } catch (e) {
-        this.app.errorHandler(e)
+      for (let i = 0; i < list.length; ++i) {
+        let item = list[i]
+        if (item.cb === listener && item.thisArg === thisArg) {
+          list.splice(i, 1)
+          --i
+        }
       }
     }
   }
-}
 
-export function call(cb: Listener, ev: ComponentEvent) {
-  switch (cb.mode) {
-    case "data":
-      if (cb.thisArg)
-        cb.cb.call(cb.thisArg, ev.data, ev)
-      else
-        cb.cb(ev.data, ev)
-      break
-    case "event":
-    default:
-      if (cb.thisArg)
-        cb.cb.call(cb.thisArg, ev)
-      else
-        cb.cb(ev)
-      break
+  destroy() {
+    this.listeners = undefined
+    this.destroyed = true
   }
 }

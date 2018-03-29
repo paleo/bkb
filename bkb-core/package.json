@@ -3,12 +3,11 @@
   "version": "0.0.0",
   "main": "build.js",
   "dependencies": {
-    "rollup": "0.50.0",
-    "typescript": "2.5.3",
-    "uglify-es": "3.1.2"
+    "rollup": "0.57.1",
+    "typescript": "2.8.1",
+    "uglify-es": "3.3.9"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Paleo",
   "private": true
 }
