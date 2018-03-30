@@ -5,7 +5,7 @@ export class Subscriber {
   /**
    * listener => thisArg | null => emitter => eventNames
    */
-  private map: Map<EventListener, Map<any, Map<Emitter, Set<string>>>> | undefined
+  private map: Map<EventCallback, Map<any, Map<Emitter, Set<string>>>> | undefined
 
   listenTo(emitter: Emitter, eventNames: string[], listener: EventCallback, thisArg: any = null) {
     emitter.on(eventNames, listener, thisArg)

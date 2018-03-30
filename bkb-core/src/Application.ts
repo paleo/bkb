@@ -1,4 +1,4 @@
-import { ApplicationDash, Log } from "./interfaces"
+import { ApplicationDash, Log, Dash, DashAugmentation } from "./interfaces"
 import { Container, InternalNewComponent } from "./Container"
 
 export function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...args: any[]): A }, ...args: any[]): A {
@@ -31,6 +31,8 @@ export class ApplicationContainer implements InternalLog {
   private nodes = new Map<number, CompNode>()
   private tickList: (() => void)[] | undefined
   private insideRmComp = false
+
+  public augmentList: ((dash: Dash) => DashAugmentation)[] = []
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
     let logTypes = ["error", "warn", "info", "debug", "trace"],

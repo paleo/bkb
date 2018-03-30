@@ -1,4 +1,4 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents } from "./interfaces"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./interfaces"
 import { ApplicationContainer } from "./Application"
 import { Emitter } from "./Emitter"
 import { Subscriber } from "./Subscriber";
@@ -256,18 +256,15 @@ export class Container {
 }
 
 function makePublicDash(container: Container): PublicDash {
-  let unattendedEvents: UnattendedEvents = {
-    on: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
-      container.emitter.on(arr(eventName), listener, thisArg)
-    },
-    off: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
-      container.emitter.off(new Set(arr(eventName)), listener, thisArg)
-    }
-  }
-  let pub: PublicDash = {
-    get unattendedEvents() {
-      return unattendedEvents
-    },
+  let pub: PublicDash = Object.freeze({
+    unattendedEvents: Object.freeze({
+      on: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
+        container.emitter.on(arr(eventName), listener, thisArg)
+      },
+      off: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
+        container.emitter.off(new Set(arr(eventName)), listener, thisArg)
+      }
+    }),
     get instance() {
       return container.getInstance()
     },
@@ -278,8 +275,9 @@ function makePublicDash(container: Container): PublicDash {
       let parent = container.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
-    getParents: (filter?: ComponentFilter) =>
-      container.getParents(filter).map(parentContainer => parentContainer.getInstance()),
+    getParents: (filter?: ComponentFilter) => {
+      return container.getParents(filter).map(parentContainer => parentContainer.getInstance())
+    },
     destroy: () => container.destroy(),
     children: <C>(filter: FindChildFilter = {}) => container.getChildren(filter) as any[],
     getChild: <C>(filter: FindChildFilter = {}) => container.getChild(filter) as any,
@@ -289,8 +287,7 @@ function makePublicDash(container: Container): PublicDash {
     isComponent: (obj: object) => container.app.isComponent(obj),
     getPublicDashOf: (inst: object) => container.app.getContainerByInst(inst).pub!,
     log: container.app.log
-  }
-  Object.freeze(pub)
+  })
   return pub
 }
 
@@ -309,29 +306,32 @@ export type InternalNewComponent = InternalNewComponentAsObj | InternalNewCompon
 
 function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationDash {
   let source: Partial<Dash | ApplicationDash> = {
-    setInstance: (inst: any) => { container.setInstance(inst) },
-    exposeEvent: function (...eventNames: any[]) {
-      let names = eventNames.length === 1 && Array.isArray(eventNames[0]) ? eventNames[0] : eventNames
-      container.emitter.exposeEvent(names, true)
-      return dash
+    setInstance: (inst: any) => {
+      container.setInstance(inst)
+      return dash as any
     },
-    create: <C>(Class: { new(): C }, ...args: any[]) => {
-      return container.createChild({ asObj: false, Class, args }).getInstance()
+    exposeEvent: function (...eventNames: any[]) {
+      container.emitter.exposeEvent(flatten(eventNames), true)
+      return dash as any
+    },
+    create: (Class: { new(): any }, ...args: any[]) => {
+      return container.createChild({ asObj: false, Class, args }).getInstance() as any
     },
     toComponent: (obj: object) => container.createChild({ asObj: true, obj }).dash as any,
     addToGroup: (child: object, ...groups) => {
       container.addToGroup(child, flatten(groups))
+      return dash as any
     },
-    inGroup: (child: object, ...groups: string[]) => container.inGroup(child, ...groups),
-    emit: function (eventName: string | string[], data?: D, options?: EmitOptions) {
+    inGroup: (child: object, ...groups) => container.inGroup(child, flatten(groups)),
+    emit: function (eventName: EventName, data?, options?: EmitOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)
         container.emit(name, data, options)
-      return dash
+      return dash as any
     },
     broadcast: function (ev: ComponentEvent, options?: EmitOptions) {
       container.broadcast(ev, options)
-      return dash
+      return dash as any
     },
     listenTo: (...args) => {
       let targetContainer: Container,
@@ -342,26 +342,50 @@ function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationD
         let component
         [component, eventName, listener, thisArg] = args
         targetContainer = container.app.getContainerByInst(component)
-      }
-      else {
+      } else {
         [eventName, listener, thisArg] = args
         targetContainer = container
       }
       container.subscriber.listenTo(targetContainer.emitter, arr(eventName), listener, thisArg)
+      return dash as any
+    },
+    stopListening: (...args) => {
+      let targetContainer: Container,
+        eventName: EventName,
+        listener: EventCallback,
+        thisArg
+      let count = args.length
+      if (typeof args[0] === "string" || Array.isArray(args[0])) {
+        [eventName, listener, thisArg] = args
+        targetContainer = container
+      } else if (count === 1 || count === 2) {
+        [listener, thisArg] = args
+        container.subscriber.stopListeningEverywhere(listener, thisArg)
+        return
+      } else {
+        let component
+        [component, eventName, listener, thisArg] = args
+        targetContainer = container.app.getContainerByInst(component)
+      }
+      container.subscriber.stopListening(targetContainer.emitter, arr(eventName), listener, thisArg)
+      return dash as any
     },
     destroyChildren: (filter: FindChildFilter = {}) => {
       container.destroyChildren(filter)
-      return dash
+      return dash as any
     },
     publicDash: pub
   }
-  // if (additionalMembers)
-  //   Object.assign(pub, additionalMembers)
-  let dash = Object.assign(Object.create(pub), source)
+  let dash: Dash | ApplicationDash = Object.assign(Object.create(pub), source)
   if (container.app.root && container.app.root !== container) {
     Object.defineProperties(dash, {
       app: { get: () => container.app.root.getInstance() }
     })
+    Object.assign(pub, ...container.app.augmentList.map(augment => augment(dash as Dash)))
+  } else {
+    ;(dash as ApplicationDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
+      container.app.augmentList.push(augment)
+    }
   }
   Object.freeze(dash)
   return dash

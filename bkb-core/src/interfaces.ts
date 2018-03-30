@@ -101,13 +101,12 @@ export interface BasicDash<A = any> extends PublicDash {
   exposeEvent(eventNames: string[]): this
 
   create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): C
-  create<C>(Class: { new(dash: Dash<A>, args: any[]): C }, ...args: any[]): C // TODO:
   toComponent(obj: object): Dash<A>
 
-  addToGroup(child: object, group: string, ...groups: string[]): void
-  addToGroup(child: object, groups: string[]): void // TODO:
+  addToGroup(child: object, group: string, ...groups: string[]): this
+  addToGroup(child: object, groups: string[]): this
   inGroup(child: object, group: string, ...groups: string[]): boolean
-  inGroup(child: object, groups: string[]): boolean // TODO:
+  inGroup(child: object, groups: string[]): boolean
 
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
@@ -124,41 +123,29 @@ export interface BasicDash<A = any> extends PublicDash {
   /**
    * Listen to `eventName` on the current component
    */
-  listenTo<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
+  listenTo<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
 
   /**
    * Listen to `eventName` on the target `component`
    */
-  listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
+  listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
 
   /**
    * Stop to listen everything for the `listener` and `thisArg`
    */
-  stopListening(listener: EventCallback, thisArg?: any): void
+  stopListening(listener: EventCallback, thisArg?: any): this
 
   /**
    * Stop to listen to `eventName` on the current component
    */
-  stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): void
+  stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): this
   /**
    * Stop to listen to `eventName` on the target `component`
    */
-  stopListening(component: object, eventName: EventName, listener: EventCallback, thisArg?: any): void
+  stopListening(component: object, eventName: EventName, listener: EventCallback, thisArg?: any): this
 
-  // on<ED = any>(eventName: EventName, callback: EventCallback<ED>, thisArg?: any): void
-  // on<ED = any>(component: object, eventName: EventName, callback: EventCallback<ED>, thisArg?: any): void
-  // off(callback: EventCallback, thisArg?: any): void
-
-  destroyChildren(filter?: FindChildFilter): void
+  destroyChildren(filter?: FindChildFilter): this
 }
-
-  // this.dash.model.on("updateContributor", (ev, stdEventObj) => {
-  // })
-  // this.dash.listenToModel("updateContributor", ev => {
-  // })
-  // this.dash.listenTo<UpdateModelEvent>(this.dash.app.model, "updateContributor", evData => {
-  // })
-  // this.dash.stopListening(this.dash.app.model, "updateContributor", cb)
 
 export interface DashAugmentation {
   [property: string]: any
