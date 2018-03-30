@@ -27,16 +27,17 @@ export class Container {
   public makeInstance(Cl, args: any[]): object {
     if (this.inst)
       return this.inst
-    return this.setInstance(new Cl(this.dash, ...args))
+    this.setInstance(new Cl(this.dash, ...args))
+    return this.inst!
   }
 
-  public setInstance(inst: object): object {
+  public setInstance(inst: object) {
     if (this.inst)
       return this.inst
     if (!this.pub)
       throw new Error(`Destroyed component`)
     this.inst = inst
-    return inst
+    this.app.setInstanceOf(this.componentId, this.inst)
   }
 
   public getInstance(): object {
@@ -177,7 +178,7 @@ export class Container {
     let containers = this.getChildContainers(filter.group),
       result: object[] = []
     for (let child of containers) {
-      if (!filter.filter || filter.filter(child))
+      if (child.inst && (!filter.filter || filter.filter(child)))
         result.push(child.getInstance())
     }
     return result

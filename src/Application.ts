@@ -34,7 +34,16 @@ export class ApplicationContainer implements InternalLog {
     }
     this.nodes.set(compId, node)
     this.root.emitter.exposeEvent(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
-    let inst = asObject ? this.root.setInstance(objOrCl) : this.root.makeInstance(objOrCl, args || [])
+    if (asObject)
+      this.root.setInstance(objOrCl)
+    else
+      this.root.makeInstance(objOrCl, args || [])
+  }
+
+  public setInstanceOf(compId: number, inst) {
+    let node = this.nodes.get(compId)
+    if (!node)
+      throw new Error(`Destroyed component`)
     this.nodesByInst.set(inst, node)
   }
 
@@ -79,12 +88,10 @@ export class ApplicationContainer implements InternalLog {
     if (!parentNode.children)
       parentNode.children = new Map()
     parentNode.children.set(compId, node)
-    let inst: object
     if (nc.asObj)
-      inst = container.setInstance(nc.obj)
+      container.setInstance(nc.obj)
     else
-      inst = container.makeInstance(nc.Class, nc.args)
-    this.nodesByInst.set(inst, node)
+      container.makeInstance(nc.Class, nc.args)
     this.root.dash.emit("addComponent", { component: container.getInstance() })
     this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })
     return container
