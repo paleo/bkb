@@ -178,6 +178,8 @@ export class Container {
     let containers = this.getChildContainers(filter.group),
       result: object[] = []
     for (let child of containers) {
+      // if ((!filter.filter || filter.filter(child)) &&!child.inst)
+      //   console.log("=======> Missing instance for component", child.componentId)
       if (child.inst && (!filter.filter || filter.filter(child)))
         result.push(child.getInstance())
     }

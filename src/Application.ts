@@ -38,6 +38,8 @@ export class ApplicationContainer implements InternalLog {
       this.root.setInstance(objOrCl)
     else
       this.root.makeInstance(objOrCl, args || [])
+
+// console.log("===> [DEBUG] init", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
   public setInstanceOf(compId: number, inst) {
@@ -79,6 +81,7 @@ export class ApplicationContainer implements InternalLog {
       throw new Error("Destroyed root component")
     let compId = this.newId(),
       container = new Container(this, compId)
+    // console.log("===> [DEBUG] create (before)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let parentNode = this.findNode(parent.componentId),
       node = {
         container: container,
@@ -92,20 +95,22 @@ export class ApplicationContainer implements InternalLog {
       container.setInstance(nc.obj)
     else
       container.makeInstance(nc.Class, nc.args)
-    this.root.dash.emit("addComponent", { component: container.getInstance() })
-    this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "add" })
+    let evData =  { component: container.getInstance(), type: "add" }
+    this.root.dash.emit(["addComponent", "changeComponent"], evData)
+    // console.log("===> [DEBUG] create (after)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     return container
   }
 
-  public removeComponent<C>(container: Container, inst?: object): void {
+  public removeComponent<C>(container: Container, inst: object | undefined): void {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
+    // console.log("===> [DEBUG] remove (before)", container.componentId, inst ? inst : "-no inst-", "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let mainRm = !this.insideRmComp
     try {
       if (mainRm) {
         this.insideRmComp = true
-        this.root.dash.emit("removeComponent", { component: container.getInstance() }, { sync: true })
-        this.root.dash.emit("changeComponent", { component: container.getInstance(), type: "remove" }, { sync: true })
+        let evData = { component: inst, type: "remove" }
+        this.root.dash.emit(["removeComponent", "changeComponent"], evData, { sync: true })
       }
       let compId = container.componentId,
         node = this.findNode(compId)
@@ -127,6 +132,7 @@ export class ApplicationContainer implements InternalLog {
       if (mainRm)
         this.insideRmComp = false
     }
+    // console.log("===> [DEBUG] remove (after)", container.componentId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
   public errorHandler(err: any): void {
@@ -190,3 +196,26 @@ export class ApplicationContainer implements InternalLog {
     return Object.freeze(log) as any
   }
 }
+
+// function publicNodesToString(node: CompNode, indent = '') {
+//   let line = `${indent}- ${node.container.componentId} ${getComponentName(node.container["inst"])} (${node.children ? Array.from(node.children.values()).length : "-no children-"})`
+//   if (node.children) {
+//     for (let child of node.children.values()) {
+//       line += '\n' + publicNodesToString(child, `${indent}  `)
+//     }
+//   }
+//   return line
+// }
+
+// function getComponentName(objOrCl): string {
+//   if (!objOrCl)
+//     return "-no-inst-"
+//   if (Symbol && Symbol.toStringTag && objOrCl[Symbol.toStringTag])
+//     return objOrCl[Symbol.toStringTag]
+//   if (objOrCl.constructor && objOrCl.constructor.name)
+//     return objOrCl.constructor.name
+//   let results = /function (.+)\(/.exec(objOrCl.toString())
+//   if (results && results.length > 1)
+//     return results[1]
+//   return "Function"
+// }
