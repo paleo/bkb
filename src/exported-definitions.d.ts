@@ -100,7 +100,7 @@ export interface BasicDash<A = any> extends PublicDash {
   exposeEvent(...eventNames: string[]): this
   exposeEvent(eventNames: string[]): this
 
-  create<C>(Class: { new(dash: Dash<A>, ...args: any[]): C }, ...args: any[]): C
+  create<C, D extends Dash<A>>(Class: { new(dash: D, ...args: any[]): C }, ...args: any[]): C
   toComponent(obj: object): Dash<A>
 
   addToGroup(child: object, group: string, ...groups: string[]): this

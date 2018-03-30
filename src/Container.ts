@@ -316,12 +316,12 @@ function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationD
         listener: EventCallback,
         thisArg
       if (args.length === 2 || typeof args[0] === "string" || Array.isArray(args[0])) {
+        [eventName, listener, thisArg] = args
+        targetContainer = container
+      } else {
         let component
         [component, eventName, listener, thisArg] = args
         targetContainer = container.app.getContainerByInst(component)
-      } else {
-        [eventName, listener, thisArg] = args
-        targetContainer = container
       }
       container.subscriber.listenTo(targetContainer.emitter, arr(eventName), listener, thisArg)
       return dash as any
@@ -358,7 +358,7 @@ function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationD
     Object.defineProperties(dash, {
       app: { get: () => container.app.root.getInstance() }
     })
-    Object.assign(pub, ...container.app.augmentList.map(augment => augment(dash as Dash)))
+    Object.assign(dash, ...container.app.augmentList.map(augment => augment(dash as Dash)))
   } else {
     ;(dash as ApplicationDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
       container.app.augmentList.push(augment)
