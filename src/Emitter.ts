@@ -1,4 +1,4 @@
-import { ComponentEvent, EventCallback } from "./interfaces"
+import { ComponentEvent, EventCallback } from "./exported-definitions"
 import { InternalLog } from "./Application"
 import { Container } from "./Container"
 

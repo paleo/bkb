@@ -1,4 +1,4 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./interfaces"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./exported-definitions"
 import { ApplicationContainer } from "./Application"
 import { Emitter } from "./Emitter"
 import { Subscriber } from "./Subscriber";
@@ -150,29 +150,6 @@ export class Container {
     if (parent)
       parent.bubbleUpEvent(ev)
   }
-
-  // --
-  // -- [make dashs] Listen
-  // --
-
-  // listenTo(component: object, eventName: EventName, listener: EventCallback, thisArg?: any) {
-  //   this.app.getContainerByInst(component).emitter.on(arr(eventName), listener, thisArg)
-  // }
-
-  // --
-  // -- [make dashs] Navigate to parents
-  // --
-
-  // private getGroupsOf(childId: number): Set<string> {
-  //   let result = new Set<string>()
-  //   if (this.childGroups) {
-  //     for (let [groupName, idSet] of Array.from(this.childGroups.entries())) {
-  //       if (idSet.has(childId))
-  //         result.add(groupName)
-  //     }
-  //   }
-  //   return result
-  // }
 
   public getParent(filter?: ComponentFilter): Container | undefined {
     let parent: Container | undefined = this

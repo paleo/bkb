@@ -1,4 +1,4 @@
-import { EventCallback } from "./interfaces"
+import { EventCallback } from "./exported-definitions"
 import { Emitter } from "./Emitter";
 
 export class Subscriber {

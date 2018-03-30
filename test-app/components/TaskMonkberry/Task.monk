@@ -1,9 +1,0 @@
-<div class="Task">
-  <div class="Task-textWrapper" :show={{updMode}}>
-    <input class="Task-text" type="text" placeholder="Write a task here (Monkberry)…" :onchange="{{ ctrl.changeText }}">
-  </div>
-  <div class="Task-textWrapper" :onclick="{{ ctrl.select }}" :show={{!updMode}}>
-    <p class="Task-text">{{ label }}</p>
-  </div>
-  <div class="Task-comments" :CommentList="Yes!"></div>
-</div>

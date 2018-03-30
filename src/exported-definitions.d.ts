@@ -7,7 +7,7 @@ export interface FindChildFilter {
   filter?: ComponentFilter
 }
 
-interface ApplicationMembers {
+export interface ApplicationMembers {
   /**
    * This method is inherited from the application.
    */
