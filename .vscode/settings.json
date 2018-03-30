@@ -1,20 +1,15 @@
 {
-    "editor.tabSize": 2,
-    "editor.insertSpaces": true,
-    "editor.wordWrapColumn": 120,
-    "editor.wordWrap": "wordWrapColumn",
-    "editor.rulers": [120],
-    "files.trimTrailingWhitespace": true,
-    "files.associations": {
-        "*.monk": "html"
-    },
-    "git.autofetch": false,
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/bower_components": true,
-        "compiled/*": true,
-        "dist*/*.ts": true,
-        "dist*/*.js": true
-    }
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.wordWrap": "wordWrapColumn",
+  "editor.wordWrapColumn": 120,
+  "editor.rulers": [
+    120
+  ],
+  "files.trimTrailingWhitespace": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "search.exclude": {
+    "node_modules": true,
+    "build/compiled": true
+  }
 }
