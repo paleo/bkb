@@ -9,7 +9,7 @@ export class Container {
   public emitter: Emitter
   public subscriber = new Subscriber()
 
-  private inst: object | undefined
+  public inst: object | undefined
   private childGroups?: Map<string, Set<number>>
 
   private static canPropagateSymb = Symbol("canPropagate")
@@ -24,11 +24,17 @@ export class Container {
   // -- Used by Application
   // --
 
-  public makeInstance(Cl, args: any[]): object {
+  public makeInstance(Cl, args: any[]) {
     if (this.inst)
-      return this.inst
-    this.setInstance(new Cl(this.dash, ...args))
-    return this.inst!
+      return
+    let inst
+    try {
+      inst = new Cl(this.dash, ...args)
+    } catch (err) {
+      this.destroy()
+      throw err
+    }
+    this.setInstance(inst)
   }
 
   public setInstance(inst: object) {

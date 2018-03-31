@@ -6,6 +6,7 @@ interface CompNode {
   container: Container
   parent?: CompNode | undefined
   children?: Map<number, CompNode> | undefined
+  created?: boolean
 }
 
 export class ApplicationContainer implements EmitterLog {
@@ -26,7 +27,7 @@ export class ApplicationContainer implements EmitterLog {
       compId = this.newId()
     this.log = this.createLog(logTypes)
     this.root = new Container(this, compId)
-    let node = {
+    let node: CompNode = {
       container: this.root
     }
     this.nodes.set(compId, node)
@@ -34,8 +35,8 @@ export class ApplicationContainer implements EmitterLog {
     if (asObject)
       this.root.setInstance(objOrCl)
     else
-      this.root.makeInstance(objOrCl, args || [])
-
+      this.root.makeInstance(objOrCl, args || []) // Can call 'removeComponent' and throw an error
+    node.created = true
 // console.log("===> [DEBUG] init", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
@@ -80,7 +81,7 @@ export class ApplicationContainer implements EmitterLog {
       container = new Container(this, compId)
     // console.log("===> [DEBUG] create (before)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let parentNode = this.findNode(parent.componentId),
-      node = {
+      node: CompNode = {
         container: container,
         parent: parentNode
       }
@@ -91,10 +92,11 @@ export class ApplicationContainer implements EmitterLog {
     if (nc.asObj)
       container.setInstance(nc.obj)
     else
-      container.makeInstance(nc.Class, nc.args) // TODO: {try catch} and remove in nodesByInst and everywhere
+      container.makeInstance(nc.Class, nc.args) // Can call 'removeComponent' and throw an error
     let evData =  { component: container.getInstance(), type: "add" }
     this.root.dash.emit(["addComponent", "changeComponent"], evData)
     // console.log("===> [DEBUG] create (after)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
+    node.created = true
     return container
   }
 
@@ -104,13 +106,15 @@ export class ApplicationContainer implements EmitterLog {
     // console.log("===> [DEBUG] remove (before)", container.componentId, inst ? inst : "-no inst-", "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let mainRm = !this.insideRmComp
     try {
-      if (mainRm) {
-        this.insideRmComp = true
-        let evData = { component: inst, type: "remove" }
-        this.root.dash.emit(["removeComponent", "changeComponent"], evData, { sync: true })
-      }
       let compId = container.componentId,
         node = this.findNode(compId)
+      if (mainRm) {
+        this.insideRmComp = true
+        if (inst && node.created) {
+          let evData = { component: inst, type: "remove" }
+          this.root.dash.emit(["removeComponent", "changeComponent"], evData, { sync: true })
+        }
+      }
       if (node.children) {
         for (let child of Array.from(node.children.values())) {
           child.parent = undefined
