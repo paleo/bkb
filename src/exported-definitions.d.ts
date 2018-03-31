@@ -93,7 +93,7 @@ export interface BasicDash<A = any> extends PublicDash {
   readonly publicDash: PublicDash
 
   /**
-   * Call this method if the instance must be available during the execution of the constructor
+   * Call this method if the instance must be available from other components before the end of the execution of the constructor.
    */
   setInstance(inst: any): this
 
