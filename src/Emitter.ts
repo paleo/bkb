@@ -1,5 +1,5 @@
 import { ComponentEvent, EventCallback } from "./exported-definitions"
-import { InternalLog } from "./Application"
+import { InternalLog } from "./ApplicationContainer"
 import { Container } from "./Container"
 
 export interface Listener {

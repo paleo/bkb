@@ -94,7 +94,7 @@ export class ApplicationContainer implements InternalLog {
     if (nc.asObj)
       container.setInstance(nc.obj)
     else
-      container.makeInstance(nc.Class, nc.args)
+      container.makeInstance(nc.Class, nc.args) // TODO: {try catch} and remove in nodesByInst and everywhere
     let evData =  { component: container.getInstance(), type: "add" }
     this.root.dash.emit(["addComponent", "changeComponent"], evData)
     // console.log("===> [DEBUG] create (after)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))

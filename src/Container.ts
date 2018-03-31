@@ -1,5 +1,5 @@
 import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./exported-definitions"
-import { ApplicationContainer } from "./Application"
+import { ApplicationContainer } from "./ApplicationContainer"
 import { Emitter } from "./Emitter"
 import { Subscriber } from "./Subscriber";
 
