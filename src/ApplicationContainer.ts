@@ -1,9 +1,6 @@
 import { Log, Dash, DashAugmentation } from "./exported-definitions"
 import { Container, InternalNewComponent } from "./Container"
-
-export interface InternalLog {
-  errorHandler(err: any): void
-}
+import { EmitterLog } from "./Emitter";
 
 interface CompNode {
   container: Container
@@ -11,7 +8,7 @@ interface CompNode {
   children?: Map<number, CompNode> | undefined
 }
 
-export class ApplicationContainer implements InternalLog {
+export class ApplicationContainer implements EmitterLog {
 
   public root: Container
   public log: Log

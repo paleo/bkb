@@ -1,6 +1,9 @@
 import { ComponentEvent, EventCallback } from "./exported-definitions"
-import { InternalLog } from "./ApplicationContainer"
 import { Container } from "./Container"
+
+export interface EmitterLog {
+  errorHandler(err: any): void
+}
 
 export interface Listener {
   cb: EventCallback
@@ -20,7 +23,7 @@ export class Emitter {
   private listeners: Map<string, Listener[]> | undefined
   private destroyed = false
 
-  constructor(private log: InternalLog, eventNames?: string[]) {
+  constructor(private log: EmitterLog, eventNames?: string[]) {
     if (eventNames)
       this.exposeEvent(eventNames, false)
   }
