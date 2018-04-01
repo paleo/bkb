@@ -6,7 +6,7 @@ export function createApplication<A>(Class: { new(dash: ApplicationDash<A>, ...a
   return container.root.getInstance() as any
 }
 
-export function asApplication<A>(obj: A) {
+export function toApplication<A>(obj: A): ApplicationDash<A> {
   let container = new ApplicationContainer(obj, true)
   return container.root.dash as ApplicationDash<A>
 }
