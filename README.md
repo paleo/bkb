@@ -1,6 +1,8 @@
 # Bkb
 
-Bkb is a lightweight front-end framework. This is the framework I made for several side projects. It is robust enough to be used in production, but not documented at all. And I will continue to redesign some part of the API until the version 1.0.0 will be published.
+[Open the Bkb Documentation.](https://github.com/paleo/bkb/wiki)
+
+Bkb is a lightweight front-end framework. It is robust enough to be used in production, but the API is still not documented. And I will continue to redesign some part of the API until the version 1.0.0 will be published.
 
 _Bkb_ is a non-opinionated framework. It does almost nothing:
 
