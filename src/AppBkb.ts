@@ -108,8 +108,8 @@ export class AppBkb {
       if (mainRm) {
         this.insideRmComp = true
         if (inst && node.created) {
-          let evData = { component: inst, type: "remove" }
-          this.root.dash.emit(["removeComponent", "changeComponent"], evData, { sync: true })
+          let ev = { component: inst, type: "remove" }
+          this.root.dash.emit(["removeComponent", "changeComponent"], ev, { sync: true })
         }
       }
       if (node.children) {

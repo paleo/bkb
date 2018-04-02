@@ -17,7 +17,7 @@ export interface ComponentEvent<ED = any> {
   stopPropagation(): void
 }
 
-export type EventCallback<ED = any> = (evData: ED, compEv: ComponentEvent<ED>) => void
+export type EventCallback<ED = any> = (ev: ED, compEv: ComponentEvent<ED>) => void
 export type EventName = string | string[]
 
 export interface EmitOptions {
