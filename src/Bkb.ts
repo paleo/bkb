@@ -56,7 +56,7 @@ export class Bkb {
   }
 
   public destroy() {
-    this.emit("destroy", undefined, { sync: true })
+    this.emit("destroy", undefined, { sync: true, cancelPropagation: true })
     this.app.removeComponent(this, this.inst)
     if (this.childGroups)
       this.childGroups.clear()
@@ -112,23 +112,23 @@ export class Bkb {
   // -- [make dashs] Emit events
   // --
 
-  public broadcast(ev: ComponentEvent, options?: EmitOptions) {
-    if (options && options.sync)
+  public broadcast(ev: ComponentEvent, options: EmitOptions = {}) {
+    if (options.sync)
       this.emitter.emit(ev)
     else
       this.app.asyncCall(() => this.emitter.emit(ev))
   }
 
-  public emit(eventName: string, data?: any, options?: EmitOptions) {
-    if (options && options.sync)
-      this.emitSync(this.createEvent(eventName, data))
+  public emit(eventName: string, data?: any, options: EmitOptions = {}) {
+    if (options.sync)
+      this.emitSync(this.createEvent(eventName, data, options.cancelPropagation))
     else
-      this.app.asyncCall(() => this.emitSync(this.createEvent(eventName, data)))
+      this.app.asyncCall(() => this.emitSync(this.createEvent(eventName, data, options.cancelPropagation)))
   }
 
-  private createEvent(eventName, data?: any): ComponentEvent {
+  private createEvent(eventName: string, data: any, cancelPropagation?: boolean): ComponentEvent {
     let that = this,
-      canPropagate = true
+      canPropagate = !cancelPropagation
     return Object.freeze({
       eventName,
       get source() {
@@ -144,19 +144,16 @@ export class Bkb {
 
   private emitSync(ev: ComponentEvent) {
     this.emitter.emit(ev)
-    let parent = this.app.getParentOf(this.componentId)
-    if (parent)
-      parent.bubbleUpEvent(ev)
+    if (ev[CAN_PROPAGATE_SYMB] && ev[CAN_PROPAGATE_SYMB]()) {
+      let parent = this.app.getParentOf(this.componentId)
+      if (parent)
+          parent.emitSync(ev)
+    }
   }
 
-  private bubbleUpEvent(ev: ComponentEvent) {
-    if (ev[CAN_PROPAGATE_SYMB] && !ev[CAN_PROPAGATE_SYMB]())
-      return
-    this.emitter.emit(ev)
-    let parent = this.app.getParentOf(this.componentId)
-    if (parent)
-      parent.bubbleUpEvent(ev)
-  }
+  // --
+  // -- [make dashs] Navigate to parents
+  // --
 
   public getParent(filter?: ComponentFilter): Bkb | undefined {
     let parent: Bkb | undefined = this

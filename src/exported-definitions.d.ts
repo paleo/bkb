@@ -1,45 +1,87 @@
 export interface ComponentFilter {
-  (comp: any): boolean
+  (component: any): boolean
 }
 
 export interface FindChildFilter {
+  /**
+   * This optional filter defines one or several group names the children will have to match.
+   */
   group?: string | string[]
+
+  /**
+   * This optional filter is a test function that takes a `component` as parameter and returns a `boolean`.
+   */
   filter?: ComponentFilter
 }
 
 export interface ComponentEvent<ED = any> {
-  readonly eventName: string
   /**
-   * The component source
+   * The event name.
+   */
+  readonly eventName: string
+
+  /**
+   * The source component.
    */
   readonly source: object
+
+  /**
+   * The event data.
+   */
   readonly data?: ED
+
+  /**
+   * Stop the propagation of the event. The event won't bubble up after the call to this method.
+   */
   stopPropagation(): void
 }
 
-export type EventCallback<ED = any> = (ev: ED, compEv: ComponentEvent<ED>) => void
+export type EventCallback<ED = any> = (evData: ED, compEv: ComponentEvent<ED>) => void
 export type EventName = string | string[]
 
 export interface EmitOptions {
   /**
+   * When this option is set to `true`, then the event is emitted (and the listeners are called) synchronously.
+   *
    * Default value is `false`
    */
   sync?: boolean
+
+  /**
+   * When this option is set to `true`, then the event is emitted only on its component. It will not bubble up.
+   *
+   * This option has no effect on broadcasted events.
+   *
+   * Default value is `false`
+   */
+  cancelPropagation?: boolean
 }
 
 export interface UnattendedEvents {
+  /**
+   * Add a `listener` to this component.
+   */
   on<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
+
+  /**
+   * Remove a `listener` to this component.
+   */
   off(eventName: EventName, listener: EventCallback, thisArg?: any): void
 }
 
 export interface DashAppMembers {
   /**
+   * Test if the provided `obj` exists in the component tree.
+   *
    * This method is inherited from the application.
    */
   isComponent(obj: object): boolean
 
   /**
    * This method is inherited from the application.
+   *
+   * @returns The public dash of the provided `component`.
+   * @throws An Error if the `component` is not found in the component tree.
    */
   getPublicDashOf(component: object): PublicDash
 
@@ -50,6 +92,10 @@ export interface DashAppMembers {
 }
 
 export interface PublicDash extends DashAppMembers {
+
+  /**
+   * Contains the API to manually add and remove listeners to this component.
+   */
   readonly unattendedEvents: UnattendedEvents
 
   /**
@@ -58,12 +104,18 @@ export interface PublicDash extends DashAppMembers {
   children<C = any>(filter?: FindChildFilter): C[]
 
   /**
-   * @returns true if there is one or more children that validate the filter
+   * @returns `true` if there is at least one child that satisfies the provided filter.
    */
   hasChildren(filter?: FindChildFilter): boolean
 
+  /**
+   * @returns `true` if `obj` is a child component.
+   */
   isChild(obj: object): boolean
 
+  /**
+   * Unsubscribe all listeners, and remove the component from the component tree. The component can listen to its own event `destroy` if there is anything to do before to destroy.
+   */
   destroy(): void
 
   /**
