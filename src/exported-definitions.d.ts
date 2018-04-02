@@ -73,20 +73,20 @@ export interface DashAppMembers {
   /**
    * Test if the provided `obj` exists in the component tree.
    *
-   * This method is inherited from the application.
+   * This dash method is inherited from the application.
    */
   isComponent(obj: object): boolean
 
   /**
-   * This method is inherited from the application.
+   * This dash method is inherited from the application.
    *
    * @returns The public dash of the provided `component`.
-   * @throws An Error if the `component` is not found in the component tree.
+   * @throws An `Error` if the `component` doesn't exist in the component tree.
    */
   getPublicDashOf(component: object): PublicDash
 
   /**
-   * This member is inherited from the application.
+   * This dash member is inherited from the application.
    */
   readonly log: Log
 }
@@ -215,7 +215,7 @@ export interface DashAugmentation {
 }
 
 export interface AppDash<A = any> extends Dash<A> {
-  registerDashAugmentation(augment: (dash: Dash) => DashAugmentation): void
+  registerDashAugmentation(augment: (dash: Dash<A>) => DashAugmentation): void
 }
 
 export interface Log {
