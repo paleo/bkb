@@ -1,17 +1,16 @@
-import { Log, Dash, DashAugmentation } from "./exported-definitions"
-import { Container, InternalNewComponent } from "./Container"
-import { EmitterLog } from "./Emitter";
+import { Log, Dash, DashAugmentation, LogEvent } from "./exported-definitions"
+import { Bkb, InternalNewComponent } from "./Bkb"
 
 interface CompNode {
-  container: Container
+  bkb: Bkb
   parent?: CompNode | undefined
   children?: Map<number, CompNode> | undefined
   created?: boolean
 }
 
-export class ApplicationContainer implements EmitterLog {
+export class AppBkb {
 
-  public root: Container
+  public root: Bkb
   public log: Log
 
   private compCount = 0
@@ -23,21 +22,20 @@ export class ApplicationContainer implements EmitterLog {
   public augmentList: ((dash: Dash) => DashAugmentation)[] = []
 
   constructor(objOrCl: any, asObject: boolean, args?: any[]) {
-    let logTypes = ["error", "warn", "info", "debug", "trace"],
-      compId = this.newId()
-    this.log = this.createLog(logTypes)
-    this.root = new Container(this, compId)
+    let compId = this.newId()
+    this.log = this.createLog(["fatal", "error", "warn", "info", "debug", "trace"])
+    this.root = new Bkb(this, compId)
     let node: CompNode = {
-      container: this.root
+      bkb: this.root
     }
     this.nodes.set(compId, node)
-    this.root.emitter.exposeEvent(["log", ...logTypes, "addComponent", "removeComponent", "changeComponent"], false)
+    this.root.emitter.exposeEvent(["log", "addComponent", "removeComponent", "changeComponent"], false)
     if (asObject)
       this.root.setInstance(objOrCl)
     else
       this.root.makeInstance(objOrCl, args || []) // Can call 'removeComponent' and throw an error
     node.created = true
-// console.log("===> [DEBUG] init", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
+    // console.log("===> [DEBUG] init", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
   public setInstanceOf(compId: number, inst) {
@@ -47,42 +45,42 @@ export class ApplicationContainer implements EmitterLog {
     this.nodesByInst.set(inst, node)
   }
 
-  public getParentOf(compId: number): Container | undefined {
+  public getParentOf(compId: number): Bkb | undefined {
     let node = this.findNode(compId)
-    return node.parent ? node.parent.container : undefined
+    return node.parent ? node.parent.bkb : undefined
   }
 
-  public getChildrenOf(compId: number): Container[] {
-    let result: Container[] = [],
+  public getChildrenOf(compId: number): Bkb[] {
+    let result: Bkb[] = [],
       children = this.findNode(compId).children
     if (children) {
-      for (let child of Array.from(children.values()))
-        result.push(child.container)
+      for (let child of children.values())
+        result.push(child.bkb)
     }
     return result
   }
 
-  public getContainer(compId: number): Container {
-    return this.findNode(compId).container
+  public getBkb(compId: number): Bkb {
+    return this.findNode(compId).bkb
   }
 
-  public getContainerByInst(obj: object): Container {
-    return this.findNodeByInst(obj).container
+  public getBkbByInst(obj: object): Bkb {
+    return this.findNodeByInst(obj).bkb
   }
 
   public isComponent(obj: object): boolean {
     return this.nodesByInst.get(obj) ? true : false
   }
 
-  public createComponent(nc: InternalNewComponent, parent: Container): Container {
+  public createComponent(nc: InternalNewComponent, parent: Bkb): Bkb {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     let compId = this.newId(),
-      container = new Container(this, compId)
+      bkb = new Bkb(this, compId)
     // console.log("===> [DEBUG] create (before)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let parentNode = this.findNode(parent.componentId),
       node: CompNode = {
-        container: container,
+        bkb: bkb,
         parent: parentNode
       }
     this.nodes.set(compId, node)
@@ -90,23 +88,22 @@ export class ApplicationContainer implements EmitterLog {
       parentNode.children = new Map()
     parentNode.children.set(compId, node)
     if (nc.asObj)
-      container.setInstance(nc.obj)
+      bkb.setInstance(nc.obj)
     else
-      container.makeInstance(nc.Class, nc.args) // Can call 'removeComponent' and throw an error
-    let evData =  { component: container.getInstance(), type: "add" }
-    this.root.dash.emit(["addComponent", "changeComponent"], evData)
+      bkb.makeInstance(nc.Class, nc.args) // Can call 'removeComponent' and throw an error
+    this.root.dash.emit(["addComponent", "changeComponent"], { component: bkb.getInstance(), type: "add" })
     // console.log("===> [DEBUG] create (after)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     node.created = true
-    return container
+    return bkb
   }
 
-  public removeComponent<C>(container: Container, inst: object | undefined): void {
+  public removeComponent<C>(bkb: Bkb, inst: object | undefined): void {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
-    // console.log("===> [DEBUG] remove (before)", container.componentId, inst ? inst : "-no inst-", "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
+    // console.log("===> [DEBUG] remove (before)", bkb.componentId, inst ? inst : "-no inst-", "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let mainRm = !this.insideRmComp
     try {
-      let compId = container.componentId,
+      let compId = bkb.componentId,
         node = this.findNode(compId)
       if (mainRm) {
         this.insideRmComp = true
@@ -116,14 +113,14 @@ export class ApplicationContainer implements EmitterLog {
         }
       }
       if (node.children) {
-        for (let child of Array.from(node.children.values())) {
+        for (let child of node.children.values()) {
           child.parent = undefined
-          child.container.destroy()
+          child.bkb.destroy()
         }
         node.children.clear()
       }
       if (node.parent) {
-        node.parent.container.forgetChild(compId)
+        node.parent.bkb.forgetChild(compId)
         node.parent.children!.delete(compId)
       }
       this.nodes.delete(compId)
@@ -133,16 +130,7 @@ export class ApplicationContainer implements EmitterLog {
       if (mainRm)
         this.insideRmComp = false
     }
-    // console.log("===> [DEBUG] remove (after)", container.componentId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
-  }
-
-  public errorHandler(err: any): void {
-    if (!this.root.dash)
-      throw new Error("Destroyed root component")
-    this.root.dash.emit("log", {
-      type: "error",
-      messages: [err]
-    }, { sync: true })
+    // console.log("===> [DEBUG] remove (after)", bkb.componentId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
   public asyncCall(cb: () => void): void {
@@ -154,7 +142,7 @@ export class ApplicationContainer implements EmitterLog {
             try {
               cb()
             } catch (e) {
-              this.errorHandler(e)
+              this.log.error(e)
             }
           }
           this.tickList = undefined
@@ -182,16 +170,14 @@ export class ApplicationContainer implements EmitterLog {
     return this.compCount++
   }
 
-  private createLog(logTypes: string[]): Log {
-    let log = {}
-    for (let type of logTypes) {
-      log[type] = (...messages: any[]) => {
+  private createLog(levels: (keyof Log)[]): Log {
+    let log = {},
+      num = 0
+    for (let level of levels) {
+      log[level] = (...messages: any[]) => {
         if (!this.root.dash)
           throw new Error("Destroyed root component")
-        this.root.dash.emit("log", {
-          type: type,
-          messages: messages
-        }, { sync: true })
+        this.root.dash.emit("log", { level, messages, levelNumber: ++num } as LogEvent, { sync: true })
       }
     }
     return Object.freeze(log) as any
@@ -199,7 +185,7 @@ export class ApplicationContainer implements EmitterLog {
 }
 
 // function publicNodesToString(node: CompNode, indent = '') {
-//   let line = `${indent}- ${node.container.componentId} ${getComponentName(node.container["inst"])} (${node.children ? Array.from(node.children.values()).length : "-no children-"})`
+//   let line = `${indent}- ${node.bkb.componentId} ${getComponentName(node.bkb["inst"])} (${node.children ? Array.from(node.children.values()).length : "-no children-"})`
 //   if (node.children) {
 //     for (let child of node.children.values()) {
 //       line += '\n' + publicNodesToString(child, `${indent}  `)

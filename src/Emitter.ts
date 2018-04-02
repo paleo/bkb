@@ -1,9 +1,5 @@
-import { ComponentEvent, EventCallback } from "./exported-definitions"
-import { Container } from "./Container"
-
-export interface EmitterLog {
-  errorHandler(err: any): void
-}
+import { ComponentEvent, EventCallback, Log } from "./exported-definitions"
+import { Bkb } from "./Bkb"
 
 export interface Listener {
   cb: EventCallback
@@ -23,7 +19,7 @@ export class Emitter {
   private listeners: Map<string, Listener[]> | undefined
   private destroyed = false
 
-  constructor(private log: EmitterLog, eventNames?: string[]) {
+  constructor(private log: Log, eventNames?: string[]) {
     if (eventNames)
       this.exposeEvent(eventNames, false)
   }
@@ -48,7 +44,7 @@ export class Emitter {
         try {
           call(item, ev)
         } catch (e) {
-          this.log.errorHandler(e)
+          this.log.error(e)
         }
       }
     }

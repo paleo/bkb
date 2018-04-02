@@ -1,21 +1,21 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, ApplicationDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./exported-definitions"
-import { ApplicationContainer } from "./ApplicationContainer"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./exported-definitions"
+import { AppBkb } from "./AppBkb"
 import { Emitter } from "./Emitter"
 import { Subscriber } from "./Subscriber";
 
-export class Container {
+const CAN_PROPAGATE_SYMB = Symbol("canPropagate")
+
+export class Bkb {
   public pub: PublicDash | undefined
-  public dash: Dash | ApplicationDash | undefined
+  public dash: Dash | AppDash | undefined
   public emitter: Emitter
   public subscriber = new Subscriber()
 
   public inst: object | undefined
   private childGroups?: Map<string, Set<number>>
 
-  private static canPropagateSymb = Symbol("canPropagate")
-
-  constructor(public app: ApplicationContainer, readonly componentId: number) {
-    this.emitter = new Emitter(app, ["destroy"])
+  constructor(public app: AppBkb, readonly componentId: number) {
+    this.emitter = new Emitter(app.log, ["destroy"])
     this.pub = makePublicDash(this)
     this.dash = makeDash(this, this.pub)
   }
@@ -78,12 +78,12 @@ export class Container {
   // -- [make dashs]
   // --
 
-  public createChild(nc: InternalNewComponent): Container {
+  public createChild(nc: InternalNewComponent): Bkb {
     return this.app.createComponent(nc, this)
   }
 
   public addToGroup(child: object, groups: string[]) {
-    let childId = this.app.getContainerByInst(child).componentId
+    let childId = this.app.getBkbByInst(child).componentId
     if (this !== this.app.getParentOf(childId))
       throw new Error(`The component ${childId} is not a child of ${this.componentId}`)
     if (!this.childGroups)
@@ -99,7 +99,7 @@ export class Container {
   public inGroup(child: object, groups: string[]) {
     if (!this.childGroups)
       return false
-    let childId = this.app.getContainerByInst(child).componentId
+    let childId = this.app.getBkbByInst(child).componentId
     for (let group of groups) {
       let idSet = this.childGroups.get(group)
       if (idSet && idSet.has(childId))
@@ -138,7 +138,7 @@ export class Container {
       stopPropagation: () => {
         canPropagate = false
       },
-      [Container.canPropagateSymb]: () => canPropagate
+      [CAN_PROPAGATE_SYMB]: () => canPropagate
     } as ComponentEvent)
   }
 
@@ -150,7 +150,7 @@ export class Container {
   }
 
   private bubbleUpEvent(ev: ComponentEvent) {
-    if (ev[Container.canPropagateSymb] && !ev[Container.canPropagateSymb]())
+    if (ev[CAN_PROPAGATE_SYMB] && !ev[CAN_PROPAGATE_SYMB]())
       return
     this.emitter.emit(ev)
     let parent = this.app.getParentOf(this.componentId)
@@ -158,17 +158,17 @@ export class Container {
       parent.bubbleUpEvent(ev)
   }
 
-  public getParent(filter?: ComponentFilter): Container | undefined {
-    let parent: Container | undefined = this
+  public getParent(filter?: ComponentFilter): Bkb | undefined {
+    let parent: Bkb | undefined = this
     while (parent = this.app.getParentOf(parent.componentId)) {
       if (!filter || filter(parent))
         return parent
     }
   }
 
-  public getParents(filter?: ComponentFilter): Container[] {
-    let parent: Container | undefined = this,
-      result = [] as Container[]
+  public getParents(filter?: ComponentFilter): Bkb[] {
+    let parent: Bkb | undefined = this,
+      result = [] as Bkb[]
     while (parent = this.app.getParentOf(parent.componentId)) {
       if (!filter || filter(parent))
         result.push(parent)
@@ -181,46 +181,35 @@ export class Container {
   // --
 
   public getChildren(filter: FindChildFilter): object[] {
-    let containers = this.getChildContainers(filter.group),
-      result: object[] = []
-    for (let child of containers) {
+    let list = this.getChildBkbs(filter.group),
+      filtered: object[] = []
+    for (let child of list) {
       // if ((!filter.filter || filter.filter(child)) &&!child.inst)
       //   console.log("=======> Missing instance for component", child.componentId)
       if (child.inst && (!filter.filter || filter.filter(child)))
-        result.push(child.getInstance())
+        filtered.push(child.inst)
     }
-    return result
-  }
-
-  public getChild(filter: FindChildFilter): object {
-    let list = this.getChildren(filter)
-    if (list.length !== 1)
-      throw new Error(`Cannot find single ${JSON.stringify(filter)} in component ${this.componentId}`)
-    return list[0]
-  }
-
-  public countChildren(filter: FindChildFilter): number {
-    return this.getChildren(filter).length
+    return filtered
   }
 
   public hasChildren(filter: FindChildFilter): boolean {
-    return this.countChildren(filter) > 0
+    return this.getChildren(filter).length > 0
   }
 
   public isChild(obj: object): boolean {
-    let compId = this.app.getContainerByInst(obj).componentId
+    let compId = this.app.getBkbByInst(obj).componentId
     return this === this.app.getParentOf(compId)
   }
 
   public destroyChildren(filter: FindChildFilter) {
-    let containers = this.getChildContainers(filter.group)
-    for (let child of containers) {
+    let bkbs = this.getChildBkbs(filter.group)
+    for (let child of bkbs) {
       if (!filter.filter || filter.filter(child))
         child.destroy()
     }
   }
 
-  private getChildContainers(groupName?: string | string[]): Iterable<Container> {
+  private getChildBkbs(groupName?: string | string[]): Iterable<Bkb> {
     if (!groupName)
       return this.app.getChildrenOf(this.componentId)
     if (!this.childGroups)
@@ -234,45 +223,43 @@ export class Container {
       for (let id of group.values())
         identifiers.add(id)
     }
-    let containers: Container[] = []
+    let bkbs: Bkb[] = []
     for (let id of identifiers.values())
-      containers.push(this.app.getContainer(id))
-    return containers
+      bkbs.push(this.app.getBkb(id))
+    return bkbs
   }
 }
 
-function makePublicDash(container: Container): PublicDash {
+function makePublicDash(bkb: Bkb): PublicDash {
   let pub: PublicDash = Object.freeze({
     unattendedEvents: Object.freeze({
       on: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
-        container.emitter.on(arr(eventName), listener, thisArg)
+        bkb.emitter.on(arr(eventName), listener, thisArg)
       },
       off: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
-        container.emitter.off(new Set(arr(eventName)), listener, thisArg)
+        bkb.emitter.off(new Set(arr(eventName)), listener, thisArg)
       }
     }),
     get instance() {
-      return container.getInstance()
+      return bkb.getInstance()
     },
     get parent() {
       return pub.getParent()
     },
     getParent: function (filter?: ComponentFilter) {
-      let parent = container.getParent(filter)
+      let parent = bkb.getParent(filter)
       return parent ? parent.getInstance() : undefined
     },
     getParents: (filter?: ComponentFilter) => {
-      return container.getParents(filter).map(parentContainer => parentContainer.getInstance())
+      return bkb.getParents(filter).map(parentBkb => parentBkb.getInstance())
     },
-    destroy: () => container.destroy(),
-    children: <C>(filter: FindChildFilter = {}) => container.getChildren(filter) as any[],
-    getChild: <C>(filter: FindChildFilter = {}) => container.getChild(filter) as any,
-    countChildren: (filter: FindChildFilter = {}) => container.countChildren(filter),
-    hasChildren: (filter: FindChildFilter = {}) => container.hasChildren(filter),
-    isChild: (obj: object) => container.isChild(obj),
-    isComponent: (obj: object) => container.app.isComponent(obj),
-    getPublicDashOf: (inst: object) => container.app.getContainerByInst(inst).pub!,
-    log: container.app.log
+    children: (filter: FindChildFilter = {}) => bkb.getChildren(filter) as any[],
+    hasChildren: (filter: FindChildFilter = {}) => bkb.hasChildren(filter),
+    isChild: (obj: object) => bkb.isChild(obj),
+    destroy: () => bkb.destroy(),
+    isComponent: (obj: object) => bkb.app.isComponent(obj),
+    getPublicDashOf: (inst: object) => bkb.app.getBkbByInst(inst).pub!,
+    log: bkb.app.log
   })
   return pub
 }
@@ -290,87 +277,86 @@ export interface InternalNewComponentNew {
 
 export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
-function makeDash<C>(container: Container, pub: PublicDash): Dash | ApplicationDash {
-  let source: Partial<Dash | ApplicationDash> = {
+function makeDash<C>(bkb: Bkb, pub: PublicDash): Dash | AppDash {
+  let source: Partial<Dash | AppDash> = {
     setInstance: (inst: any) => {
-      container.setInstance(inst)
+      bkb.setInstance(inst)
       return dash as any
     },
     exposeEvent: function (...eventNames: any[]) {
-      container.emitter.exposeEvent(flatten(eventNames), true)
+      bkb.emitter.exposeEvent(flatten(eventNames), true)
       return dash as any
     },
     create: (Class: { new(): any }, ...args: any[]) => {
-      return container.createChild({ asObj: false, Class, args }).getInstance() as any
+      return bkb.createChild({ asObj: false, Class, args }).getInstance() as any
     },
-    toComponent: (obj: object) => container.createChild({ asObj: true, obj }).dash as any,
+    toComponent: (obj: object) => bkb.createChild({ asObj: true, obj }).dash as any,
     addToGroup: (child: object, ...groups) => {
-      container.addToGroup(child, flatten(groups))
+      bkb.addToGroup(child, flatten(groups))
       return dash as any
     },
-    inGroup: (child: object, ...groups) => container.inGroup(child, flatten(groups)),
+    inGroup: (child: object, ...groups) => bkb.inGroup(child, flatten(groups)),
     emit: function (eventName: EventName, data?, options?: EmitOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)
-        container.emit(name, data, options)
+        bkb.emit(name, data, options)
       return dash as any
     },
     broadcast: function (ev: ComponentEvent, options?: EmitOptions) {
-      container.broadcast(ev, options)
+      bkb.broadcast(ev, options)
       return dash as any
     },
     listenTo: (...args) => {
-      let targetContainer: Container,
+      let targetBkb: Bkb,
         eventName: EventName,
         listener: EventCallback,
         thisArg
       if (args.length === 2 || typeof args[0] === "string" || Array.isArray(args[0])) {
         [eventName, listener, thisArg] = args
-        targetContainer = container
+        targetBkb = bkb
       } else {
         let component
         [component, eventName, listener, thisArg] = args
-        targetContainer = container.app.getContainerByInst(component)
+        targetBkb = bkb.app.getBkbByInst(component)
       }
-      container.subscriber.listenTo(targetContainer.emitter, arr(eventName), listener, thisArg)
+      bkb.subscriber.listenTo(targetBkb.emitter, arr(eventName), listener, thisArg)
       return dash as any
     },
     stopListening: (...args) => {
-      let targetContainer: Container,
+      let targetBkb: Bkb,
         eventName: EventName,
         listener: EventCallback,
         thisArg
       let count = args.length
       if (typeof args[0] === "string" || Array.isArray(args[0])) {
         [eventName, listener, thisArg] = args
-        targetContainer = container
+        targetBkb = bkb
       } else if (count === 1 || count === 2) {
         [listener, thisArg] = args
-        container.subscriber.stopListeningEverywhere(listener, thisArg)
+        bkb.subscriber.stopListeningEverywhere(listener, thisArg)
         return
       } else {
         let component
         [component, eventName, listener, thisArg] = args
-        targetContainer = container.app.getContainerByInst(component)
+        targetBkb = bkb.app.getBkbByInst(component)
       }
-      container.subscriber.stopListening(targetContainer.emitter, arr(eventName), listener, thisArg)
+      bkb.subscriber.stopListening(targetBkb.emitter, arr(eventName), listener, thisArg)
       return dash as any
     },
     destroyChildren: (filter: FindChildFilter = {}) => {
-      container.destroyChildren(filter)
+      bkb.destroyChildren(filter)
       return dash as any
     },
     publicDash: pub
   }
-  let dash: Dash | ApplicationDash = Object.assign(Object.create(pub), source)
-  if (container.app.root && container.app.root !== container) {
-    Object.defineProperties(dash, {
-      app: { get: () => container.app.root.getInstance() }
-    })
-    Object.assign(dash, ...container.app.augmentList.map(augment => augment(dash as Dash)))
-  } else {
-    ;(dash as ApplicationDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
-      container.app.augmentList.push(augment)
+  let dash: Dash | AppDash = Object.assign(Object.create(pub), source)
+  Object.defineProperties(dash, {
+    app: { get: () => bkb.app.root.getInstance() }
+  })
+  Object.assign(dash, ...bkb.app.augmentList.map(augment => augment(dash as Dash)))
+  if (!bkb.app.root || bkb.app.root === bkb) { // AppDash
+    ;(dash as AppDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
+      bkb.app.augmentList.push(augment)
     }
   }
   Object.freeze(dash)

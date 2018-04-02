@@ -7,21 +7,6 @@ export interface FindChildFilter {
   filter?: ComponentFilter
 }
 
-export interface ApplicationMembers {
-  /**
-   * This method is inherited from the application.
-   */
-  isComponent(obj: object): boolean
-  /**
-   * This method is inherited from the application.
-   */
-  getPublicDashOf(component: object): PublicDash
-  /**
-   * This member is inherited from the application.
-   */
-  readonly log: Log
-}
-
 export interface ComponentEvent<ED = any> {
   readonly eventName: string
   /**
@@ -47,21 +32,31 @@ export interface UnattendedEvents {
   off(eventName: EventName, listener: EventCallback, thisArg?: any): void
 }
 
-export interface PublicDash extends ApplicationMembers {
+export interface DashAppMembers {
+  /**
+   * This method is inherited from the application.
+   */
+  isComponent(obj: object): boolean
+
+  /**
+   * This method is inherited from the application.
+   */
+  getPublicDashOf(component: object): PublicDash
+
+  /**
+   * This member is inherited from the application.
+   */
+  readonly log: Log
+}
+
+export interface PublicDash extends DashAppMembers {
   readonly unattendedEvents: UnattendedEvents
 
   /**
    * Find children
    */
   children<C = any>(filter?: FindChildFilter): C[]
-  /**
-   * Find a single child (or throws an Error if there isn't one result)
-   */
-  getChild<C = any>(filter?: FindChildFilter): C
-  /**
-   * @returns The count of children that validate the filter
-   */
-  countChildren(filter?: FindChildFilter): number
+
   /**
    * @returns true if there is one or more children that validate the filter
    */
@@ -75,22 +70,26 @@ export interface PublicDash extends ApplicationMembers {
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   readonly instance: object
+
   /**
    * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   readonly parent: object | undefined
+
   /**
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   getParent(filter?: ComponentFilter): object | undefined
+
   /**
    * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
    */
   getParents(filter?: ComponentFilter): object[]
 }
 
-export interface BasicDash<A = any> extends PublicDash {
+export interface Dash<A = any> extends PublicDash {
   readonly publicDash: PublicDash
+  readonly app: A
 
   /**
    * Call this method if the instance must be available from other components before the end of the execution of the constructor.
@@ -105,6 +104,7 @@ export interface BasicDash<A = any> extends PublicDash {
 
   addToGroup(child: object, group: string, ...groups: string[]): this
   addToGroup(child: object, groups: string[]): this
+
   inGroup(child: object, group: string, ...groups: string[]): boolean
   inGroup(child: object, groups: string[]): boolean
 
@@ -138,6 +138,7 @@ export interface BasicDash<A = any> extends PublicDash {
   /**
    * Stop to listen to `eventName` on the current component
    */
+
   stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): this
   /**
    * Stop to listen to `eventName` on the target `component`
@@ -151,26 +152,21 @@ export interface DashAugmentation {
   [property: string]: any
 }
 
-export interface ApplicationDash<A = any> extends BasicDash<A> {
+export interface AppDash<A = any> extends Dash<A> {
   registerDashAugmentation(augment: (dash: Dash) => DashAugmentation): void
 }
 
-export interface Dash<A = any> extends BasicDash<A> {
-  readonly app: A
-}
-
-/**
- * The type of data for log event
- */
-export interface LogItem {
-  type: string
-  messages: any[]
-}
-
 export interface Log {
+  fatal(...messages: any[]): void
   error(...messages: any[]): void
   warn(...messages: any[]): void
   info(...messages: any[]): void
   debug(...messages: any[]): void
   trace(...messages: any[]): void
+}
+
+export interface LogEvent {
+  level: keyof Log
+  levelNumber: number
+  messages: any[]
 }
