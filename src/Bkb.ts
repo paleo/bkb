@@ -237,7 +237,7 @@ function makePublicDash(bkb: Bkb): PublicDash {
         bkb.emitter.off(new Set(arr(eventName)), listener, thisArg)
       }
     }),
-    get instance() {
+    get component() {
       return bkb.getInstance()
     },
     get parent() {

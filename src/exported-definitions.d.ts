@@ -99,7 +99,7 @@ export interface PublicDash extends DashAppMembers {
   readonly unattendedEvents: UnattendedEvents
 
   /**
-   * Find children
+   * @returns The children.
    */
   children<C = any>(filter?: FindChildFilter): C[]
 
@@ -114,26 +114,36 @@ export interface PublicDash extends DashAppMembers {
   isChild(obj: object): boolean
 
   /**
-   * Unsubscribe all listeners, and remove the component from the component tree. The component can listen to its own event `destroy` if there is anything to do before to destroy.
+   * Unsubscribe all listeners, and remove the component from the component tree. The component can listen to its own `destroy` event if there is anything to do before to destroy.
+   *
+   * Notice: The `destroy` event doesn't bubble up.
    */
   destroy(): void
 
   /**
+   * The component.
+   *
    * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
-  readonly instance: object
+  readonly component: object
 
   /**
+   * The parent component.
+   *
    * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   readonly parent: object | undefined
 
   /**
+   * Find a parent component.
+   *
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   getParent(filter?: ComponentFilter): object | undefined
 
   /**
+   * Find a list of parent components.
+   *
    * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
    */
   getParents(filter?: ComponentFilter): object[]
@@ -146,7 +156,7 @@ export interface Dash<A = any> extends PublicDash {
   /**
    * Call this method if the instance must be available from other components before the end of the execution of the constructor.
    */
-  setInstance(inst: any): this
+  setInstance(component: any): this
 
   exposeEvent(...eventNames: string[]): this
   exposeEvent(eventNames: string[]): this
