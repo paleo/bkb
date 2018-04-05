@@ -256,7 +256,10 @@ function makePublicDash(bkb: Bkb): PublicDash {
     destroy: () => bkb.destroy(),
     isComponent: (obj: object) => bkb.app.isComponent(obj),
     getPublicDashOf: (inst: object) => bkb.app.getBkbByInst(inst).pub!,
-    log: bkb.app.log
+    log: bkb.app.log,
+    get app() {
+      return bkb.app.root.getInstance()
+    }
   })
   return pub
 }
@@ -274,7 +277,7 @@ export interface InternalNewComponentNew {
 
 export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
 
-function makeDash<C>(bkb: Bkb, pub: PublicDash): Dash | AppDash {
+function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
   let source: Partial<Dash | AppDash> = {
     setInstance: (inst: any) => {
       bkb.setInstance(inst)
@@ -347,9 +350,6 @@ function makeDash<C>(bkb: Bkb, pub: PublicDash): Dash | AppDash {
     publicDash: pub
   }
   let dash: Dash | AppDash = Object.assign(Object.create(pub), source)
-  Object.defineProperties(dash, {
-    app: { get: () => bkb.app.root.getInstance() }
-  })
   Object.assign(dash, ...bkb.app.augmentList.map(augment => augment(dash as Dash)))
   if (!bkb.app.root || bkb.app.root === bkb) { // AppDash
     ;(dash as AppDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {

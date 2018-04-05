@@ -12,7 +12,7 @@ _Bkb_ is a non-opinionated framework. It does almost nothing:
 
 To achieve these purposes, you will use the libraries you want.
 
-_Bkb_ will help you to organize your code in a fashion that each part of your program is self contained and reusable. We call that a _component_ (it is not a _Web component_). At runtime, each instance of a *component* is located in a *tree*. Like the DOM elements and events, a component has the ability to emit and subscribe to events of its children, parents, etc.
+_Bkb_ will help you to organize your code in a fashion that each part of your program is self contained and reusable. We call that a _component_ (it is not a _Web component_). At runtime, each instance of a *component* is located in a *tree*. Like the DOM elements and events, a component has the ability to emit and listen to events of its children, parents, etc.
 
 This project is inspired from [Backbone.js](http://backbonejs.org/):
 

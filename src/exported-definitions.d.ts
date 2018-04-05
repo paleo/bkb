@@ -69,29 +69,36 @@ export interface UnattendedEvents {
   off(eventName: EventName, listener: EventCallback, thisArg?: any): void
 }
 
-export interface DashAppMembers {
+export interface AppScopeMembers<A = any> {
   /**
    * Test if the provided `obj` exists in the component tree.
    *
-   * This dash method is inherited from the application.
+   * This dash method is common for the whole application.
    */
   isComponent(obj: object): boolean
 
   /**
-   * This dash method is inherited from the application.
+   * This dash method is common for the whole application.
    *
    * @returns The public dash of the provided `component`.
    * @throws An `Error` if the `component` doesn't exist in the component tree.
    */
-  getPublicDashOf(component: object): PublicDash
+  getPublicDashOf(component: object): PublicDash<A>
 
   /**
-   * This dash member is inherited from the application.
+   * This dash property is common for the whole application.
    */
   readonly log: Log
+
+  /**
+   * This is the application root component.
+   *
+   * This dash property is common for the whole application.
+   */
+  readonly app: A
 }
 
-export interface PublicDash extends DashAppMembers {
+export interface PublicDash<A = any> extends AppScopeMembers<A> {
 
   /**
    * Contains the API to manually add and remove listeners to this component.
@@ -99,12 +106,12 @@ export interface PublicDash extends DashAppMembers {
   readonly unattendedEvents: UnattendedEvents
 
   /**
-   * @returns The children.
+   * @returns The children that match the satisfies the provided optional filter.
    */
   children<C = any>(filter?: FindChildFilter): C[]
 
   /**
-   * @returns `true` if there is at least one child that satisfies the provided filter.
+   * @returns `true` if there is at least one child that satisfies the provided optional filter.
    */
   hasChildren(filter?: FindChildFilter): boolean
 
@@ -114,9 +121,9 @@ export interface PublicDash extends DashAppMembers {
   isChild(obj: object): boolean
 
   /**
-   * Unsubscribe all listeners, and remove the component from the component tree. The component can listen to its own `destroy` event if there is anything to do before to destroy.
+   * Unsubscribe all listeners, and remove the component from the component tree.
    *
-   * Notice: The `destroy` event doesn't bubble up.
+   * The component can listen to its own `destroy` event if there is anything to do before to destroy. Notice: The `destroy` event doesn't bubble up.
    */
   destroy(): void
 
@@ -135,33 +142,50 @@ export interface PublicDash extends DashAppMembers {
   readonly parent: object | undefined
 
   /**
-   * Find a parent component.
+   * Find the first ancestor component that satisfies the provided optional filter, starting from the nearest and going to the farthest.
    *
    * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
    */
   getParent(filter?: ComponentFilter): object | undefined
 
   /**
-   * Find a list of parent components.
+   * Find a list of ancestor components that satisfy the provided optional filter, ordered from nearest to farthest.
    *
    * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
    */
   getParents(filter?: ComponentFilter): object[]
 }
 
-export interface Dash<A = any> extends PublicDash {
-  readonly publicDash: PublicDash
-  readonly app: A
+export interface Dash<A = any> extends PublicDash<A> {
+  /**
+   * This is the public dash of the component.
+   */
+  readonly publicDash: PublicDash<A>
 
   /**
-   * Call this method if the instance must be available from other components before the end of the execution of the constructor.
+   * Call this method if the component instance must be available from other components before the end of the execution of the constructor.
    */
   setInstance(component: any): this
 
+  /**
+   * Declare the event names that can be emitted by the component. If this method is not called, then any event names can be emitted or listened.
+   */
   exposeEvent(...eventNames: string[]): this
+  /**
+   * Declare the event names that can be emitted by the component. If this method is not called, then any event names can be emitted or listened.
+   */
   exposeEvent(eventNames: string[]): this
 
+  /**
+   * Create a child component by instantiating the `Class`. The arguments will be passed to the constructor, starting by the second constructor parameter.
+   */
   create<C, D extends Dash<A>>(Class: { new(dash: D, ...args: any[]): C }, ...args: any[]): C
+
+  /**
+   * Make the `obj` a child component.
+   *
+   * @returns The `Dash` of the child component.
+   */
   toComponent(obj: object): Dash<A>
 
   addToGroup(child: object, group: string, ...groups: string[]): this
@@ -178,7 +202,7 @@ export interface Dash<A = any> extends PublicDash {
   /**
    * If the option `sync` is activated, the method is allowed only when the component instance is defined: after the initialisation, or after a call of `setInstance()`.
    *
-   * The event will NOT bubble up to parent hierarchy.
+   * The event will NOT bubble up to the parent hierarchy.
    */
   broadcast(ev: ComponentEvent, options?: EmitOptions): this
 
