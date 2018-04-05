@@ -1,4 +1,4 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnattendedEvents, DashAugmentation } from "./exported-definitions"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnmanagedListeners, DashAugmentation } from "./exported-definitions"
 import { AppBkb } from "./AppBkb"
 import { Emitter } from "./Emitter"
 import { Subscriber } from "./Subscriber";
@@ -229,7 +229,7 @@ export class Bkb {
 
 function makePublicDash(bkb: Bkb): PublicDash {
   let pub: PublicDash = Object.freeze({
-    unattendedEvents: Object.freeze({
+    unmanagedListeners: Object.freeze({
       on: (eventName: EventName, listener: EventCallback, thisArg?: any) => {
         bkb.emitter.on(arr(eventName), listener, thisArg)
       },

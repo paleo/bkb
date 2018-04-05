@@ -57,7 +57,7 @@ export interface EmitOptions {
   cancelPropagation?: boolean
 }
 
-export interface UnattendedEvents {
+export interface UnmanagedListeners {
   /**
    * Add a `listener` to this component.
    */
@@ -103,7 +103,7 @@ export interface PublicDash<A = any> extends AppScopeMembers<A> {
   /**
    * Contains the API to manually add and remove listeners to this component.
    */
-  readonly unattendedEvents: UnattendedEvents
+  readonly unmanagedListeners: UnmanagedListeners
 
   /**
    * @returns The children that satisfy the provided optional filter.
