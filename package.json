@@ -1,6 +1,6 @@
 {
   "name": "bkb",
-  "version": "0.23.0",
+  "version": "0.23.1",
   "description": "A JavaScript Framework for Front-end Applications",
   "main": "bkb.min.js",
   "types": "bkb.d.ts",
@@ -26,7 +26,6 @@
     "name": "Paleo"
   },
   "license": "CC0-1.0",
-  "homepage": "http://paleo.github.io/bkb/",
   "keywords": [
     "frontend",
     "framework",
