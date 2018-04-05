@@ -106,7 +106,7 @@ export interface PublicDash<A = any> extends AppScopeMembers<A> {
   readonly unattendedEvents: UnattendedEvents
 
   /**
-   * @returns The children that match the satisfies the provided optional filter.
+   * @returns The children that satisfy the provided optional filter.
    */
   children<C = any>(filter?: FindChildFilter): C[]
 
@@ -188,10 +188,24 @@ export interface Dash<A = any> extends PublicDash<A> {
    */
   toComponent(obj: object): Dash<A>
 
+  /**
+   * Add an existing `child` to a group. Groups help the parent component to process or destroy children.
+   */
   addToGroup(child: object, group: string, ...groups: string[]): this
+
+  /**
+   * Add an existing `child` to a group. Groups help the parent component to process or destroy children.
+   */
   addToGroup(child: object, groups: string[]): this
 
+  /**
+   * Test if the `child` is at least in one of these `groups`.
+   */
   inGroup(child: object, group: string, ...groups: string[]): boolean
+
+  /**
+   * Test if the `child` is at least in one of these `groups`.
+   */
   inGroup(child: object, groups: string[]): boolean
 
   /**
@@ -217,28 +231,40 @@ export interface Dash<A = any> extends PublicDash<A> {
   listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
 
   /**
-   * Stop to listen everything for the `listener` and `thisArg`
+   * Stop to listen everything for the `listener`
    */
   stopListening(listener: EventCallback, thisArg?: any): this
 
   /**
    * Stop to listen to `eventName` on the current component
    */
-
   stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): this
+
   /**
    * Stop to listen to `eventName` on the target `component`
    */
   stopListening(component: object, eventName: EventName, listener: EventCallback, thisArg?: any): this
 
+  /**
+   * @returns Destroy the children that satisfy the provided optional filter.
+   */
   destroyChildren(filter?: FindChildFilter): this
 }
 
+/**
+ * These members will be assigned (`Object.assign`) to a new `Dash`.
+ */
 export interface DashAugmentation {
   [property: string]: any
 }
 
+/**
+ * The dash of the root component of an application.
+ */
 export interface AppDash<A = any> extends Dash<A> {
+  /**
+   * Register a function `augment` that will be called in order to augment each new `Dash`.
+   */
   registerDashAugmentation(augment: (dash: Dash<A>) => DashAugmentation): void
 }
 
