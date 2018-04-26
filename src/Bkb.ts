@@ -38,10 +38,13 @@ export class Bkb {
   }
 
   public setInstance(inst: object) {
-    if (this.inst)
-      return this.inst
     if (!this.pub)
       throw new Error(`Destroyed component`)
+    if (this.inst) {
+      if (inst !== this.inst)
+        throw new Error(`Conflict between component instances`)
+      return
+    }
     this.inst = inst
     this.app.setInstanceOf(this.componentId, this.inst)
   }
@@ -155,21 +158,15 @@ export class Bkb {
   // -- [make dashs] Navigate to parents
   // --
 
-  public getParent(filter?: ComponentFilter): Bkb | undefined {
-    let parent: Bkb | undefined = this
-    while (parent = this.app.getParentOf(parent.componentId)) {
-      if (!filter || filter(parent))
-        return parent
-    }
+  public getParent(): Bkb | undefined {
+    return this.app.getParentOf(this.componentId)
   }
 
-  public getParents(filter?: ComponentFilter): Bkb[] {
+  public getParents(): Bkb[] {
     let parent: Bkb | undefined = this,
       result = [] as Bkb[]
-    while (parent = this.app.getParentOf(parent.componentId)) {
-      if (!filter || filter(parent))
-        result.push(parent)
-    }
+    while (parent = this.app.getParentOf(parent.componentId))
+      result.push(parent)
     return result
   }
 
@@ -237,18 +234,8 @@ function makePublicDash(bkb: Bkb): PublicDash {
         bkb.emitter.off(new Set(arr(eventName)), listener, thisArg)
       }
     }),
-    get component() {
+    getComponent() {
       return bkb.getInstance()
-    },
-    get parent() {
-      return pub.getParent()
-    },
-    getParent: function (filter?: ComponentFilter) {
-      let parent = bkb.getParent(filter)
-      return parent ? parent.getInstance() : undefined
-    },
-    getParents: (filter?: ComponentFilter) => {
-      return bkb.getParents(filter).map(parentBkb => parentBkb.getInstance())
     },
     children: (filter: FindChildFilter = {}) => bkb.getChildren(filter) as any[],
     hasChildren: (filter: FindChildFilter = {}) => bkb.hasChildren(filter),
@@ -256,6 +243,10 @@ function makePublicDash(bkb: Bkb): PublicDash {
     destroy: () => bkb.destroy(),
     isComponent: (obj: object) => bkb.app.isComponent(obj),
     getPublicDashOf: (inst: object) => bkb.app.getBkbByInst(inst).pub!,
+    getParentOf(inst: object) {
+      let parent =  bkb.app.getBkbByInst(inst).getParent()
+      return parent ? parent.getInstance() : undefined
+    },
     log: bkb.app.log,
     get app() {
       return bkb.app.root.getInstance()
@@ -290,7 +281,7 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
     create: (Class: { new(): any }, ...args: any[]) => {
       return bkb.createChild({ asObj: false, Class, args }).getInstance() as any
     },
-    toComponent: (obj: object) => bkb.createChild({ asObj: true, obj }).dash as any,
+    registerComponent: (obj: object) => bkb.createChild({ asObj: true, obj }).dash as any,
     addToGroup: (child: object, ...groups) => {
       bkb.addToGroup(child, flatten(groups))
       return dash as any
@@ -352,7 +343,7 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
   let dash: Dash | AppDash = Object.assign(Object.create(pub), source)
   Object.assign(dash, ...bkb.app.augmentList.map(augment => augment(dash as Dash)))
   if (!bkb.app.root || bkb.app.root === bkb) { // AppDash
-    ;(dash as AppDash).registerDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
+    ;(dash as AppDash).addDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
       bkb.app.augmentList.push(augment)
     }
   }

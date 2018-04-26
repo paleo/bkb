@@ -86,6 +86,15 @@ export interface AppScopeMembers<A = any> {
   getPublicDashOf(component: object): PublicDash<A>
 
   /**
+   * @returns The parent component, or `undefined` when the current component is the application root component.
+   *
+   * Available only when the parent instance is defined: after the constructor is executed, or after it calls `setInstance()` from its dash.
+   *
+   * Warning: This method is provided for introspection only. If a component needs to get its parent component, then it is recommanded to pass the parent as a contructor parameter of the child.
+   */
+  getParentOf(component: object): object | undefined
+
+  /**
    * This dash property is common for the whole application.
    */
   readonly log: Log
@@ -130,30 +139,9 @@ export interface PublicDash<A = any> extends AppScopeMembers<A> {
   /**
    * The component.
    *
-   * This property is available only when the component instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
+   * Available only when the component instance is defined: after the constructor is executed, or after a call of `setInstance()` from its dash.
    */
-  readonly component: object
-
-  /**
-   * The parent component.
-   *
-   * This property is available only when the parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
-   */
-  readonly parent: object | undefined
-
-  /**
-   * Find the first ancestor component that satisfies the provided optional filter, starting from the nearest and going to the farthest.
-   *
-   * This method is available only when the targeted parent instance is defined: after the initialisation, or after a call of `setInstance()` from its dash.
-   */
-  getParent(filter?: ComponentFilter): object | undefined
-
-  /**
-   * Find a list of ancestor components that satisfy the provided optional filter, ordered from nearest to farthest.
-   *
-   * This method is available only when the targeted parent instances are defined: after the initialisation, or after a call of `setInstance()` from their dash.
-   */
-  getParents(filter?: ComponentFilter): object[]
+  getComponent(): object
 }
 
 export interface Dash<A = any> extends PublicDash<A> {
@@ -171,6 +159,7 @@ export interface Dash<A = any> extends PublicDash<A> {
    * Declare the event names that can be emitted by the component. If this method is not called, then any event names can be emitted or listened.
    */
   exposeEvent(...eventNames: string[]): this
+
   /**
    * Declare the event names that can be emitted by the component. If this method is not called, then any event names can be emitted or listened.
    */
@@ -186,12 +175,12 @@ export interface Dash<A = any> extends PublicDash<A> {
    *
    * @returns The `Dash` of the child component.
    */
-  toComponent(obj: object): Dash<A>
+  registerComponent(obj: object): Dash<A>
 
   /**
    * Add an existing `child` to a group. Groups help the parent component to process or destroy children.
    */
-  addToGroup(child: object, group: string, ...groups: string[]): this
+  addToGroup(child: object, ...groups: string[]): this
 
   /**
    * Add an existing `child` to a group. Groups help the parent component to process or destroy children.
@@ -201,7 +190,7 @@ export interface Dash<A = any> extends PublicDash<A> {
   /**
    * Test if the `child` is at least in one of these `groups`.
    */
-  inGroup(child: object, group: string, ...groups: string[]): boolean
+  inGroup(child: object, ...groups: string[]): boolean
 
   /**
    * Test if the `child` is at least in one of these `groups`.
@@ -265,7 +254,7 @@ export interface AppDash<A = any> extends Dash<A> {
   /**
    * Register a function `augment` that will be called in order to augment each new `Dash`.
    */
-  registerDashAugmentation(augment: (dash: Dash<A>) => DashAugmentation): void
+  addDashAugmentation(augment: (dash: Dash<A>) => DashAugmentation): void
 }
 
 export interface Log {

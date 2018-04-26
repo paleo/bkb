@@ -6,7 +6,7 @@ export function createApplication<A>(Class: { new(dash: AppDash<A>, ...args: any
   return bkb.root.getInstance() as any
 }
 
-export function toApplication<A>(obj: A): AppDash<A> {
+export function registerApplication<A>(obj: A): AppDash<A> {
   let bkb = new AppBkb(obj, true)
   return bkb.root.dash as AppDash<A>
 }
