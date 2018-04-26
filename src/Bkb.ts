@@ -1,7 +1,9 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnmanagedListeners, DashAugmentation } from "./exported-definitions"
+import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnmanagedListeners, DashAugmentation, OrderName, OrderCallback } from "./exported-definitions"
 import { AppBkb } from "./AppBkb"
 import { Emitter } from "./Emitter"
-import { Subscriber } from "./Subscriber";
+import { Subscriber } from "./Subscriber"
+import { DescendingOrderManager } from "./DescendingOrderManager"
+import { arr, flatten } from "./utils"
 
 const CAN_PROPAGATE_SYMB = Symbol("canPropagate")
 
@@ -10,6 +12,7 @@ export class Bkb {
   public dash: Dash | AppDash | undefined
   public emitter: Emitter
   public subscriber = new Subscriber()
+  public dOrders?: DescendingOrderManager
 
   public inst: object | undefined
   private childGroups?: Map<string, Set<number>>
@@ -222,6 +225,16 @@ export class Bkb {
       bkbs.push(this.app.getBkb(id))
     return bkbs
   }
+
+  // --
+  // -- Descending Orders
+  // --
+
+  getDOrders(): DescendingOrderManager {
+    if (!this.dOrders)
+      this.dOrders = new DescendingOrderManager(this.app, this.componentId)
+    return this.dOrders
+  }
 }
 
 function makePublicDash(bkb: Bkb): PublicDash {
@@ -241,6 +254,10 @@ function makePublicDash(bkb: Bkb): PublicDash {
     hasChildren: (filter: FindChildFilter = {}) => bkb.hasChildren(filter),
     isChild: (obj: object) => bkb.isChild(obj),
     destroy: () => bkb.destroy(),
+    execDescendingOrder(orderName: OrderName, orderData: any) {
+      bkb.getDOrders().execOrder(orderName, orderData)
+      return this
+    },
     isComponent: (obj: object) => bkb.app.isComponent(obj),
     getPublicDashOf: (inst: object) => bkb.app.getBkbByInst(inst).pub!,
     getParentOf(inst: object) {
@@ -334,6 +351,14 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
       bkb.subscriber.stopListening(targetBkb.emitter, arr(eventName), listener, thisArg)
       return dash as any
     },
+    listenToDescendingOrder(orderName: OrderName, listener: OrderCallback, thisArg?: any) {
+      bkb.getDOrders().listenToDescendingOrder(orderName, listener, thisArg)
+      return dash
+    },
+    stopListeningDescendingOrder(orderName: OrderName, listener: OrderCallback, thisArg?: any) {
+      bkb.getDOrders().stopListeningDescendingOrder(orderName, listener, thisArg)
+      return dash
+    },
     destroyChildren: (filter: FindChildFilter = {}) => {
       bkb.destroyChildren(filter)
       return dash as any
@@ -349,12 +374,4 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
   }
   Object.freeze(dash)
   return dash
-}
-
-function arr(name: string | string[]): string[] {
-  return typeof name === "string" ? [name] : name
-}
-
-function flatten(args: any[]): string[] {
-  return args.length === 1 && Array.isArray(args[0]) ? args[0] : args
 }

@@ -39,6 +39,9 @@ export interface ComponentEvent<ED = any> {
 export type EventCallback<ED = any> = (evData: ED, compEv: ComponentEvent<ED>) => void
 export type EventName = string | string[]
 
+export type OrderCallback<OD = any> = (orderData: OD) => void
+export type OrderName = string | string[]
+
 export interface EmitOptions {
   /**
    * When this option is set to `true`, then the event is emitted (and the listeners are called) synchronously.
@@ -142,6 +145,11 @@ export interface PublicDash<A = any> extends AppScopeMembers<A> {
    * Available only when the component instance is defined: after the constructor is executed, or after a call of `setInstance()` from its dash.
    */
   getComponent(): object
+
+  /**
+   * Execute a descending order. Propagate it to all the descendents.
+   */
+  execDescendingOrder(orderName: OrderName, orderData: any): this
 }
 
 export interface Dash<A = any> extends PublicDash<A> {
@@ -210,29 +218,39 @@ export interface Dash<A = any> extends PublicDash<A> {
   broadcast(ev: ComponentEvent, options?: EmitOptions): this
 
   /**
-   * Listen to `eventName` on the current component
+   * Listen to `eventName` on the current component.
    */
   listenTo<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
 
   /**
-   * Listen to `eventName` on the target `component`
+   * Listen to `eventName` on the target `component`.
    */
   listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
 
   /**
-   * Stop to listen everything for the `listener`
+   * Stop to listen everything for the `listener`.
    */
   stopListening(listener: EventCallback, thisArg?: any): this
 
   /**
-   * Stop to listen to `eventName` on the current component
+   * Stop to listen to `eventName` on the current component.
    */
   stopListening(eventName: EventName, listener: EventCallback, thisArg?: any): this
 
   /**
-   * Stop to listen to `eventName` on the target `component`
+   * Stop to listen to `eventName` on the target `component`.
    */
   stopListening(component: object, eventName: EventName, listener: EventCallback, thisArg?: any): this
+
+  /**
+   * Listen to `orderName` from the parents.
+   */
+  listenToDescendingOrder<OD = any>(orderName: OrderName, listener: OrderCallback<OD>, thisArg?: any): this
+
+  /**
+   * Stop to listen to `orderName` from the parents.
+   */
+  stopListeningDescendingOrder(orderName: OrderName, listener: OrderCallback, thisArg?: any): this
 
   /**
    * @returns Destroy the children that satisfy the provided optional filter.

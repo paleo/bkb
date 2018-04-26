@@ -1,7 +1,7 @@
 {
   "name": "bkb",
-  "version": "0.24.0",
-  "description": "A JavaScript Framework for Front-end Applications",
+  "version": "0.25.0",
+  "description": "An Unopinionated JavaScript Framework for Front-end Applications",
   "main": "bkb.min.js",
   "types": "bkb.d.ts",
   "devDependencies": {
@@ -29,8 +29,9 @@
   "keywords": [
     "frontend",
     "framework",
+    "spa",
     "components",
     "lightweight",
-    "non-opinionated"
+    "unopinionated"
   ]
 }
