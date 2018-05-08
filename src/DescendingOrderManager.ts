@@ -13,15 +13,15 @@ export class DescendingOrderManager {
   constructor(private app: AppBkb, private componentId: number) {
   }
 
-  execOrder(orderName: OrderName, orderData: any) {
+  invokeOrder(orderName: OrderName, orderData: any) {
     for (let name of arr(orderName))
-      this.execHere(name, orderData)
+      this.exec(name, orderData)
     let children = this.app.getChildrenOf(this.componentId)
     for (let child of children)
-      child.getDOrders().execOrder(orderName, orderData)
+      child.getDOrders().invokeOrder(orderName, orderData)
   }
 
-  private execHere(name: string, orderData: any) {
+  private exec(name: string, orderData: any) {
     let list = this.map.get(name)
     if (list)
       list.forEach(cb => call(cb, orderData))

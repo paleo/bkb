@@ -149,7 +149,7 @@ export interface PublicDash<A = any> extends AppScopeMembers<A> {
   /**
    * Execute a descending order. Propagate it to all the descendents.
    */
-  execDescendingOrder(orderName: OrderName, orderData: any): this
+  invokeDescendingOrder(orderName: OrderName, orderData: any): this
 }
 
 export interface Dash<A = any> extends PublicDash<A> {

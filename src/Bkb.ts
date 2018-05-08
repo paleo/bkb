@@ -254,8 +254,8 @@ function makePublicDash(bkb: Bkb): PublicDash {
     hasChildren: (filter: FindChildFilter = {}) => bkb.hasChildren(filter),
     isChild: (obj: object) => bkb.isChild(obj),
     destroy: () => bkb.destroy(),
-    execDescendingOrder(orderName: OrderName, orderData: any) {
-      bkb.getDOrders().execOrder(orderName, orderData)
+    invokeDescendingOrder(orderName: OrderName, orderData: any) {
+      bkb.getDOrders().invokeOrder(orderName, orderData)
       return this
     },
     isComponent: (obj: object) => bkb.app.isComponent(obj),
