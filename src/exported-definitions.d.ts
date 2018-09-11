@@ -176,12 +176,12 @@ export interface Dash<A = any> extends PublicDash<A> {
   /**
    * Create a child component by instantiating the `Class` without options.
    */
-  create<C, D extends Dash<A> = Dash<A>>(Class: { new (dash: D): C }): C
+  create<C, D extends Dash = Dash<A>>(Class: { new (dash: D): C }): C
 
   /**
    * Create a child component by instantiating the `Class`. The options will be passed to the constructor at second constructor parameter.
    */
-  create<C, D extends Dash<A> = Dash<A>, OPT = any>(Class: { new (dash: D, options: OPT): C }, options: OPT): C
+  create<C, OPT, D extends Dash = Dash<A>>(Class: { new (dash: D, options: OPT): C }, options: OPT): C
 
   /**
    * Make the `obj` a child component.
