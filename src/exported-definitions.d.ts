@@ -174,14 +174,14 @@ export interface Dash<A = any> extends PublicDash<A> {
   exposeEvent(eventNames: string[]): this
 
   /**
-   * Create a child component by instantiating the `Class`. The options will be passed to the constructor at second constructor parameter.
-   */
-  create<C, D extends Dash<A> = Dash<A>, OPT = any>(Class: { new (dash: D, options: OPT): C }, options: OPT): C
-
-  /**
    * Create a child component by instantiating the `Class` without options.
    */
   create<C, D extends Dash<A> = Dash<A>>(Class: { new (dash: D): C }): C
+
+  /**
+   * Create a child component by instantiating the `Class`. The options will be passed to the constructor at second constructor parameter.
+   */
+  create<C, D extends Dash<A> = Dash<A>, OPT = any>(Class: { new (dash: D, options: OPT): C }, options: OPT): C
 
   /**
    * Make the `obj` a child component.
