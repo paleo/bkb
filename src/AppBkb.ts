@@ -90,7 +90,7 @@ export class AppBkb {
     if (nc.asObj)
       bkb.setInstance(nc.obj)
     else
-      bkb.makeInstance(nc.Class, nc.args) // Can call 'removeComponent' and throw an error
+      bkb.makeInstance(nc.Class, nc.opt) // Can call 'removeComponent' and throw an error
     this.root.dash.emit(["addComponent", "changeComponent"], { component: bkb.getInstance(), type: "add" })
     // console.log("===> [DEBUG] create (after)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     node.created = true

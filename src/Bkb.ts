@@ -27,12 +27,12 @@ export class Bkb {
   // -- Used by Application
   // --
 
-  public makeInstance(Cl, args: any[]) {
+  public makeInstance(Cl, options?: any) {
     if (this.inst)
       return
     let inst
     try {
-      inst = new Cl(this.dash, ...args)
+      inst = new Cl(this.dash, options)
     } catch (err) {
       this.destroy()
       throw err
@@ -277,13 +277,13 @@ export interface InternalNewComponentAsObj {
   obj: object
 }
 
-export interface InternalNewComponentNew {
+export interface InternalNewComponentAsInst {
   asObj: false
   Class: any
-  args: any[]
+  opt: any[]
 }
 
-export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentNew
+export type InternalNewComponent = InternalNewComponentAsObj | InternalNewComponentAsInst
 
 function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
   let source: Partial<Dash | AppDash> = {
@@ -295,8 +295,8 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
       bkb.emitter.exposeEvent(flatten(eventNames), true)
       return dash as any
     },
-    create: (Class: { new(): any }, ...args: any[]) => {
-      return bkb.createChild({ asObj: false, Class, args }).getInstance() as any
+    create: (Class: { new(): any }, opt?: any) => {
+      return bkb.createChild({ asObj: false, Class, opt }).getInstance() as any
     },
     registerComponent: (obj: object) => bkb.createChild({ asObj: true, obj }).dash as any,
     addToGroup: (child: object, ...groups) => {
