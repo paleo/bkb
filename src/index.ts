@@ -1,8 +1,8 @@
-import { AppDash } from "./exported-definitions";
-import { AppBkb } from "./AppBkb";
+import { AppBkb } from "./AppBkb"
+import { AppDash } from "./exported-definitions"
 
-export function createApplication<A>(Class: { new(dash: AppDash<A>, ...args: any[]): A }, ...args: any[]): A {
-  let bkb = new AppBkb(Class, false, args)
+export function createApplication<A, O>(Class: { new(dash: AppDash<A>, options: O): A }, options: O): A {
+  let bkb = new AppBkb(Class, false, options)
   return bkb.root.getInstance() as any
 }
 

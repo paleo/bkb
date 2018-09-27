@@ -1,5 +1,4 @@
 import { ComponentEvent, EventCallback, Log } from "./exported-definitions"
-import { Bkb } from "./Bkb"
 
 export interface Listener {
   cb: EventCallback

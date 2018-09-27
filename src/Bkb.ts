@@ -1,20 +1,20 @@
-import { ComponentEvent, EmitOptions, PublicDash, Dash, AppDash, ComponentFilter, FindChildFilter, EventName, EventCallback, UnmanagedListeners, DashAugmentation, OrderName, OrderCallback } from "./exported-definitions"
 import { AppBkb } from "./AppBkb"
-import { Emitter } from "./Emitter"
-import { Subscriber } from "./Subscriber"
 import { DescendingOrderManager } from "./DescendingOrderManager"
+import { Emitter } from "./Emitter"
+import { AppDash, ComponentEvent, Dash, DashAugmentation, EmitOptions, EventCallback, EventName, FindChildFilter, OrderCallback, OrderName, PublicDash } from "./exported-definitions"
+import { Subscriber } from "./Subscriber"
 import { arr, flatten } from "./utils"
 
 const CAN_PROPAGATE_SYMB = Symbol("canPropagate")
 
 export class Bkb {
-  public pub: PublicDash | undefined
-  public dash: Dash | AppDash | undefined
-  public emitter: Emitter
-  public subscriber = new Subscriber()
-  public dOrders?: DescendingOrderManager
+  pub: PublicDash | undefined
+  dash: Dash | AppDash | undefined
+  emitter: Emitter
+  subscriber = new Subscriber()
+  dOrders?: DescendingOrderManager
 
-  public inst: object | undefined
+  inst: object | undefined
   private childGroups?: Map<string, Set<number>>
 
   constructor(public app: AppBkb, readonly componentId: number) {
@@ -27,7 +27,7 @@ export class Bkb {
   // -- Used by Application
   // --
 
-  public makeInstance(Cl, options?: any) {
+  makeInstance(Cl, options?: any) {
     if (this.inst)
       return
     let inst
@@ -40,7 +40,7 @@ export class Bkb {
     this.setInstance(inst)
   }
 
-  public setInstance(inst: object) {
+  setInstance(inst: object) {
     if (!this.pub)
       throw new Error(`Destroyed component`)
     if (this.inst) {
@@ -52,7 +52,7 @@ export class Bkb {
     this.app.setInstanceOf(this.componentId, this.inst)
   }
 
-  public getInstance(): object {
+  getInstance(): object {
     if (!this.inst) {
       if (this.pub)
         throw new Error(`The component instance is still not initialized`)
@@ -61,7 +61,7 @@ export class Bkb {
     return this.inst
   }
 
-  public destroy() {
+  destroy() {
     this.emit("destroy", undefined, { sync: true, cancelPropagation: true })
     this.app.removeComponent(this, this.inst)
     if (this.childGroups)
@@ -73,7 +73,7 @@ export class Bkb {
     this.inst = undefined
   }
 
-  public forgetChild(compId: number) {
+  forgetChild(compId: number) {
     if (this.childGroups) {
       for (let group of this.childGroups.values())
         group.delete(compId)
@@ -84,11 +84,11 @@ export class Bkb {
   // -- [make dashs]
   // --
 
-  public createChild(nc: InternalNewComponent): Bkb {
+  createChild(nc: InternalNewComponent): Bkb {
     return this.app.createComponent(nc, this)
   }
 
-  public addToGroup(child: object, groups: string[]) {
+  addToGroup(child: object, groups: string[]) {
     let childId = this.app.getBkbByInst(child).componentId
     if (this !== this.app.getParentOf(childId))
       throw new Error(`The component ${childId} is not a child of ${this.componentId}`)
@@ -102,7 +102,7 @@ export class Bkb {
     }
   }
 
-  public inGroup(child: object, groups: string[]) {
+  inGroup(child: object, groups: string[]) {
     if (!this.childGroups)
       return false
     let childId = this.app.getBkbByInst(child).componentId
@@ -118,23 +118,82 @@ export class Bkb {
   // -- [make dashs] Emit events
   // --
 
-  public broadcast(ev: ComponentEvent, options: EmitOptions = {}) {
+  broadcast(ev: ComponentEvent, options: EmitOptions = {}) {
     if (options.sync)
       this.emitter.emit(ev)
     else
       this.app.asyncCall(() => this.emitter.emit(ev))
   }
 
-  public emit(eventName: string, data?: any, options: EmitOptions = {}) {
+  emit(eventName: string, data?: any, options: EmitOptions = {}) {
     if (options.sync)
       this.emitSync(this.createEvent(eventName, data, options.cancelPropagation))
     else
       this.app.asyncCall(() => this.emitSync(this.createEvent(eventName, data, options.cancelPropagation)))
   }
 
+  // --
+  // -- [make dashs] Navigate to parents
+  // --
+
+  getParent(): Bkb | undefined {
+    return this.app.getParentOf(this.componentId)
+  }
+
+  getParents(): Bkb[] {
+    let parent: Bkb | undefined = this
+    let result = [] as Bkb[]
+    while (parent = this.app.getParentOf(parent.componentId))
+      result.push(parent)
+    return result
+  }
+
+  // --
+  // -- [make dashs] Navigate to children
+  // --
+
+  getChildren(filter: FindChildFilter): object[] {
+    let list = this.getChildBkbs(filter.group)
+    let filtered: object[] = []
+    for (let child of list) {
+      // if ((!filter.filter || filter.filter(child)) &&!child.inst)
+      //   console.log("=======> Missing instance for component", child.componentId)
+      if (child.inst && (!filter.filter || filter.filter(child)))
+        filtered.push(child.inst)
+    }
+    return filtered
+  }
+
+  hasChildren(filter: FindChildFilter): boolean {
+    return this.getChildren(filter).length > 0
+  }
+
+  isChild(obj: object): boolean {
+    let compId = this.app.getBkbByInst(obj).componentId
+    return this === this.app.getParentOf(compId)
+  }
+
+  destroyChildren(filter: FindChildFilter) {
+    let bkbs = this.getChildBkbs(filter.group)
+    for (let child of bkbs) {
+      if (!filter.filter || filter.filter(child))
+        child.destroy()
+    }
+  }
+
+  // --
+  // -- Descending Orders
+  // --
+
+  getDOrders(): DescendingOrderManager {
+    if (!this.dOrders)
+      this.dOrders = new DescendingOrderManager(this.app, this.componentId)
+    return this.dOrders
+  }
+
   private createEvent(eventName: string, data: any, cancelPropagation?: boolean): ComponentEvent {
-    let that = this,
-      canPropagate = !cancelPropagation
+    let that = this
+    let canPropagate = !cancelPropagation
     return Object.freeze({
       eventName,
       get source() {
@@ -157,61 +216,12 @@ export class Bkb {
     }
   }
 
-  // --
-  // -- [make dashs] Navigate to parents
-  // --
-
-  public getParent(): Bkb | undefined {
-    return this.app.getParentOf(this.componentId)
-  }
-
-  public getParents(): Bkb[] {
-    let parent: Bkb | undefined = this,
-      result = [] as Bkb[]
-    while (parent = this.app.getParentOf(parent.componentId))
-      result.push(parent)
-    return result
-  }
-
-  // --
-  // -- [make dashs] Navigate to children
-  // --
-
-  public getChildren(filter: FindChildFilter): object[] {
-    let list = this.getChildBkbs(filter.group),
-      filtered: object[] = []
-    for (let child of list) {
-      // if ((!filter.filter || filter.filter(child)) &&!child.inst)
-      //   console.log("=======> Missing instance for component", child.componentId)
-      if (child.inst && (!filter.filter || filter.filter(child)))
-        filtered.push(child.inst)
-    }
-    return filtered
-  }
-
-  public hasChildren(filter: FindChildFilter): boolean {
-    return this.getChildren(filter).length > 0
-  }
-
-  public isChild(obj: object): boolean {
-    let compId = this.app.getBkbByInst(obj).componentId
-    return this === this.app.getParentOf(compId)
-  }
-
-  public destroyChildren(filter: FindChildFilter) {
-    let bkbs = this.getChildBkbs(filter.group)
-    for (let child of bkbs) {
-      if (!filter.filter || filter.filter(child))
-        child.destroy()
-    }
-  }
-
   private getChildBkbs(groupName?: string | string[]): Iterable<Bkb> {
     if (!groupName)
       return this.app.getChildrenOf(this.componentId)
     if (!this.childGroups)
       return []
-    let names = <string[]>(typeof groupName === "string" ? [groupName] : groupName)
+    let names = (typeof groupName === "string" ? [groupName] : groupName) as string[]
     let identifiers = new Set<number>()
     for (let name of names) {
       let group = this.childGroups.get(name)
@@ -224,16 +234,6 @@ export class Bkb {
     for (let id of identifiers.values())
       bkbs.push(this.app.getBkb(id))
     return bkbs
-  }
-
-  // --
-  // -- Descending Orders
-  // --
-
-  getDOrders(): DescendingOrderManager {
-    if (!this.dOrders)
-      this.dOrders = new DescendingOrderManager(this.app, this.componentId)
-    return this.dOrders
   }
 }
 
@@ -291,7 +291,7 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
       bkb.setInstance(inst)
       return dash as any
     },
-    exposeEvent: function (...eventNames: any[]) {
+    exposeEvent (...eventNames: any[]) {
       bkb.emitter.exposeEvent(flatten(eventNames), true)
       return dash as any
     },
@@ -304,21 +304,21 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
       return dash as any
     },
     inGroup: (child: object, ...groups) => bkb.inGroup(child, flatten(groups)),
-    emit: function (eventName: EventName, data?, options?: EmitOptions) {
+    emit (eventName: EventName, data?, options?: EmitOptions) {
       let names = Array.isArray(eventName) ? eventName : [eventName]
       for (let name of names)
         bkb.emit(name, data, options)
       return dash as any
     },
-    broadcast: function (ev: ComponentEvent, options?: EmitOptions) {
+    broadcast (ev: ComponentEvent, options?: EmitOptions) {
       bkb.broadcast(ev, options)
       return dash as any
     },
     listenTo: (...args) => {
-      let targetBkb: Bkb,
-        eventName: EventName,
-        listener: EventCallback,
-        thisArg
+      let targetBkb: Bkb
+      let eventName: EventName
+      let listener: EventCallback
+      let thisArg
       if (args.length === 2 || typeof args[0] === "string" || Array.isArray(args[0])) {
         [eventName, listener, thisArg] = args
         targetBkb = bkb
@@ -331,10 +331,10 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
       return dash as any
     },
     stopListening: (...args) => {
-      let targetBkb: Bkb,
-        eventName: EventName,
-        listener: EventCallback,
-        thisArg
+      let targetBkb: Bkb
+      let eventName: EventName
+      let listener: EventCallback
+      let thisArg
       let count = args.length
       if (typeof args[0] === "string" || Array.isArray(args[0])) {
         [eventName, listener, thisArg] = args
@@ -368,7 +368,7 @@ function makeDash(bkb: Bkb, pub: PublicDash): Dash | AppDash {
   let dash: Dash | AppDash = Object.assign(Object.create(pub), source)
   Object.assign(dash, ...bkb.app.augmentList.map(augment => augment(dash as Dash)))
   if (!bkb.app.root || bkb.app.root === bkb) { // AppDash
-    ;(dash as AppDash).addDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
+    (dash as AppDash).addDashAugmentation = (augment: (d: Dash) => DashAugmentation) => {
       bkb.app.augmentList.push(augment)
     }
   }

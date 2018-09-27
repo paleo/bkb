@@ -1,5 +1,5 @@
-import { OrderName, OrderCallback } from "./exported-definitions"
 import { AppBkb } from "./AppBkb"
+import { OrderCallback, OrderName } from "./exported-definitions"
 import { arr } from "./utils"
 
 interface Cb {
@@ -21,12 +21,6 @@ export class DescendingOrderManager {
       child.getDOrders().invokeOrder(orderName, orderData)
   }
 
-  private exec(name: string, orderData: any) {
-    let list = this.map.get(name)
-    if (list)
-      list.forEach(cb => call(cb, orderData))
-  }
-
   listenToDescendingOrder(orderName: OrderName, listener: OrderCallback, thisArg: any = null) {
     for (let name of arr(orderName)) {
       let list = this.map.get(name)
@@ -45,6 +39,12 @@ export class DescendingOrderManager {
       if (list)
         this.map.set(name, list.filter(cb => cb.cb !== listener || cb.thisArg !== thisArg))
     }
+  }
+
+  private exec(name: string, orderData: any) {
+    let list = this.map.get(name)
+    if (list)
+      list.forEach(cb => call(cb, orderData))
   }
 }
 

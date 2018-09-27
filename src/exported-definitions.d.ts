@@ -14,7 +14,7 @@ export interface FindChildFilter {
   filter?: ComponentFilter
 }
 
-export interface ComponentEvent<ED = any> {
+export interface ComponentEvent<D = any> {
   /**
    * The event name.
    */
@@ -28,7 +28,7 @@ export interface ComponentEvent<ED = any> {
   /**
    * The event data.
    */
-  readonly data?: ED
+  readonly data?: D
 
   /**
    * Stop the propagation of the event. The event won't bubble up after the call to this method.
@@ -36,10 +36,10 @@ export interface ComponentEvent<ED = any> {
   stopPropagation(): void
 }
 
-export type EventCallback<ED = any> = (evData: ED, compEv: ComponentEvent<ED>) => void
+export type EventCallback<D = any> = (evData: D, compEv: ComponentEvent<D>) => void
 export type EventName = string | string[]
 
-export type OrderCallback<OD = any> = (orderData: OD) => void
+export type OrderCallback<D = any> = (orderData: D) => void
 export type OrderName = string | string[]
 
 export interface EmitOptions {
@@ -64,7 +64,7 @@ export interface UnmanagedListeners {
   /**
    * Add a `listener` to this component.
    */
-  on<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): void
+  on<D = any>(eventName: EventName, listener: EventCallback<D>, thisArg?: any): void
 
   /**
    * Remove a `listener` to this component.
@@ -181,7 +181,7 @@ export interface Dash<A = any> extends PublicDash<A> {
   /**
    * Create a child component by instantiating the `Class`. The options will be passed to the constructor at second constructor parameter.
    */
-  create<C = any, OPT = any, D extends Dash = Dash<A>>(Class: { new (dash: D, options: OPT): C }, options: OPT): C
+  create<C = any, O = any, D extends Dash = Dash<A>>(Class: { new (dash: D, options: O): C }, options: O): C
 
   /**
    * Make the `obj` a child component.
@@ -225,12 +225,12 @@ export interface Dash<A = any> extends PublicDash<A> {
   /**
    * Listen to `eventName` on the current component.
    */
-  listenTo<ED = any>(eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
+  listenTo<D = any>(eventName: EventName, listener: EventCallback<D>, thisArg?: any): this
 
   /**
    * Listen to `eventName` on the target `component`.
    */
-  listenTo<ED = any>(component: object, eventName: EventName, listener: EventCallback<ED>, thisArg?: any): this
+  listenTo<D = any>(component: object, eventName: EventName, listener: EventCallback<D>, thisArg?: any): this
 
   /**
    * Stop to listen everything for the `listener`.
@@ -250,7 +250,7 @@ export interface Dash<A = any> extends PublicDash<A> {
   /**
    * Listen to `orderName` from the parents.
    */
-  listenToDescendingOrder<OD = any>(orderName: OrderName, listener: OrderCallback<OD>, thisArg?: any): this
+  listenToDescendingOrder<D = any>(orderName: OrderName, listener: OrderCallback<D>, thisArg?: any): this
 
   /**
    * Stop to listen to `orderName` from the parents.
@@ -281,7 +281,6 @@ export interface AppDash<A = any> extends Dash<A> {
 }
 
 export interface Log {
-  fatal(...messages: any[]): void
   error(...messages: any[]): void
   warn(...messages: any[]): void
   info(...messages: any[]): void

@@ -1,5 +1,5 @@
-import { Log, Dash, DashAugmentation, LogEvent } from "./exported-definitions"
 import { Bkb, InternalNewComponent } from "./Bkb"
+import { Dash, DashAugmentation, Log, LogEvent } from "./exported-definitions"
 
 interface CompNode {
   bkb: Bkb
@@ -10,20 +10,19 @@ interface CompNode {
 
 export class AppBkb {
 
-  public root: Bkb
-  public log: Log
+  root: Bkb
+  log: Log
+  augmentList: Array<(dash: Dash) => DashAugmentation> = []
 
   private compCount = 0
   private nodesByInst = new WeakMap<object, CompNode>()
   private nodes = new Map<number, CompNode>()
-  private tickList: (() => void)[] | undefined
+  private tickList: Array<() => void> | undefined
   private insideRmComp = false
 
-  public augmentList: ((dash: Dash) => DashAugmentation)[] = []
-
-  constructor(objOrCl: any, asObject: boolean, args?: any[]) {
+  constructor(objOrCl: any, asObject: boolean, options?: any) {
     let compId = this.newId()
-    this.log = this.createLog(["fatal", "error", "warn", "info", "debug", "trace"])
+    this.log = this.createLog(["error", "warn", "info", "debug", "trace"])
     this.root = new Bkb(this, compId)
     let node: CompNode = {
       bkb: this.root
@@ -33,26 +32,25 @@ export class AppBkb {
     if (asObject)
       this.root.setInstance(objOrCl)
     else
-      this.root.makeInstance(objOrCl, args || []) // Can call 'removeComponent' and throw an error
+      this.root.makeInstance(objOrCl, options) // Can call 'removeComponent' and throw an error
     node.created = true
-    // console.log("===> [DEBUG] init", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
-  public setInstanceOf(compId: number, inst) {
+  setInstanceOf(compId: number, inst) {
     let node = this.nodes.get(compId)
     if (!node)
       throw new Error(`Destroyed component`)
     this.nodesByInst.set(inst, node)
   }
 
-  public getParentOf(compId: number): Bkb | undefined {
+  getParentOf(compId: number): Bkb | undefined {
     let node = this.findNode(compId)
     return node.parent ? node.parent.bkb : undefined
   }
 
-  public getChildrenOf(compId: number): Bkb[] {
-    let result: Bkb[] = [],
-      children = this.findNode(compId).children
+  getChildrenOf(compId: number): Bkb[] {
+    let result: Bkb[] = []
+    let children = this.findNode(compId).children
     if (children) {
       for (let child of children.values())
         result.push(child.bkb)
@@ -60,29 +58,29 @@ export class AppBkb {
     return result
   }
 
-  public getBkb(compId: number): Bkb {
+  getBkb(compId: number): Bkb {
     return this.findNode(compId).bkb
   }
 
-  public getBkbByInst(obj: object): Bkb {
+  getBkbByInst(obj: object): Bkb {
     return this.findNodeByInst(obj).bkb
   }
 
-  public isComponent(obj: object): boolean {
+  isComponent(obj: object): boolean {
     return this.nodesByInst.get(obj) ? true : false
   }
 
-  public createComponent(nc: InternalNewComponent, parent: Bkb): Bkb {
+  createComponent(nc: InternalNewComponent, parent: Bkb): Bkb {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
-    let compId = this.newId(),
-      bkb = new Bkb(this, compId)
+    let compId = this.newId()
+    let bkb = new Bkb(this, compId)
     // console.log("===> [DEBUG] create (before)", compId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
-    let parentNode = this.findNode(parent.componentId),
-      node: CompNode = {
-        bkb: bkb,
-        parent: parentNode
-      }
+    let parentNode = this.findNode(parent.componentId)
+    let node: CompNode = {
+      bkb,
+      parent: parentNode
+    }
     this.nodes.set(compId, node)
     if (!parentNode.children)
       parentNode.children = new Map()
@@ -97,14 +95,14 @@ export class AppBkb {
     return bkb
   }
 
-  public removeComponent<C>(bkb: Bkb, inst: object | undefined): void {
+  removeComponent<C>(bkb: Bkb, inst: object | undefined): void {
     if (!this.root.dash)
       throw new Error("Destroyed root component")
     // console.log("===> [DEBUG] remove (before)", bkb.componentId, inst ? inst : "-no inst-", "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
     let mainRm = !this.insideRmComp
     try {
-      let compId = bkb.componentId,
-        node = this.findNode(compId)
+      let compId = bkb.componentId
+      let node = this.findNode(compId)
       if (mainRm) {
         this.insideRmComp = true
         if (inst && node.created) {
@@ -133,7 +131,7 @@ export class AppBkb {
     // console.log("===> [DEBUG] remove (after)", bkb.componentId, "\n", publicNodesToString(this.nodes.get(this.root.componentId)!))
   }
 
-  public asyncCall(cb: () => void): void {
+  asyncCall(cb: () => void): void {
     if (!this.tickList) {
       this.tickList = [cb]
       setTimeout(() => {
@@ -170,9 +168,9 @@ export class AppBkb {
     return this.compCount++
   }
 
-  private createLog(levels: (keyof Log)[]): Log {
-    let log = {},
-      num = 0
+  private createLog(levels: Array<keyof Log>): Log {
+    let log = {}
+    let num = 0
     for (let level of levels) {
       log[level] = (...messages: any[]) => {
         if (!this.root.dash)
