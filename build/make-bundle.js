@@ -2,7 +2,7 @@ const { promisify } = require("util")
 const fs = require("fs")
 const path = require("path")
 const rollup = require("rollup")
-const uglifyEs = require("uglify-es")
+const uglify = require("uglify-es")
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
@@ -16,12 +16,15 @@ async function build() {
   let bundle = await rollup.rollup({
     input: path.join(compiledPath, "index.js")
   })
-  let { code } = await bundle.generate({
+  let { output } = await bundle.generate({
     format: "es",
     sourcemap: false
   })
 
-  let minified = uglifyEs.minify(code)
+  let minified = uglify.minify(
+    { "bkb.js": output[0].code },
+    { toplevel: true }
+  )
   if (minified.error)
     throw minified.error
 
